@@ -1,0 +1,30 @@
+{
+  "name": "acnh-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 4000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "style": "bun prettier -w src/ && bun run lint",
+    "all": "bun run build && bun run style && bun run dev"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^4.35.3",
+    "@types/node": "20.6.0",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7",
+    "autoprefixer": "10.4.15",
+    "classnames": "^2.3.2",
+    "eslint": "8.49.0",
+    "eslint-config-next": "13.4.19",
+    "next": "^13.4.19",
+    "postcss": "8.4.29",
+    "prettier": "^3.0.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwindcss": "3.3.3",
+    "typescript": "5.2.2"
+  }
+}

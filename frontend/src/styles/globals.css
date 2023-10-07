@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 202, 232, 172;
+  --background-end-rgb: 202, 232, 172;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/nunito/v26/XRXV3I6Li01BKofINeaBTMnFcQ.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'FinkHeavy';
+  src: url('../../public/FinkHeavyRegular.ttf');
+}
+
+.image-filled-text {
+  background: url('../../public/wood.jpeg') no-repeat center center;
+  -webkit-background-clip: text;
+  color: transparent;
+}
