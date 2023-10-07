@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 client = MongoClient("mongodb://localhost:27017/")
-db = client["acnh"]
-collection = db["Housewares"]
+db = client["acnh-furnitures"]
+collection = db["Furnitures"]
 
 app = FastAPI()
 app.add_middleware(
@@ -22,15 +22,14 @@ app.add_middleware(
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1):
-    if category:
-        collection = db[category]
-    
     def escape_regex(string):
         return re.sub(r"([.*+?^=!:${}()|\[\]\/\\])", r"\\\1", string)
     search = escape_regex(search)
     
     offset = (page - 1) * limit
     criteria = {"name":{"$regex": search, "$options": "ix"}}
+    if category:
+        criteria["category"] = category
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection = {"name":1,"image":1,"variations":1,"_id":0}, 
@@ -42,8 +41,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1):
     # result is a list of json/dictionaries
     for item in result:
         item["name"] = item["name"].capitalize()
-        item["resultCount"] = total_count
-        if "image" not in item:
-            item["image"] = item["variations"][0]["image"]
-    return result
+        item["image"] = item.get("image") or item["variations"][0]["image"]
+    return {"result":result,
+            "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
     #return {"message": "Hello World"}
