@@ -61,8 +61,6 @@ const Home = () => {
       return json;
     },
   });
-  console.log('Max Page:', data?.page_info.max_page);
-  console.log('Page Info:', data?.page_info);
 
   return (
     <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
@@ -95,18 +93,20 @@ const Home = () => {
         ))}
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const updatedQuery = {
-            ...Object.fromEntries(searchParams.entries()), // current query params
-            textSearch: searchBar, // updated search value
-            page: 1,
-          };
-          router.push({ query: updatedQuery }, undefined, { shallow: true });
-        }}
-      >
-        <div className="relative block">
+      <div className="relative block">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const updatedQuery = {
+              ...Object.fromEntries(searchParams.entries()), // current query params
+              textSearch: searchBar, // updated search value
+              page: 1,
+            };
+            console.log(`onSubmit: ${searchBar}`);
+            console.log(`onSubmit: ${JSON.stringify(updatedQuery)}`);
+            router.push({ query: updatedQuery }, undefined, { shallow: true });
+          }}
+        >
           <input
             className="w-full rounded-lg border bg-white px-4 py-4 placeholder:text-neutral-500"
             type="text"
@@ -115,26 +115,28 @@ const Home = () => {
             autoComplete="off"
             value={searchBar}
             onChange={(e) => {
+              console.log('before onChange', searchBar);
+              console.log(e.target.value);
               setSearchBar(e.target.value);
             }}
           />
-          <button
-            className="absolute inset-y-0 right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
-            onClick={() => {
-              setSearchBar('');
-              const updatedQuery = {
-                ...Object.fromEntries(searchParams.entries()), // current query params
-                textSearch: '', // updated search value
-                page: 1,
-              };
-              router.push({ query: updatedQuery }, undefined, { shallow: true });
-            }}
-          >
-            &times; {/* This is the "×" character which looks like a cross */}
-          </button>
-        </div>
-        <hr />
-      </form>
+        </form>
+        <button
+          className="absolute inset-y-0 right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
+          onClick={() => {
+            setSearchBar('');
+            const updatedQuery = {
+              ...Object.fromEntries(searchParams.entries()), // current query params
+              textSearch: '', // updated search value
+              page: 1,
+            };
+            router.push({ query: updatedQuery }, undefined, { shallow: true });
+          }}
+        >
+          &times; {/* This is the "×" character which looks like a cross */}
+        </button>
+      </div>
+      <hr />
       <div className="flex flex-col w-full items-start">
         <div className="flex w-full items-center justify-between mb-2">
           <div className="flex-grow m-1">Item Counts: {data?.page_info.total_count ?? 0}</div>
