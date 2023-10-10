@@ -4,7 +4,7 @@ from pymongo import MongoClient, InsertOne
 
 client = MongoClient("mongodb://localhost:27017/")
 
-db = client["acnh-others"]
+db = client["acnh-furnitures"]
 
 path = "../source-json/rawdata/data/Archive/"
 file_names = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path,f)) and f[0]!="."]

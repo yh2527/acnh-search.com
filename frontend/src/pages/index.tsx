@@ -34,12 +34,15 @@ const categories = [
   'Tools-Goods',
   'Ceiling Decor',
   'Interior Structures',
+  'Cooking',
+  'Models',
 ];
 
 const Home = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchBar, setSearchBar] = useState(searchParams?.get('textSearch') ?? '');
+  const [showFilters, setShowFilters] = useState(false);
 
   // React.useEffect(() => {
   //   const updatedQuery = {
@@ -54,8 +57,9 @@ const Home = () => {
     queryFn: async (): Promise<ApiResponse> => {
       const searchTerm = searchParams.get('textSearch') ?? '';
       const category = searchParams.get('category') ?? '';
+      const tag = searchParams.get('tag') ?? '';
       const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&limit=40&page=${currentPage}`;
+      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&tag=${tag}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       return json;
@@ -67,79 +71,130 @@ const Home = () => {
       <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
         ACNH Item Search
       </div>
-
-      <div className="flex flex-wrap gap-2 mb-8">
-        {categories.map((category) => (
-          <button
-            key={category}
-            onClick={(e) => {
+      <div className="flex flex-col w-full">
+        {' '}
+        {/* parent container for categories, toggle filters, text search*/}
+        <div className="relative block mb-5 mr-3">
+          <form
+            onSubmit={(e) => {
               e.preventDefault();
               const updatedQuery = {
                 ...Object.fromEntries(searchParams.entries()), // current query params
-                category: category === 'All Categories' ? '' : category, // updated search value
+                textSearch: searchBar, // updated search value
+                page: 1,
+              };
+              console.log(`onSubmit: ${searchBar}`);
+              console.log(`onSubmit: ${JSON.stringify(updatedQuery)}`);
+              router.push({ query: updatedQuery }, undefined, { shallow: true });
+            }}
+          >
+            <input
+              className="w-full rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500"
+              type="text"
+              name="searchBar"
+              placeholder="Search for items..."
+              autoComplete="off"
+              value={searchBar}
+              onChange={(e) => {
+                setSearchBar(e.target.value);
+              }}
+            />
+          </form>
+          <button
+            className="absolute inset-y-0 right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
+            onClick={() => {
+              setSearchBar('');
+              const updatedQuery = {
+                ...Object.fromEntries(searchParams.entries()), // current query params
+                textSearch: '', // updated search value
                 page: 1,
               };
               router.push({ query: updatedQuery }, undefined, { shallow: true });
             }}
-            className={classNames(
-              `px-4 py-2`,
-              searchParams.get('category') === (category === 'All Categories' ? '' : category)
-                ? 'bg-amber-300 text-slate-500'
-                : 'bg-white text-slate-500',
-            )}
           >
-            {category}
+            &times; {/* This is the "×" character which looks like a cross */}
           </button>
-        ))}
-      </div>
-
-      <div className="relative block">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const updatedQuery = {
-              ...Object.fromEntries(searchParams.entries()), // current query params
-              textSearch: searchBar, // updated search value
-              page: 1,
-            };
-            console.log(`onSubmit: ${searchBar}`);
-            console.log(`onSubmit: ${JSON.stringify(updatedQuery)}`);
-            router.push({ query: updatedQuery }, undefined, { shallow: true });
-          }}
-        >
-          <input
-            className="w-full rounded-lg border bg-white px-4 py-4 placeholder:text-neutral-500"
-            type="text"
-            name="searchBar"
-            placeholder="Search for items..."
-            autoComplete="off"
-            value={searchBar}
-            onChange={(e) => {
-              console.log('before onChange', searchBar);
-              console.log(e.target.value);
-              setSearchBar(e.target.value);
+        </div>
+        <div className="flex flex-wrap gap-2 mb-5">
+          {' '}
+          {/* category buttons*/}
+          <button
+            onClick={() => {
+              setSearchBar(''); // clear out search bar value
+              router.push({}, undefined, { shallow: true });
             }}
-          />
-        </form>
-        <button
-          className="absolute inset-y-0 right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
-          onClick={() => {
-            setSearchBar('');
-            const updatedQuery = {
-              ...Object.fromEntries(searchParams.entries()), // current query params
-              textSearch: '', // updated search value
-              page: 1,
-            };
-            router.push({ query: updatedQuery }, undefined, { shallow: true });
-          }}
-        >
-          &times; {/* This is the "×" character which looks like a cross */}
-        </button>
+            className="px-4 py-2 hover:bg-amber-300 bg-white rounded rounded"
+          >
+            X
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={(e) => {
+                e.preventDefault();
+                const updatedQuery = {
+                  ...Object.fromEntries(searchParams.entries()), // current query params
+                  category: category === 'All Categories' ? '' : category, // updated category
+                  page: 1,
+                };
+                router.push({ query: updatedQuery }, undefined, { shallow: true });
+              }}
+              className={classNames(
+                `px-4 py-2 rounded`,
+                category === (searchParams.get('category') || 'All Categories')
+                  ? 'bg-amber-300 text-slate-500'
+                  : 'bg-white text-slate-500',
+              )}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2"> {/* toggle filters */}
+          <button
+            className="px-3 py-1 border border-2 text-amber-500  border-amber-500 rounded"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            More Filters
+          </button>
+          {showFilters && (
+            <div className="mt-3">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                const updatedQuery = {
+                  ...Object.fromEntries(searchParams.entries()), // current query params
+                  page: 1,
+                  tag: "DishFood",
+                };
+                router.push({ query: updatedQuery }, undefined, { shallow: true });
+              }}
+              className={classNames(
+                `p-1 mr-2 rounded`,
+                "DishFood" === searchParams.get('tag')
+                  ? 'bg-amber-300 text-slate-500'
+                  : 'bg-white text-slate-500',
+              )}
+            >
+              Dish
+            </button>
+              <select className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500">
+                <option>Food/Drink</option>
+                <option>Food</option>
+                <option>Drink</option>
+              </select>
+              <select className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500">
+                <option>Filter A</option>
+                <option>Filter B</option>
+                <option>Filter C</option>
+              </select>
+            </div>
+          )}
+        </div>
       </div>
-      <hr />
-      <div className="flex flex-col w-full items-start">
+      <div className="flex flex-col w-full items-start"> {/* item cards */}
         <div className="flex w-full items-center justify-between mb-2">
-          <div className="flex-grow m-1">Item Counts: {data?.page_info.total_count ?? 0}</div>
+          <div className="flex-grow pl-1">Item Counts: {data?.page_info.total_count ?? '...'}</div>
           <PaginationControls
             currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
             totalPages={data?.page_info.max_page ?? 1}
@@ -150,7 +205,7 @@ const Home = () => {
             }
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-center items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 justify-center items-start">
           {(data?.result ?? []).map((item, i) => (
             <ItemCard key={item.name} item={item} />
           ))}
@@ -180,21 +235,21 @@ const PaginationControls = ({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) => (
-  <div className="pagination-controls flex">
+  <div className="pagination-controls flex h-8 w-auto">
     <button
       className={classNames(
-        'border border-slate-500 bg-white text-slate-500 px-3 py-1 mr-2 w-8 h-8',
-        currentPage === 1 ? 'bg-slate-400 text-white' : 'hover:bg-slate-200 transition bg-white text-slate-500',
+        'text-slate-500 px-3 py-1',
+        currentPage === 1 ? 'text-yellow-100' : 'hover:bg-amber-300 transition text-slate-500',
       )}
       onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
       disabled={currentPage === 1}
     >
       &lt;
     </button>
-    <span className="mt-1">Page {currentPage}</span>
+    <span className="text-center mt-1">Page {currentPage}</span>
     <button
-      className={`border border-slate-500 bg-white text-slate-500 px-3 py-1 ml-2 w-8 h-8 ${
-        currentPage === totalPages ? 'bg-slate-400 text-white' : 'hover:bg-slate-200 transition bg-white text-slate-500'
+      className={`text-slate-500 px-3 py-1 ${
+        currentPage === totalPages ? 'text-yellow-100' : 'hover:bg-amber-300 transition text-slate-500'
       }`}
       onClick={() => onPageChange(currentPage + 1)}
       disabled={currentPage === totalPages}

@@ -21,18 +21,19 @@ app.add_middleware(
 
 
 @app.get("/")
-def root(category: str = "", search: str = "", limit: int = 40, page: int = 1):
-    def escape_regex(string):
-        return re.sub(r"([.*+?^=!:${}()|\[\]\/\\])", r"\\\1", string)
-    search = escape_regex(search)
+def root(category: str = "", search: str = "", tag: str = "", limit: int = 40, page: int = 1):
+    search = re.escape(search)
     
     offset = (page - 1) * limit
     criteria = {"name":{"$regex": search, "$options": "ix"}}
+    if tag:
+        criteria["tag"] = tag
     if category:
         criteria["category"] = category
     total_count = collection.count_documents(criteria)
     
-    bson = collection.find(filter = criteria, projection = {"name":1,"image":1,"variations":1,"_id":0}, 
+    bson = collection.find(filter = criteria, projection =
+                           {"name":1,"image":1,"variations":1,"tag":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     # Convert ObjectId to str for JSON serialization
