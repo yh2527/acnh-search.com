@@ -37,6 +37,7 @@ const categories = [
   'Cooking',
   'Models',
 ];
+const tags = ['DishFood', 'DishDrink'];
 
 const Home = () => {
   const router = useRouter();
@@ -57,14 +58,56 @@ const Home = () => {
     queryFn: async (): Promise<ApiResponse> => {
       const searchTerm = searchParams.get('textSearch') ?? '';
       const category = searchParams.get('category') ?? '';
-      const tag = searchParams.get('tag') ?? '';
       const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
+      const tag = searchParams.get('tag') ?? {};
+      //console.log(searchParams.get('tag'));
       const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&tag=${tag}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
+      console.log(`tag: ${JSON.stringify(tag)}`);
+      console.log(`tag: ${tag}`);
       return json;
     },
   });
+  const TagFilters = ({tagName}:{tagName: string}) => {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          let tagObject = JSON.parse(searchParams.get('tag') || '{}');
+          //console.log('tagObject',tagObject)
+          //console.log('tagName',tagName)
+          let flag = tagObject[tagName] ?? '0';
+          //console.log('flag', flag)
+          if (flag === '1') {
+            flag = '-1';
+          } else if (flag === '0') {
+            flag = '1';
+          } else {
+            flag = '0';
+          }
+          tagObject[tagName] = flag
+          //console.log('tagObject',tagObject,tagName,flag)
+          //console.log(JSON.stringify(tagObject))
+          const updatedQuery = {
+            ...Object.fromEntries(searchParams.entries()), // current query params
+            page: 1,
+            tag: JSON.stringify(tagObject),
+          };
+          router.push({ query: updatedQuery }, undefined, { shallow: true });
+        }}
+        className={classNames(
+          `px-2 py-1 mr-2 rounded`,
+          '0' === searchParams?.get(tagName) ?? '0' ? 'bg-white text-slate-500' : 'bg-amber-300 text-slate-500',
+        )}
+      >
+        {/* Check the value and adjust display accordingly */}
+        {searchParams?.get(tagName) ?? ('0' === '1' && '✓ ')}
+        {searchParams?.get(tagName) ?? ('0' === '-1' && '✗ ')}
+        {tagName}
+      </button>
+    );
+  };
 
   return (
     <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
@@ -150,7 +193,9 @@ const Home = () => {
             </button>
           ))}
         </div>
-        <div className="mt-2"> {/* toggle filters */}
+        <div className="mt-2">
+          {' '}
+          {/* toggle filters */}
           <button
             className="px-3 py-1 border border-2 text-amber-500  border-amber-500 rounded"
             onClick={() => setShowFilters(!showFilters)}
@@ -159,25 +204,9 @@ const Home = () => {
           </button>
           {showFilters && (
             <div className="mt-3">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                const updatedQuery = {
-                  ...Object.fromEntries(searchParams.entries()), // current query params
-                  page: 1,
-                  tag: "DishFood",
-                };
-                router.push({ query: updatedQuery }, undefined, { shallow: true });
-              }}
-              className={classNames(
-                `p-1 mr-2 rounded`,
-                "DishFood" === searchParams.get('tag')
-                  ? 'bg-amber-300 text-slate-500'
-                  : 'bg-white text-slate-500',
-              )}
-            >
-              Dish
-            </button>
+              {tags.map((tag) => (
+                <TagFilters tagName={tag} key={tag} />
+              ))}
               <select className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500">
                 <option>Food/Drink</option>
                 <option>Food</option>
@@ -192,7 +221,9 @@ const Home = () => {
           )}
         </div>
       </div>
-      <div className="flex flex-col w-full items-start"> {/* item cards */}
+      <div className="flex flex-col w-full items-start">
+        {' '}
+        {/* item cards */}
         <div className="flex w-full items-center justify-between mb-2">
           <div className="flex-grow pl-1">Item Counts: {data?.page_info.total_count ?? '...'}</div>
           <PaginationControls

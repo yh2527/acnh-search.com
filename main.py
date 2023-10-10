@@ -18,16 +18,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+'''
+collection.find({
+    "columnA": {
+        "$in": [1, 2],
+        "$nin": [3, 4]
+    }
+})
+'''
 
 @app.get("/")
-def root(category: str = "", search: str = "", tag: str = "", limit: int = 40, page: int = 1):
+def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: dict[str,int] = {}):
     search = re.escape(search)
     
     offset = (page - 1) * limit
     criteria = {"name":{"$regex": search, "$options": "ix"}}
-    if tag:
-        criteria["tag"] = tag
+    
+    for tagName in tag:
+        if tag[tagName] == 1:
+            criteria["tag"] = tagName
+        elif tag[tagName] == -1:
+            criteria["tag"] = {"$ne": tagName}
+    print(tag,criteria)
     if category:
         criteria["category"] = category
     total_count = collection.count_documents(criteria)
