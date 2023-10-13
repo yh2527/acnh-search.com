@@ -169,7 +169,9 @@ const Home = () => {
         //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
-          '' === (JSON.parse(searchParams?.get('tag') ?? '{}')[tagName] ?? '') ? 'bg-white text-slate-500' : 'bg-amber-300 text-slate-500',
+          '' === (JSON.parse(searchParams?.get('tag') ?? '{}')[tagName] ?? '')
+            ? 'bg-white text-slate-500'
+            : 'bg-amber-300 text-slate-500',
         )}
       >
         {(JSON.parse(searchParams?.get('tag') ?? '{}')[tagName] ?? '') === '1' && '✓ '}
@@ -250,18 +252,66 @@ const Home = () => {
     );
   };
 
-  const Modal = ({ item, onClose }) => (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg w-3/4 p-5">
-        <button onClick={onClose} className="float-right">
-          Close
-        </button>
-        <h2>{item.name}</h2>
-        <img src={item.image} alt={item.name} />
-        <p>Details about the item...</p>
+  const Modal = ({ item, onClose }) => {
+    const [hoveredImage, setHoveredImage] = React.useState(item.image);
+    const [hoveredColor, setHoveredColor] = React.useState(item.variations?.[0].variation);
+    return (
+      <div
+        className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center"
+        onClick={onClose}
+        style={{ backdropFilter: 'blur(5px)' }}
+      >
+        <div className="bg-white rounded-lg w-1/2 min-h-[500px]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
+            <div className="text-xl text-center">{item.name}</div>
+            <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
+              &times;
+            </button>
+          </div>
+          {/* Image and Description */}
+          <div className="flex mt-5">
+            <div className="flex-2 px-5">
+              <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-3 rounded-lg bg-slate-100 w-2/3 h-auto px-3 py-2 shadow-sm">
+              <div>
+                <strong>Category:</strong> {item.category}{' '}
+              </div>
+              <div>
+                <strong>Source:</strong> {item.source.join(', ')}{' '}
+              </div>
+              {/* Additional content can be placed here */}
+            </div>
+          </div>
+          {/* Variation and Pattern */}
+          <div className="flex flex-row overflow-x-auto items-center">
+            {
+              item.variations?.length ? (
+                item.variations.map((v, index) => (
+                  <img
+                    key={index}
+                    className="object-contain mb-3 h-10"
+                    src={v.image}
+                    alt={`${item.name} variation ${index}`}
+                    onMouseEnter={() => {
+                      setHoveredImage(v.image);
+                      setHoveredColor(v.variation);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredImage(item.image);
+                      setHoveredColor(item.variations[0].variation);
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="flex-grow"></div>
+              ) /* Empty div to maintain space */
+            }
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const openModal = (item) => {
     setSelectedItem(item);

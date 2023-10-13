@@ -62,7 +62,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     
     total_count = collection.count_documents(criteria)
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"image":1,"variations":1,"size":1,"tag":1,"_id":0}, 
+                           {"name":1,"category":1,"image":1,"variations":1,"size":1,"tag":1,"source":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     # Convert ObjectId to str for JSON serialization
