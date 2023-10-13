@@ -28,24 +28,41 @@ collection.find({
 '''
 
 @app.get("/")
-def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: dict[str,int] = {}):
+def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
+         str = ''):
     search = re.escape(search)
-    
     offset = (page - 1) * limit
     criteria = {"name":{"$regex": search, "$options": "ix"}}
     
-    for tagName in tag:
-        if tag[tagName] == 1:
-            criteria["tag"] = tagName
-        elif tag[tagName] == -1:
-            criteria["tag"] = {"$ne": tagName}
-    print(tag,criteria)
     if category:
         criteria["category"] = category
-    total_count = collection.count_documents(criteria)
+
+    if size:
+        criteria["size"] = size
     
+    tag = json.loads(tag or '{}')
+    tagIn = []
+    tagOut = []
+    if tag:
+        for tagName in tag:
+            tagFlag = tag.get(tagName, 0)
+            if tagFlag == '1':
+                tagIn.append(tagName)
+            elif tagFlag == '-1':
+                tagOut.append(tagName)
+    tag_criteria = {}
+    if tagIn:
+        tag_criteria["$in"] = tagIn
+    if tagOut:
+        tag_criteria["$nin"] = tagOut
+
+    if tag_criteria:
+        criteria['tag'] = tag_criteria
+    print(f'{tag}, {criteria}')
+    
+    total_count = collection.count_documents(criteria)
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"image":1,"variations":1,"tag":1,"_id":0}, 
+                           {"name":1,"image":1,"variations":1,"size":1,"tag":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     # Convert ObjectId to str for JSON serialization
