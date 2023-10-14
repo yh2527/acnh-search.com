@@ -13,6 +13,9 @@ interface Item {
     image: string;
     variation: string;
   }[];
+  category: string;
+  tag: string;
+  source: string[];
 }
 
 interface ApiResponse {
@@ -225,7 +228,7 @@ const Home = () => {
         <img className="w-50 h-auto mb-4" src={hoveredImage} alt={item.name} />
         <div className="flex flex-row overflow-x-auto items-center h-11">
           {
-            item.variations?.length ? (
+            !!item.variations ? (
               item.variations.map((v, index) => (
                 <img
                   key={index}
@@ -255,6 +258,17 @@ const Home = () => {
   const Modal = ({ item, onClose }) => {
     const [hoveredImage, setHoveredImage] = React.useState(item.image);
     const [hoveredColor, setHoveredColor] = React.useState(item.variations?.[0].variation);
+    let defaultVariation = '';
+    let defaultPattern = '';
+    if (item.variations_info) {
+      defaultVariation = Object.keys(item.variations_info)[0];
+      if (Object.values(item.variations_info)[0].pattern) {
+        defaultPattern = Object.keys(Object.values(item.variations_info)[0]['pattern'])[0];
+      }
+    }
+    const [hoveredVariation, setHoveredVariation] = React.useState(defaultVariation);
+    const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
+    const [lastHoveredThumbnail, setLastHoveredThumbnail] = React.useState(null);
     return (
       <div
         className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center"
@@ -269,44 +283,81 @@ const Home = () => {
             </button>
           </div>
           {/* Image and Description */}
-          <div className="flex mt-5">
+          <div className="flex mt-5 items-start">
             <div className="flex-2 px-5">
               <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
             </div>
-            <div className="flex-3 rounded-lg bg-slate-100 w-2/3 h-auto px-3 py-2 shadow-sm">
-              <div>
-                <strong>Category:</strong> {item.category}{' '}
+            <div className="flex-3 w-2/3 h-auto">
+              <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5">
+                <div>
+                  <strong>Category:</strong> {item.category}{' '}
+                </div>
+                <div>
+                  <strong>Source:</strong> {item.source.join(', ')}{' '}
+                </div>
               </div>
-              <div>
-                <strong>Source:</strong> {item.source.join(', ')}{' '}
-              </div>
+              {
+                !!item.variations_info ? (
+                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
+                    {/* Variation and Pattern */}
+                    <div>
+                      <strong>Variation:</strong> {hoveredVariation}{' '}
+                    </div>
+                    <div className="flex flex-row items-center">
+                      {Object.entries(item.variations_info).map(([key, value], index) => (
+                        <img
+                          key={index}
+                          className={`object-contain h-14 mx-1 rounded ${
+                            lastHoveredThumbnail === key ? 'bg-slate-200' : ''
+                          }`}
+                          src={value.image}
+                          alt={`${item.name} variation ${index}`}
+                          onMouseEnter={() => {
+                            setHoveredImage(value.image);
+                            setHoveredColor(key);
+                            setHoveredVariation(key);
+                            setLastHoveredThumbnail(key); // Set the last hovered thumbnail key
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-grow"></div>
+                ) /* Empty div to maintain space */
+              }
+              {
+                !!item.variations_info && !!Object.values(item.variations_info)[0]?.pattern ? (
+                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
+                    {/* Variation and Pattern */}
+                    <div>
+                      <strong>Pattern:</strong> {hoveredPattern}{' '}
+                    </div>
+                    <div className="flex flex-row items-center">
+                      {Object.entries(Object.values(item.variations_info)[0].pattern).map(([key, value], index) => (
+                        <img
+                          key={index}
+                          className={`object-contain h-14 mx-1 rounded ${
+                            lastHoveredThumbnail === key ? 'bg-slate-200' : ''
+                          }`}
+                          src={value.image}
+                          alt={`${item.name} variation ${index}`}
+                          onMouseEnter={() => {
+                            setHoveredImage(value.image);
+                            setHoveredColor(key);
+                            setHoveredPattern(key);
+                            setLastHoveredThumbnail(key); // Set the last hovered thumbnail key
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-grow"></div>
+                ) /* Empty div to maintain space */
+              }
               {/* Additional content can be placed here */}
             </div>
-          </div>
-          {/* Variation and Pattern */}
-          <div className="flex flex-row overflow-x-auto items-center">
-            {
-              item.variations?.length ? (
-                item.variations.map((v, index) => (
-                  <img
-                    key={index}
-                    className="object-contain mb-3 h-10"
-                    src={v.image}
-                    alt={`${item.name} variation ${index}`}
-                    onMouseEnter={() => {
-                      setHoveredImage(v.image);
-                      setHoveredColor(v.variation);
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredImage(item.image);
-                      setHoveredColor(item.variations[0].variation);
-                    }}
-                  />
-                ))
-              ) : (
-                <div className="flex-grow"></div>
-              ) /* Empty div to maintain space */
-            }
           </div>
         </div>
       </div>
@@ -317,11 +368,11 @@ const Home = () => {
     setSelectedItem(item);
     setIsModalOpen(true);
   };
-
   const closeModal = () => {
     setSelectedItem(null);
     setIsModalOpen(false);
   };
+
   return (
     <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
       <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
