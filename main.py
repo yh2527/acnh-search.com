@@ -79,8 +79,9 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {'image':v["image"]}
-                if v["pattern"]:
-                    item["variations_info"][v["variation"]]["pattern"] = {v["pattern"]:{'image':v["image"],'colors':v["colors"]}}
+                if "pattern" not in item["variations_info"][v["variation"]]:
+                    item["variations_info"][v["variation"]]["pattern"] = {}
+                item["variations_info"][v["variation"]]["pattern"][v.get("pattern", "None")]={'image':v["image"],'colors':v["colors"]}
     if result and "variations_info" in result[0]:
         print(result[0]["variations_info"])
 
@@ -91,7 +92,9 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
 """ item["variations_info"] exmaple with patterns -
 {'Dark wood': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_0.png', 
                 'pattern':
-                {'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_1.png', 
+                {"null": {"image": "https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_0.png",
+                            "colors": ["Brown","Brown"]},
+                'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_1.png', 
                                         'colors': ['Brown', 'Colorful']}, 
                 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_2.png', 
                                         'colors': ['Brown', 'Colorful']}, 
@@ -102,7 +105,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 }}, 
 'Orange wood': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_0.png', 
                 'pattern':
-                {'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_1.png', 
+                {'null': {...},
+                'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_1.png', 
                                         'colors': ['Orange', 'Colorful']}, 
                 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_2.png', 
                                     'colors': ['Orange', 'Colorful']}, 
@@ -113,7 +117,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 }}, 
 'White wood': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_0.png', 
                 'pattern':
-                {'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_1.png', 
+                {'null': {...},
+                'Southwestern iflair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_1.png', 
                                         'colors': ['Beige', 'Colorful']}, 
                 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_2.png', 
                                     'colors': ['Beige', 'Colorful']}, 
@@ -124,7 +129,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 }}, 
 'White birch': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_0.png', 
                 'pattern':
-                {'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_1.png', 
+                {'null': {...},
+                'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_1.png', 
                                         'colors': ['White', 'Colorful']}, 
                 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_2.png', 
                                     'colors': ['White', 'Colorful']}, 

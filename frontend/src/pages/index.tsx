@@ -257,25 +257,21 @@ const Home = () => {
 
   const Modal = ({ item, onClose }) => {
     const [hoveredImage, setHoveredImage] = React.useState(item.image);
-    const [hoveredColor, setHoveredColor] = React.useState(item.variations?.[0].variation);
     let defaultVariation = '';
     let defaultPattern = '';
     if (item.variations_info) {
       defaultVariation = Object.keys(item.variations_info)[0];
-      if (Object.values(item.variations_info)[0].pattern) {
-        defaultPattern = Object.keys(Object.values(item.variations_info)[0]['pattern'])[0];
-      }
+      defaultPattern = Object.keys(Object.values(item.variations_info)[0]['pattern'])[0];
     }
     const [hoveredVariation, setHoveredVariation] = React.useState(defaultVariation);
     const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
-    const [lastHoveredThumbnail, setLastHoveredThumbnail] = React.useState(null);
     return (
       <div
         className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center"
         onClick={onClose}
         style={{ backdropFilter: 'blur(5px)' }}
       >
-        <div className="bg-white rounded-lg w-1/2 min-h-[500px]" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-white rounded-lg w-3/5 min-h-[500px]" onClick={(e) => e.stopPropagation()}>
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
             <div className="text-xl text-center">{item.name}</div>
             <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
@@ -299,7 +295,7 @@ const Home = () => {
               {
                 !!item.variations_info ? (
                   <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
-                    {/* Variation and Pattern */}
+                    {/* Variation */}
                     <div>
                       <strong>Variation:</strong> {hoveredVariation}{' '}
                     </div>
@@ -308,15 +304,13 @@ const Home = () => {
                         <img
                           key={index}
                           className={`object-contain h-14 mx-1 rounded ${
-                            lastHoveredThumbnail === key ? 'bg-slate-200' : ''
+                            hoveredVariation === key ? 'bg-slate-200' : ''
                           }`}
                           src={value.image}
                           alt={`${item.name} variation ${index}`}
                           onMouseEnter={() => {
                             setHoveredImage(value.image);
-                            setHoveredColor(key);
                             setHoveredVariation(key);
-                            setLastHoveredThumbnail(key); // Set the last hovered thumbnail key
                           }}
                         />
                       ))}
@@ -327,29 +321,32 @@ const Home = () => {
                 ) /* Empty div to maintain space */
               }
               {
-                !!item.variations_info && !!Object.values(item.variations_info)[0]?.pattern ? (
+                !!item.variations_info && Object.keys(Object.values(item.variations_info)[0].pattern).length > 1 ? (
                   <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
-                    {/* Variation and Pattern */}
+                    {/* Variation */}
                     <div>
-                      <strong>Pattern:</strong> {hoveredPattern}{' '}
+                      <strong>Pattern:</strong> {hoveredPattern === 'null' ? 'None' : hoveredPattern}{' '}
                     </div>
                     <div className="flex flex-row items-center">
-                      {Object.entries(Object.values(item.variations_info)[0].pattern).map(([key, value], index) => (
-                        <img
-                          key={index}
-                          className={`object-contain h-14 mx-1 rounded ${
-                            lastHoveredThumbnail === key ? 'bg-slate-200' : ''
-                          }`}
-                          src={value.image}
-                          alt={`${item.name} variation ${index}`}
-                          onMouseEnter={() => {
-                            setHoveredImage(value.image);
-                            setHoveredColor(key);
-                            setHoveredPattern(key);
-                            setLastHoveredThumbnail(key); // Set the last hovered thumbnail key
-                          }}
-                        />
-                      ))}
+                      {Object.entries(item.variations_info[hoveredVariation].pattern).map(([key, value], index) => {
+                        console.log('variation', hoveredVariation);
+                        console.log(Object.values(item.variations_info));
+                        console.log('pattern', hoveredPattern);
+                        return (
+                          <img
+                            key={index}
+                            className={`object-contain h-14 mx-1 rounded ${
+                              hoveredPattern === key ? 'bg-slate-200' : ''
+                            }`}
+                            src={value.image}
+                            alt={`${item.name} variation ${index}`}
+                            onMouseEnter={() => {
+                              setHoveredImage(value.image);
+                              setHoveredPattern(key);
+                            }}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
