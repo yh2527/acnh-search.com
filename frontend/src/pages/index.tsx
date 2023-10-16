@@ -10,9 +10,10 @@ interface Item {
   name: string;
   image: string;
   variations: {
-    image: string;
     variation: string;
+    image: string;
   }[];
+  variations_info: Record<string, Record<string | null, { image: string; colors: string[] }>>;
   category: string;
   tag: string;
   source: string[];
@@ -60,6 +61,21 @@ const sizes = [
   '4x4',
   '5x5',
 ];
+const interactTypes = [
+  'Bed',
+  'Chair',
+  'Kitchenware',
+  'Mirror',
+  'Music Player',
+  'Musical Instrument',
+  'Storage',
+  'TV',
+  'Toilet',
+  'Trash',
+  'Wardrobe',
+  'Workbench',
+  'Other'
+]
 const tags = [
   'Animal',
   'Arch',
@@ -136,13 +152,40 @@ const Home = () => {
       const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
       const size = searchParams.get('size') ?? '';
       const tag = searchParams.get('tag') ?? '';
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&limit=40&page=${currentPage}`;
+      const interact = searchParams.get('interact') ?? '';
+      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       console.log(`tag: ${tag}`);
       return json;
     },
   });
+  const InteractFilters = ({interact}: {interact: string}) => {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          const updatedQuery = {
+            ...Object.fromEntries(searchParams.entries()), // current query params
+            page: 1,
+            interact: interact === 'Other' ? 'True' : interact,
+          };
+          router.push({ query: updatedQuery }, undefined, { shallow: true });
+        }}
+        //console.log('tagObject',tagObject,tagName,flag)
+        //console.log(JSON.stringify(tagObject))
+        className={classNames(
+          `px-2 py-1 mr-2 mb-1 rounded`,
+          interact === (searchParams?.get('interact') ?? '')
+            ? 'bg-amber-300 text-slate-500'
+            : 'bg-white text-slate-500',
+        )}
+      >
+        {interact}
+      </button>
+    );
+  };
+    
   const TagFilters = ({ tagName }: { tagName: string }) => {
     return (
       <button
@@ -262,7 +305,7 @@ const Home = () => {
     let defaultPattern = '';
     if (item.variations_info) {
       defaultVariation = Object.keys(item.variations_info)[0];
-      defaultPattern = Object.keys(Object.values(item.variations_info)[0]['pattern'])[0];
+      defaultPattern = Object.keys(Object.values(item.variations_info)[0])[0];
     }
     const [hoveredVariation, setHoveredVariation] = React.useState(defaultVariation);
     const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
@@ -280,25 +323,30 @@ const Home = () => {
             </button>
           </div>
           {/* Image and Description */}
-          <div className="flex mt-5 items-start">
-            <div className="flex-2 px-5">
+          <div className="flex items-start">
+            <div className="w-[25%] px-5 mt-2">
               <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
-              <div className="text-sm">Size {item.size}</div>
-              <div className="text-sm">
+              <div className="text-sm text-center">{item.size ? `Size ${item.size}` : null}</div>
+              <div className="text-sm text-center">
+                Color{' '}
                 {item.variations_info
-                  ? Array.from(new Set(item.variations_info[hoveredVariation].pattern[hoveredPattern].colors)).join(
-                      ', ',
-                    )
-                  : Array.from(new Set(item.colors)).join(', ')}
+                  ?  Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern].colors)).join(', ')
+                  :  Array.from(new Set(item.colors)).join(', ')}
               </div>
             </div>
-            <div className="flex-2 w-full pr-10">
+            <div className="w-[75%] pr-10 mt-5">
               <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5">
                 <div>
                   <strong>Category:</strong> {item.category}{' '}
                 </div>
                 <div>
                   <strong>Source:</strong> {item.source.join(', ')}{' '}
+                </div>
+                <div>
+                  <strong>Interaction: </strong> 
+                  {item.interact === true && 'True'}{' '}
+                  {!item.interact && 'False'}{' '}
+                  {typeof item.interact === 'string' && item.interact}{' '}
                 </div>
               </div>
               {
@@ -315,10 +363,12 @@ const Home = () => {
                           className={`object-contain h-14 mx-1 rounded ${
                             hoveredVariation === key ? 'bg-slate-200' : ''
                           }`}
-                          src={value.image}
+                          src={Object.values(value)[0].image}
                           alt={`${item.name} variation ${index}`}
                           onMouseEnter={() => {
-                            setHoveredImage(hoveredPattern ? value.pattern[hoveredPattern].image : value.image);
+                            setHoveredImage(
+                              hoveredPattern ? value[hoveredPattern].image : Object.values(value)[0].image,
+                            );
                             setHoveredVariation(key);
                           }}
                         />
@@ -330,14 +380,14 @@ const Home = () => {
                 ) /* Empty div to maintain space */
               }
               {
-                !!item.variations_info && Object.keys(Object.values(item.variations_info)[0].pattern).length > 1 ? (
+                !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
                   <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
                     {/* Variation */}
                     <div>
                       <strong>Pattern:</strong> {hoveredPattern === 'null' ? 'None' : hoveredPattern}{' '}
                     </div>
                     <div className="flex flex-row items-center">
-                      {Object.entries(item.variations_info[hoveredVariation].pattern).map(([key, value], index) => {
+                      {Object.entries(item.variations_info[hoveredVariation]).map(([key, value], index) => {
                         console.log('variation', hoveredVariation);
                         console.log(Object.values(item.variations_info));
                         console.log('pattern', hoveredPattern);
@@ -521,6 +571,30 @@ const Home = () => {
           </button>
           {showFilters && (
             <div className="mt-3">
+              <div> {/* Interact Types */}
+                <button
+                  onClick={() => {
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      interact: '', // empty interact
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={classNames(
+                    'px-3 py-1 mr-2 mb-1 rounded',
+                    '' === (searchParams?.get('interact') ?? '')
+                      ? 'bg-amber-300 text-slate-500'
+                      : 'bg-white text-slate-500 hover:bg-amber-300',
+                  )}
+                >
+                  X
+                </button>
+              {interactTypes.map((interact) => (
+                <InteractFilters interact={interact} key={interact} />
+              ))}
+              </div>
+              {/* Tag Filters */}
               <button
                 onClick={() => {
                   const updatedQuery = {

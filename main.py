@@ -29,7 +29,7 @@ collection.find({
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
-         str = ''):
+         str = '', interact: str = ''):
     search = re.escape(search)
     offset = (page - 1) * limit
 
@@ -38,6 +38,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         criteria["category"] = category
     if size:
         criteria["size"] = size
+    if interact:
+        criteria["interact"] = interact
     
     tag = json.loads(tag or '{}')
     tagIn = []
@@ -61,7 +63,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"category":1,"image":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"_id":0}, 
+                           {"name":1,"category":1,"image":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     
@@ -78,66 +80,22 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             item["variations_info"] = {}
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
-                    item["variations_info"][v["variation"]] = {'image':v["image"]}
-                if "pattern" not in item["variations_info"][v["variation"]]:
-                    item["variations_info"][v["variation"]]["pattern"] = {}
-                item["variations_info"][v["variation"]]["pattern"][v.get("pattern", "None")]={'image':v["image"],'colors':v["colors"]}
-    if result and "variations_info" in result[0]:
-        print(result[0]["variations_info"])
+                    item["variations_info"][v["variation"]] = {}
+                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v["colors"]}
+    #if result and "variations_info" in result[0]:
+    #    print(result[0]["variations_info"])
 
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
     #return {"message": "Hello World"}
 
 """ item["variations_info"] exmaple with patterns -
-{'Dark wood': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_0.png', 
-                'pattern':
-                {"null": {"image": "https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_0.png",
-                            "colors": ["Brown","Brown"]},
-                'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_1.png', 
-                                        'colors': ['Brown', 'Colorful']}, 
-                'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_2.png', 
-                                        'colors': ['Brown', 'Colorful']}, 
-                'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_3.png', 
-                            'colors': ['Brown', 'Brown']}, 
-                'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_4.png', 
-                            'colors': ['Brown', 'Aqua']}
-                }}, 
-'Orange wood': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_0.png', 
-                'pattern':
-                {'null': {...},
-                'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_1.png', 
-                                        'colors': ['Orange', 'Colorful']}, 
-                'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_2.png', 
-                                    'colors': ['Orange', 'Colorful']}, 
-                'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_3.png', 
-                            'colors': ['Orange', 'Brown']}, 
-                'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_4.png', 
-                            'colors': ['Orange', 'Aqua']}
-                }}, 
-'White wood': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_0.png', 
-                'pattern':
-                {'null': {...},
-                'Southwestern iflair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_1.png', 
-                                        'colors': ['Beige', 'Colorful']}, 
-                'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_2.png', 
-                                    'colors': ['Beige', 'Colorful']}, 
-                'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_3.png', 
-                            'colors': ['Beige', 'Brown']}, 
-                'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_4.png', 
-                            'colors': ['Beige', 'Aqua']}
-                }}, 
-'White birch': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_0.png', 
-                'pattern':
-                {'null': {...},
-                'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_1.png', 
-                                        'colors': ['White', 'Colorful']}, 
-                'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_2.png', 
-                                    'colors': ['White', 'Colorful']}, 
-                'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_3.png', 
-                            'colors': ['White', 'Brown']}, 
-                'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_4.png', 
-                            'colors': ['White', 'Aqua']}
-                }}
-}
+{'Dark wood': 
+    {None: {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_0.png', 'colors': ['Brown', 'Brown']}, 
+    'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_1.png', 'colors': ['Brown', 'Colorful']}, 
+    'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_2.png', 'colors': ['Brown', 'Colorful']}, 
+    'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_3.png', 'colors': ['Brown', 'Brown']}, 
+    'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_0_4.png', 'colors': ['Brown', 'Aqua']}
+    }, 
+'Orange wood': {None: {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_0.png', 'colors': ['Orange', 'Orange']}, 'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_1.png', 'colors': ['Orange', 'Colorful']}, 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_2.png', 'colors': ['Orange', 'Colorful']}, 'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_3.png', 'colors': ['Orange', 'Brown']}, 'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_1_4.png', 'colors': ['Orange', 'Aqua']}}, 'White wood': {None: {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_0.png', 'colors': ['Beige', 'Beige']}, 'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_1.png', 'colors': ['Beige', 'Colorful']}, 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_2.png', 'colors': ['Beige', 'Colorful']}, 'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_3.png', 'colors': ['Beige', 'Brown']}, 'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_2_4.png', 'colors': ['Beige', 'Aqua']}}, 'White birch': {None: {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_0.png', 'colors': ['White', 'White']}, 'Southwestern flair': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_1.png', 'colors': ['White', 'Colorful']}, 'Geometric print': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_2.png', 'colors': ['White', 'Colorful']}, 'Bears': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_3.png', 'colors': ['White', 'Brown']}, 'Quilted': {'image': 'https://acnhcdn.com/latest/FtrIcon/FtrLogTableL_Remake_3_4.png', 'colors': ['White', 'Aqua']}}}
 """
