@@ -16,6 +16,7 @@ interface Item {
   category: string;
   tag: string;
   source: string[];
+  size: string[];
 }
 
 interface ApiResponse {
@@ -282,8 +283,16 @@ const Home = () => {
           <div className="flex mt-5 items-start">
             <div className="flex-2 px-5">
               <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
+              <div className="text-sm">Size {item.size}</div>
+              <div className="text-sm">
+                {item.variations_info
+                  ? Array.from(new Set(item.variations_info[hoveredVariation].pattern[hoveredPattern].colors)).join(
+                      ', ',
+                    )
+                  : Array.from(new Set(item.colors)).join(', ')}
+              </div>
             </div>
-            <div className="flex-3 w-2/3 h-auto">
+            <div className="flex-2 w-full pr-10">
               <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5">
                 <div>
                   <strong>Category:</strong> {item.category}{' '}
@@ -297,7 +306,7 @@ const Home = () => {
                   <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
                     {/* Variation */}
                     <div>
-                      <strong>Variation:</strong> {hoveredVariation}{' '}
+                      <strong>Variation:</strong> {hoveredVariation === 'null' ? 'None' : hoveredVariation}{' '}
                     </div>
                     <div className="flex flex-row items-center">
                       {Object.entries(item.variations_info).map(([key, value], index) => (
@@ -309,7 +318,7 @@ const Home = () => {
                           src={value.image}
                           alt={`${item.name} variation ${index}`}
                           onMouseEnter={() => {
-                            setHoveredImage(value.image);
+                            setHoveredImage(hoveredPattern ? value.pattern[hoveredPattern].image : value.image);
                             setHoveredVariation(key);
                           }}
                         />
