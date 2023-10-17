@@ -74,8 +74,24 @@ const interactTypes = [
   'Trash',
   'Wardrobe',
   'Workbench',
-  'Other'
-]
+  'Other',
+];
+const colors = [
+  'Aqua',
+  'Beige',
+  'Black',
+  'Blue',
+  'Brown',
+  'Colorful',
+  'Gray',
+  'Green',
+  'Orange',
+  'Pink',
+  'Purple',
+  'Red',
+  'White',
+  'Yellow',
+];
 const tags = [
   'Animal',
   'Arch',
@@ -160,7 +176,7 @@ const Home = () => {
       return json;
     },
   });
-  const InteractFilters = ({interact}: {interact: string}) => {
+  const InteractFilters = ({ interact }: { interact: string }) => {
     return (
       <button
         onClick={(e) => {
@@ -176,7 +192,7 @@ const Home = () => {
         //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
-          interact === (searchParams?.get('interact') ?? '')
+          (interact === 'Other' ? 'True' : interact) === (searchParams?.get('interact') ?? '')
             ? 'bg-amber-300 text-slate-500'
             : 'bg-white text-slate-500',
         )}
@@ -185,7 +201,49 @@ const Home = () => {
       </button>
     );
   };
-    
+
+  const ColorFilters = ({ color }: { color: string }) => {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          let colorObject = JSON.parse(searchParams.get('colors') || '{}');
+          let flag = colorObject[color] ?? '';
+          if (flag === '1') {
+            flag = '-1';
+          } else if (flag === '-1') {
+            flag = '';
+          } else {
+            flag = '1';
+          }
+          if (flag === '') {
+            delete colorObject[color];
+          } else {
+            colorObject[color] = flag;
+          }
+          const updatedQuery = {
+            ...Object.fromEntries(searchParams.entries()), // current query params
+            page: 1,
+            colors: JSON.stringify(colorObject),
+          };
+          router.push({ query: updatedQuery }, undefined, { shallow: true });
+        }}
+        //console.log('tagObject',tagObject,tagName,flag)
+        //console.log(JSON.stringify(tagObject))
+        className={classNames(
+          `px-2 py-1 mr-2 mb-1 rounded`,
+          '' === (JSON.parse(searchParams?.get('colors') ?? '{}')[color] ?? '')
+            ? 'bg-white text-slate-500'
+            : 'bg-amber-300 text-slate-500',
+        )}
+      >
+        {(JSON.parse(searchParams?.get('colors') ?? '{}')[color] ?? '') === '1' && '✓ '}
+        {(JSON.parse(searchParams?.get('colors') ?? '{}')[color] ?? '') === '-1' && '✗ '}
+        {color}
+      </button>
+    );
+  };
+
   const TagFilters = ({ tagName }: { tagName: string }) => {
     return (
       <button
@@ -330,8 +388,8 @@ const Home = () => {
               <div className="text-sm text-center">
                 Color{' '}
                 {item.variations_info
-                  ?  Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern].colors)).join(', ')
-                  :  Array.from(new Set(item.colors)).join(', ')}
+                  ? Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? '')).join(', ')
+                  : Array.from(new Set(item?.colors ?? '')).join(', ')}
               </div>
             </div>
             <div className="w-[75%] pr-10 mt-5">
@@ -343,9 +401,8 @@ const Home = () => {
                   <strong>Source:</strong> {item.source.join(', ')}{' '}
                 </div>
                 <div>
-                  <strong>Interaction: </strong> 
-                  {item.interact === true && 'True'}{' '}
-                  {!item.interact && 'False'}{' '}
+                  <strong>Interaction: </strong>
+                  {item.interact === true && 'True'} {!item.interact && 'False'}{' '}
                   {typeof item.interact === 'string' && item.interact}{' '}
                 </div>
               </div>
@@ -571,7 +628,36 @@ const Home = () => {
           </button>
           {showFilters && (
             <div className="mt-3">
-              <div> {/* Interact Types */}
+              <div>
+                {' '}
+                {/* Colors */}
+                <div className="my-2">Colors:</div>
+                <button
+                  onClick={() => {
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      colors: '{}', // empty colors
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={classNames(
+                    'px-3 py-1 mr-2 mb-1 rounded',
+                    '' === (searchParams?.get('colors') ?? '')
+                      ? 'bg-amber-300 text-slate-500'
+                      : 'bg-white text-slate-500 hover:bg-amber-300',
+                  )}
+                >
+                  X
+                </button>
+                {colors.map((color) => (
+                  <ColorFilters color={color} key={color} />
+                ))}
+              </div>
+              <div>
+                {' '}
+                {/* Interact Types */}
+                <div className="my-2">Interactions:</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -590,11 +676,12 @@ const Home = () => {
                 >
                   X
                 </button>
-              {interactTypes.map((interact) => (
-                <InteractFilters interact={interact} key={interact} />
-              ))}
+                {interactTypes.map((interact) => (
+                  <InteractFilters interact={interact} key={interact} />
+                ))}
               </div>
               {/* Tag Filters */}
+              <div className="my-2">Tags:</div>
               <button
                 onClick={() => {
                   const updatedQuery = {
@@ -616,6 +703,7 @@ const Home = () => {
               {tags.map((tag) => (
                 <TagFilters tagName={tag} key={tag} />
               ))}
+              <div className="my-2">TODO:</div>
               <select className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500">
                 <option>Food/Drink</option>
                 <option>Food</option>

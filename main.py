@@ -29,7 +29,7 @@ collection.find({
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
-         str = '', interact: str = ''):
+         str = '', interact: str = '', colors: str = ''):
     search = re.escape(search)
     offset = (page - 1) * limit
 
@@ -39,6 +39,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     if size:
         criteria["size"] = size
     if interact:
+        if interact == "True":
+            interact = True
         criteria["interact"] = interact
     
     tag = json.loads(tag or '{}')
@@ -60,6 +62,20 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         criteria['tag'] = tag_criteria
     #print(f'{tag}, {criteria}')
     
+    colors = json.loads(colors or '{}')
+    colorsIn, colorsOut = [], []
+    if colors:
+        for c in colors:
+            colorFlag = colors.get(c, 0)
+            if colorFlag == '1':
+                colorsIn.append(c)
+            elif colorFlag == '-1':
+                colorsOut.append(c)
+    colors_criteria = {}
+    if colorsIn:
+        colors_criteria["$in"] = colorIn
+
+
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
@@ -81,7 +97,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {}
-                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v["colors"]}
+                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':[v.get("colors","")]}
     #if result and "variations_info" in result[0]:
     #    print(result[0]["variations_info"])
 
