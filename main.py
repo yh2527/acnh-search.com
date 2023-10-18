@@ -61,25 +61,16 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     if tag_criteria:
         criteria['tag'] = tag_criteria
     #print(f'{tag}, {criteria}')
-    
-    colors = json.loads(colors or '{}')
-    colorsIn, colorsOut = [], []
     if colors:
-        for c in colors:
-            colorFlag = colors.get(c, 0)
-            if colorFlag == '1':
-                colorsIn.append(c)
-            elif colorFlag == '-1':
-                colorsOut.append(c)
-    colors_criteria = {}
-    if colorsIn:
-        colors_criteria["$in"] = colorIn
-
-
+        colors = colors.split(',') # convert string into array
+        colors_criteria = {}
+        colors_criteria["$in"] = colors
+        criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
+    print("colors criteria", criteria.get("colors","no colors"))
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"category":1,"image":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"_id":0}, 
+                           {"name":1,"category":1,"image":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     
@@ -90,6 +81,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     
     # result transformation #
     for item in result:
+        flag = False
         item["name"] = item["name"].capitalize()
         item["image"] = item.get("image") or item["variations"][0]["image"]
         if "variations" in item:
@@ -97,10 +89,10 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {}
-                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':[v.get("colors","")]}
+                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v.get("colors",[])}
     #if result and "variations_info" in result[0]:
     #    print(result[0]["variations_info"])
-
+    
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
     #return {"message": "Hello World"}

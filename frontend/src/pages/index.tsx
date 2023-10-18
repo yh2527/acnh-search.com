@@ -169,7 +169,8 @@ const Home = () => {
       const size = searchParams.get('size') ?? '';
       const tag = searchParams.get('tag') ?? '';
       const interact = searchParams.get('interact') ?? '';
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&limit=40&page=${currentPage}`;
+      const colors = searchParams.get('colors') ?? '';
+      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       console.log(`tag: ${tag}`);
@@ -207,7 +208,13 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
-          let colorObject = JSON.parse(searchParams.get('colors') || '{}');
+          let colorStr = searchParams.get('colors') || '';
+          let colorsSet = new Set(colorStr ? colorStr.split(',').map((c) => c.trim()) : []);
+          console.log(colorsSet);
+          colorsSet.has(color) ? colorsSet.delete(color) : colorsSet.add(color);
+          console.log(colorsSet);
+          {
+            /*
           let flag = colorObject[color] ?? '';
           if (flag === '1') {
             flag = '-1';
@@ -220,11 +227,13 @@ const Home = () => {
             delete colorObject[color];
           } else {
             colorObject[color] = flag;
+          } 
+          */
           }
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
-            colors: JSON.stringify(colorObject),
+            colors: Array.from(colorsSet).join(','),
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
         }}
@@ -232,13 +241,12 @@ const Home = () => {
         //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
-          '' === (JSON.parse(searchParams?.get('colors') ?? '{}')[color] ?? '')
-            ? 'bg-white text-slate-500'
-            : 'bg-amber-300 text-slate-500',
+          (searchParams?.get('colors') ?? '').split(',').includes(color)
+            ? 'bg-amber-300 text-slate-500'
+            : 'bg-white text-slate-500',
         )}
       >
-        {(JSON.parse(searchParams?.get('colors') ?? '{}')[color] ?? '') === '1' && '✓ '}
-        {(JSON.parse(searchParams?.get('colors') ?? '{}')[color] ?? '') === '-1' && '✗ '}
+        {(searchParams?.get('colors') ?? '').split(',').includes(color) && '✓ '}
         {color}
       </button>
     );
@@ -386,10 +394,10 @@ const Home = () => {
               <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
               <div className="text-sm text-center">{item.size ? `Size ${item.size}` : null}</div>
               <div className="text-sm text-center">
-                Color{' '}
+                Color:{' '}
                 {item.variations_info
-                  ? Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? '')).join(', ')
-                  : Array.from(new Set(item?.colors ?? '')).join(', ')}
+                  ? Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(', ')
+                  : Array.from(new Set(item?.colors ?? [])).join(', ')}
               </div>
             </div>
             <div className="w-[75%] pr-10 mt-5">
@@ -636,7 +644,7 @@ const Home = () => {
                   onClick={() => {
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
-                      colors: '{}', // empty colors
+                      colors: '', // empty colors
                       page: 1,
                     };
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
