@@ -27,6 +27,7 @@ interface ApiResponse {
     max_page: number;
   };
 }
+const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High'];
 const categories = [
   'All Categories',
   'Housewares',
@@ -170,7 +171,9 @@ const Home = () => {
       const tag = searchParams.get('tag') ?? '';
       const interact = searchParams.get('interact') ?? '';
       const colors = searchParams.get('colors') ?? '';
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&limit=40&page=${currentPage}`;
+      const surface = searchParams.get('surface') ?? '';
+      const height = searchParams.get('height') ?? '';
+      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&surface=${surface}&height=${height}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       console.log(`tag: ${tag}`);
@@ -189,8 +192,6 @@ const Home = () => {
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
         }}
-        //console.log('tagObject',tagObject,tagName,flag)
-        //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
           (interact === 'Other' ? 'True' : interact) === (searchParams?.get('interact') ?? '')
@@ -202,7 +203,28 @@ const Home = () => {
       </button>
     );
   };
-
+  const HeightFilters = ({ height }: { height: string }) => {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          const updatedQuery = {
+            ...Object.fromEntries(searchParams.entries()), // current query params
+            page: 1,
+            height: height,
+          };
+          router.push({ query: updatedQuery }, undefined, { shallow: true });
+        }}
+        //console.log(JSON.stringify(tagObject))
+        className={classNames(
+          `px-2 py-1 mr-2 mb-1 rounded`,
+          height === (searchParams?.get('height') ?? '') ? 'bg-amber-300 text-slate-500' : 'bg-white text-slate-500',
+        )}
+      >
+        {height}
+      </button>
+    );
+  };
   const ColorFilters = ({ color }: { color: string }) => {
     return (
       <button
@@ -412,6 +434,11 @@ const Home = () => {
                   <strong>Interaction: </strong>
                   {item.interact === true && 'True'} {!item.interact && 'False'}{' '}
                   {typeof item.interact === 'string' && item.interact}{' '}
+                </div>
+                <div>
+                  <strong>Has surface: </strong>
+                  {item?.surface ?? (item.variations ? item.variations[0].surface : false === true && 'True')}
+                  {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
                 </div>
               </div>
               {
@@ -638,6 +665,32 @@ const Home = () => {
             <div className="mt-3">
               <div>
                 {' '}
+                {/* Height */}
+                <div className="my-2">Height:</div>
+                <button
+                  onClick={() => {
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      height: '', // empty height
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={classNames(
+                    'px-3 py-1 mr-2 mb-1 rounded',
+                    '' === (searchParams?.get('height') ?? '')
+                      ? 'bg-amber-300 text-slate-500'
+                      : 'bg-white text-slate-500 hover:bg-amber-300',
+                  )}
+                >
+                  X
+                </button>
+                {heights.map((h) => (
+                  <HeightFilters height={h} key={h} />
+                ))}
+              </div>
+              <div>
+                {' '}
                 {/* Colors */}
                 <div className="my-2">Colors:</div>
                 <button
@@ -711,16 +764,22 @@ const Home = () => {
               {tags.map((tag) => (
                 <TagFilters tagName={tag} key={tag} />
               ))}
-              <div className="my-2">TODO:</div>
-              <select className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500">
-                <option>Food/Drink</option>
-                <option>Food</option>
-                <option>Drink</option>
-              </select>
-              <select className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500">
-                <option>Filter A</option>
-                <option>Filter B</option>
-                <option>Filter C</option>
+              <div className="my-2">Other Filters:</div>
+              <select
+                onChange={(e) => {
+                  e.target.value;
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    surface: e.target.value, // empty tag
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">Surface All</option>
+                <option value="True">Have Surface</option>
+                <option value="False">No Surface</option>
               </select>
             </div>
           )}

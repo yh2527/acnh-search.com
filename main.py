@@ -29,20 +29,23 @@ collection.find({
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
-         str = '', interact: str = '', colors: str = ''):
+         str = '', interact: str = '', colors: str = '', surface: str = '', height: str = ''):
     search = re.escape(search)
     offset = (page - 1) * limit
-
+    # text search
     criteria = {"name":{"$regex": search, "$options": "ix"}}
+    # category
     if category:
         criteria["category"] = category
+    # size
     if size:
         criteria["size"] = size
+    # interaction
     if interact:
         if interact == "True":
             interact = True
         criteria["interact"] = interact
-    
+    # tag
     tag = json.loads(tag or '{}')
     tagIn = []
     tagOut = []
@@ -61,12 +64,36 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     if tag_criteria:
         criteria['tag'] = tag_criteria
     #print(f'{tag}, {criteria}')
+    # colors
     if colors:
         colors = colors.split(',') # convert string into array
-        colors_criteria = {}
-        colors_criteria["$in"] = colors
         criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
-    print("colors criteria", criteria.get("colors","no colors"))
+    #print("colors criteria", criteria.get("colors","no colors"))
+    # surface
+    if surface == "True":
+        criteria['$or'] = [
+            {'surface': True},
+            {"variations": {"$elemMatch": {"surface": True}}}
+        ]
+    else:
+        criteria['$and'] = [
+            {'surface': {'$ne': True}},
+            {"variations.surface": {'$ne': True}}
+        ]
+    # height
+    print(height)
+    if height:
+        heights = {
+                'Low': (0, 5), 
+                'Medium Low': (5, 7), 
+                'Medium': (7, 10), 
+                'Medium High': (10, 15),
+                'High': (15, 20),
+                'Very High': (20, 40)
+        }
+        print(heights[height])
+        criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
+
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
