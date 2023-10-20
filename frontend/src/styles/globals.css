@@ -29,3 +29,21 @@ body {
   -webkit-background-clip: text;
   color: transparent;
 }
+
+.triangle-down {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid currentColor; /* The color of the triangle */
+  display: inline-block;
+}
+
+.triangle-up {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid currentColor; /* The color of the triangle */
+  display: inline-block;
+}

@@ -147,19 +147,12 @@ const tags = [
 ];
 
 const Home = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [searchBar, setSearchBar] = useState(searchParams?.get('textSearch') ?? '');
   const [showFilters, setShowFilters] = useState(false);
-  // React.useEffect(() => {
-  //   const updatedQuery = {
-  //     ...searchParams.entries(), // current query params
-  //     page: currentPage,
-  //   };
-  //   router.push({ query: updatedQuery }, undefined, { shallow: true });
-  // }, [currentPage]);
 
   const { isLoading, error, data } = useQuery<ApiResponse>({
     queryKey: ['searchCache', Array.from(searchParams.entries())],
@@ -232,26 +225,7 @@ const Home = () => {
           e.preventDefault();
           let colorStr = searchParams.get('colors') || '';
           let colorsSet = new Set(colorStr ? colorStr.split(',').map((c) => c.trim()) : []);
-          console.log(colorsSet);
           colorsSet.has(color) ? colorsSet.delete(color) : colorsSet.add(color);
-          console.log(colorsSet);
-          {
-            /*
-          let flag = colorObject[color] ?? '';
-          if (flag === '1') {
-            flag = '-1';
-          } else if (flag === '-1') {
-            flag = '';
-          } else {
-            flag = '1';
-          }
-          if (flag === '') {
-            delete colorObject[color];
-          } else {
-            colorObject[color] = flag;
-          } 
-          */
-          }
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
@@ -259,8 +233,6 @@ const Home = () => {
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
         }}
-        //console.log('tagObject',tagObject,tagName,flag)
-        //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
           (searchParams?.get('colors') ?? '').split(',').includes(color)
@@ -528,7 +500,6 @@ const Home = () => {
       <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
         ACNH Item Search
       </div>
-
       <div className="flex flex-col w-full relative">
         {' '}
         {/* parent container for categories, toggle filters, text search*/}
@@ -654,21 +625,23 @@ const Home = () => {
             </button>
           ))}
         </div>
+        {/* toggle filters */}
         <div className="mt-2">
-          {' '}
-          {/* toggle filters */}
           <button
-            className="px-3 py-1 border border-2 text-amber-500  border-amber-500 rounded hover:bg-amber-300"
+            className={classNames(
+              'flex items-center mb-2 px-2 py-1 border border-2 text-amber-500 border-amber-500 rounded hover:bg-amber-200',
+              showFilters && 'bg-amber-300',
+            )}
             onClick={() => setShowFilters(!showFilters)}
           >
-            More Filters
+            <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span> More Filters
           </button>
           {showFilters && (
-            <div className="mt-3">
-              <div>
+            <div className="px-5 h-96 overflow-y-auto bg-yellow-200 bg-opacity-80 rounded-lg">
+              <div className="mt-3 mb-5">
                 {' '}
-                {/* Height */}
-                <div className="my-2">Height:</div>
+                {/* height start */}
+                <div className="mb-1">Height:</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -690,11 +663,12 @@ const Home = () => {
                 {heights.map((h) => (
                   <HeightFilters height={h} key={h} />
                 ))}
-              </div>
-              <div>
+              </div>{' '}
+              {/* height end */}
+              <div className="mb-5">
                 {' '}
-                {/* Colors */}
-                <div className="my-2">Colors:</div>
+                {/* color start */}
+                <div className="mb-1">Colors:</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -716,11 +690,12 @@ const Home = () => {
                 {colors.map((color) => (
                   <ColorFilters color={color} key={color} />
                 ))}
-              </div>
-              <div>
+              </div>{' '}
+              {/* color end */}
+              <div className="mb-5">
                 {' '}
-                {/* Interact Types */}
-                <div className="my-2">Interactions:</div>
+                {/* interact start */} {/* Interact Types */}
+                <div className="mb-1">Interactions:</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -742,31 +717,36 @@ const Home = () => {
                 {interactTypes.map((interact) => (
                   <InteractFilters interact={interact} key={interact} />
                 ))}
+              </div>{' '}
+              {/* interact end */}
+              <div className="mb-5">
+                {' '}
+                {/* tag start */} {/* tag Types */}
+                <div className="mb-1">Tags:</div>
+                <button
+                  onClick={() => {
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      tag: '{}', // empty tag
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={classNames(
+                    'px-3 py-1 mr-2 mb-1 rounded',
+                    '{}' === (searchParams?.get('tag') ?? '{}')
+                      ? 'bg-amber-300 text-slate-500'
+                      : 'bg-white text-slate-500 hover:bg-amber-300',
+                  )}
+                >
+                  X
+                </button>
+                {tags.map((tag) => (
+                  <TagFilters tagName={tag} key={tag} />
+                ))}
               </div>
-              {/* Tag Filters */}
-              <div className="my-2">Tags:</div>
-              <button
-                onClick={() => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    tag: '{}', // empty tag
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className={classNames(
-                  'px-3 py-1 mr-2 mb-1 rounded',
-                  '{}' === (searchParams?.get('tag') ?? '{}')
-                    ? 'bg-amber-300 text-slate-500'
-                    : 'bg-white text-slate-500 hover:bg-amber-300',
-                )}
-              >
-                X
-              </button>
-              {tags.map((tag) => (
-                <TagFilters tagName={tag} key={tag} />
-              ))}
-              <div className="my-2">Other Filters:</div>
+              {/* tag end */}
+              <div className="mb-1">Other Filters:</div>
               <select
                 onChange={(e) => {
                   e.target.value;
@@ -777,16 +757,18 @@ const Home = () => {
                   };
                   router.push({ query: updatedQuery }, undefined, { shallow: true });
                 }}
-                className="form-select p-1 mr-2 rounded text-amber-500 border border-amber-500"
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
                 <option value="">Surface All</option>
                 <option value="True">Have Surface</option>
                 <option value="False">No Surface</option>
               </select>
             </div>
-          )}
+          )}{' '}
+          {/* end of showFilters div*/}
         </div>
-      </div>
+      </div>{' '}
+      {/* end of the first half of the page */}
       <div className="flex flex-col w-full items-start">
         {' '}
         {/* item cards */}
