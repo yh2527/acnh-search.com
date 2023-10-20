@@ -27,7 +27,7 @@ interface ApiResponse {
     max_page: number;
   };
 }
-const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High'];
+const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
 const categories = [
   'All Categories',
   'Housewares',
@@ -414,12 +414,14 @@ const Home = () => {
           <div className="flex items-start">
             <div className="w-[25%] px-5 mt-2">
               <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
-              <div className="text-sm text-center">{item.size ? `Size ${item.size}` : null}</div>
+              <div className="text-sm text-center">{item.size ? `Size: ${item.size}` : null}</div>
+              <div className="text-sm text-center">{item.heightGroup ? `Height: ${item.heightGroup}` : null}</div>
               <div className="text-sm text-center">
-                Color:{' '}
                 {item.variations_info
                   ? Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(', ')
-                  : Array.from(new Set(item?.colors ?? [])).join(', ')}
+                  : item.colors
+                  ? `Color: ${Array.from(new Set(item?.colors ?? [])).join(', ')}`
+                  : ''}
               </div>
             </div>
             <div className="w-[75%] pr-10 mt-5">

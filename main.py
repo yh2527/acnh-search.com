@@ -82,17 +82,20 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         ]
     # height
     print(height)
+    heights = {
+            'Low': (0, 5), 
+            'Medium Low': (5, 7), 
+            'Medium': (7, 10), 
+            'Medium High': (10, 15),
+            'High': (15, 20),
+            'Very High': (20, 40)
+    }
     if height:
-        heights = {
-                'Low': (0, 5), 
-                'Medium Low': (5, 7), 
-                'Medium': (7, 10), 
-                'Medium High': (10, 15),
-                'High': (15, 20),
-                'Very High': (20, 40)
-        }
-        print(heights[height])
-        criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
+        if height == "No Height":
+            criteria['height'] = {"$exists": False}
+        else:
+            print(heights[height])
+            criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
 
     total_count = collection.count_documents(criteria)
     
@@ -111,12 +114,17 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         flag = False
         item["name"] = item["name"].capitalize()
         item["image"] = item.get("image") or item["variations"][0]["image"]
+        if "height" in item:
+            for key,value in heights.items():
+                if value[0] <= item["height"] < value[1]:
+                    item["heightGroup"] = key
+            
         if "variations" in item:
             item["variations_info"] = {}
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {}
-                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v.get("colors",[])}
+                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v.get("colors",None)}
     #if result and "variations_info" in result[0]:
     #    print(result[0]["variations_info"])
     
