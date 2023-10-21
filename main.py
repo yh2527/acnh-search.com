@@ -29,7 +29,8 @@ collection.find({
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
-         str = '', interact: str = '', colors: str = '', surface: str = '', height: str = ''):
+         str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
+         series: str = ''):
     search = re.escape(search)
     offset = (page - 1) * limit
     # text search
@@ -69,6 +70,10 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         colors = colors.split(',') # convert string into array
         criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
     #print("colors criteria", criteria.get("colors","no colors"))
+    # series
+    if series:
+        criteria["series"] = series
+        print(criteria)
     # surface
     if surface:
         if surface == "True":
@@ -84,12 +89,12 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # height
     print(height)
     heights = {
-            'Low': (0, 5), 
-            'Medium Low': (5, 7), 
+            'Low': (0, 3), 
+            'Medium Low': (3, 7), 
             'Medium': (7, 10), 
-            'Medium High': (10, 15),
-            'High': (15, 20),
-            'Very High': (20, 40)
+            'Medium High': (10, 17),
+            'High': (17, 25),
+            'Very High': (25, 40)
     }
     if height:
         if height == "No Height":
@@ -101,7 +106,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"_id":0}, 
+                           {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     
@@ -113,6 +118,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # result transformation #
     for item in result:
         item["name"] = item["name"].capitalize()
+        if "series" in item:
+            item["series"] = item["series"] and item["series"].capitalize()
         item["image"] = item.get("image") or item.get("furnitureImage") or item.get("variations")[0]["image"]
         if "height" in item:
             for key,value in heights.items():

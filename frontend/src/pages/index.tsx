@@ -160,6 +160,7 @@ const Home = () => {
     interactions: '',
     tags: '',
     surface: '',
+    series: '',
     // ... any other filters you have
   });
   const isAnyFilterActive = () => {
@@ -180,7 +181,8 @@ const Home = () => {
       const colors = searchParams.get('colors') ?? '';
       const surface = searchParams.get('surface') ?? '';
       const height = searchParams.get('height') ?? '';
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&surface=${surface}&height=${height}&limit=40&page=${currentPage}`;
+      const series = searchParams.get('series') ?? '';
+      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&surface=${surface}&height=${height}&series=${series}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       console.log(`tag: ${tag}`);
@@ -418,14 +420,35 @@ const Home = () => {
           <div className="flex items-start">
             <div className="w-[25%] px-5 mt-2">
               <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
-              <div className="text-sm text-center">{item.size ? `Size: ${item.size}` : null}</div>
-              <div className="text-sm text-center">{item.heightGroup ? `Height: ${item.heightGroup}` : null}</div>
-              <div className="text-sm text-center">
-                {item.variations_info
-                  ? Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(', ')
-                  : item.colors
-                  ? `Color: ${Array.from(new Set(item?.colors ?? [])).join(', ')}`
-                  : ''}
+              <div className="text-sm pl-1">
+                {item.size ? (
+                  <>
+                    <strong>Size:</strong> {item.size}
+                  </>
+                ) : null}
+              </div>
+              <div className="text-sm pl-1">
+                {item.heightGroup ? (
+                  <>
+                    <strong>Height:</strong> {item.heightGroup}
+                  </>
+                ) : null}
+              </div>
+              <div className="text-sm pl-1">
+                {item.variations_info ? (
+                  <>
+                    <strong>Color:</strong>{' '}
+                    {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(
+                      ', ',
+                    )}
+                  </>
+                ) : item.colors ? (
+                  <>
+                    <strong>Color:</strong> {Array.from(new Set(item?.colors ?? [])).join(', ')}
+                  </>
+                ) : (
+                  ''
+                )}
               </div>
             </div>
             <div className="w-[75%] pr-10 mt-5">
@@ -445,6 +468,9 @@ const Home = () => {
                   <strong>Has surface: </strong>
                   {item?.surface ?? (item.variations ? item.variations[0].surface : false === true && 'True')}
                   {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
+                </div>
+                <div>
+                  <strong>Series: </strong> {item?.series ?? ''}{' '}
                 </div>
               </div>
               {
@@ -544,6 +570,7 @@ const Home = () => {
                 interactions: '',
                 tags: '',
                 surface: '',
+                series: '',
               }));
               setSearchBar(''); // clear out search bar value
               router.push({}, undefined, { shallow: true });
@@ -804,12 +831,17 @@ const Home = () => {
               </div>
               {/* tag end */}
               <div className="mb-1">Other Filters:</div>
+              {/* surface drop-down */}
               <select
+                value={moreFilters['surface']}
                 onChange={(e) => {
-                  e.target.value;
+                  setMoreFilters((prevFilters) => ({
+                    ...prevFilters,
+                    surface: e.target.value,
+                  }));
                   const updatedQuery = {
                     ...Object.fromEntries(searchParams.entries()), // current query params
-                    surface: e.target.value, // empty tag
+                    surface: e.target.value,
                     page: 1,
                   };
                   router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -819,6 +851,26 @@ const Home = () => {
                 <option value="">Surface All</option>
                 <option value="True">Have Surface</option>
                 <option value="False">No Surface</option>
+              </select>
+              {/* series drop-down */}
+              <select
+                value={moreFilters['series']}
+                onChange={(e) => {
+                  setMoreFilters((prevFilters) => ({
+                    ...prevFilters,
+                    series: e.target.value,
+                  }));
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    series: e.target.value,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">Series All</option>
+                <option value="fruits">Fruits</option>
               </select>
             </div>
           )}{' '}
