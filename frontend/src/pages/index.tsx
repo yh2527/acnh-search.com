@@ -41,6 +41,7 @@ const categories = [
   'Ceiling Decor',
   'Interior Structures',
   'Cooking',
+  'Fish/Insects',
   'Models',
 ];
 const sizes = [
@@ -153,6 +154,19 @@ const Home = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchBar, setSearchBar] = useState(searchParams?.get('textSearch') ?? '');
   const [showFilters, setShowFilters] = useState(false);
+  const [moreFilters, setMoreFilters] = useState({
+    height: '',
+    colors: searchParams?.get('colors') ?? '',
+    interactions: '',
+    tags: '',
+    surface: '',
+    // ... any other filters you have
+  });
+  const isAnyFilterActive = () => {
+    console.log('isAnyFilterActive', moreFilters);
+    console.log(searchParams?.get('colors'));
+    return Object.values(moreFilters).some((value) => value !== '');
+  };
 
   const { isLoading, error, data } = useQuery<ApiResponse>({
     queryKey: ['searchCache', Array.from(searchParams.entries())],
@@ -178,6 +192,10 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
+          setMoreFilters((prevFilters) => ({
+            ...prevFilters,
+            interactions: interact,
+          }));
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
@@ -201,6 +219,10 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
+          setMoreFilters((prevFilters) => ({
+            ...prevFilters,
+            height: height,
+          }));
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
@@ -226,12 +248,18 @@ const Home = () => {
           let colorStr = searchParams.get('colors') || '';
           let colorsSet = new Set(colorStr ? colorStr.split(',').map((c) => c.trim()) : []);
           colorsSet.has(color) ? colorsSet.delete(color) : colorsSet.add(color);
+          console.log(colorsSet);
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
             colors: Array.from(colorsSet).join(','),
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
+          setMoreFilters((prevFilters) => ({
+            ...prevFilters,
+            colors: Array.from(colorsSet).join(','),
+          }));
+          console.log(moreFilters);
         }}
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
@@ -251,6 +279,10 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
+          setMoreFilters((prevFilters) => ({
+            ...prevFilters,
+            tags: tagName,
+          }));
           let tagObject = JSON.parse(searchParams.get('tag') || '{}');
           let flag = tagObject[tagName] ?? '';
           if (flag === '1') {
@@ -402,7 +434,7 @@ const Home = () => {
                   <strong>Category:</strong> {item.category}{' '}
                 </div>
                 <div>
-                  <strong>Source:</strong> {item.source.join(', ')}{' '}
+                  <strong>Source:</strong> {item.source ? item.source.join(', ') : item.category}{' '}
                 </div>
                 <div>
                   <strong>Interaction: </strong>
@@ -506,6 +538,13 @@ const Home = () => {
         <div className="flex w-full my-3 gap-2 items-center">
           <button
             onClick={() => {
+              setMoreFilters(() => ({
+                height: '',
+                colors: '',
+                interactions: '',
+                tags: '',
+                surface: '',
+              }));
               setSearchBar(''); // clear out search bar value
               router.push({}, undefined, { shallow: true });
             }}
@@ -531,7 +570,7 @@ const Home = () => {
                 className="rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500 w-full"
                 type="text"
                 name="searchBar"
-                placeholder="Search for items..."
+                placeholder={'Search for items...'}
                 autoComplete="off"
                 value={searchBar}
                 onChange={(e) => {
@@ -630,20 +669,26 @@ const Home = () => {
           <button
             className={classNames(
               'flex items-center mb-2 px-2 py-1 border border-2 text-amber-500 border-amber-500 rounded hover:bg-amber-200',
-              showFilters && 'bg-amber-300',
+              showFilters && 'bg-amber-200',
             )}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span> More Filters
+            {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
+            <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
+            More Filters
           </button>
           {showFilters && (
-            <div className="px-5 h-96 overflow-y-auto bg-yellow-200 bg-opacity-80 rounded-lg">
+            <div className="px-5 h-96 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
               <div className="mt-3 mb-5">
                 {' '}
                 {/* height start */}
                 <div className="mb-1">Height:</div>
                 <button
                   onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      height: '',
+                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       height: '', // empty height
@@ -671,6 +716,10 @@ const Home = () => {
                 <div className="mb-1">Colors:</div>
                 <button
                   onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      colors: '',
+                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       colors: '', // empty colors
@@ -698,6 +747,10 @@ const Home = () => {
                 <div className="mb-1">Interactions:</div>
                 <button
                   onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      interactions: '',
+                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       interact: '', // empty interact
@@ -725,6 +778,10 @@ const Home = () => {
                 <div className="mb-1">Tags:</div>
                 <button
                   onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      tags: '',
+                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       tag: '{}', // empty tag

@@ -70,16 +70,17 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
     #print("colors criteria", criteria.get("colors","no colors"))
     # surface
-    if surface == "True":
-        criteria['$or'] = [
-            {'surface': True},
-            {"variations": {"$elemMatch": {"surface": True}}}
-        ]
-    else:
-        criteria['$and'] = [
-            {'surface': {'$ne': True}},
-            {"variations.surface": {'$ne': True}}
-        ]
+    if surface:
+        if surface == "True":
+            criteria['$or'] = [
+                {'surface': True},
+                {"variations": {"$elemMatch": {"surface": True}}}
+            ]
+        else:
+            criteria['$and'] = [
+                {'surface': {'$ne': True}},
+                {"variations.surface": {'$ne': True}}
+            ]
     # height
     print(height)
     heights = {
@@ -96,11 +97,11 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         else:
             print(heights[height])
             criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
-
+    print("criteria before total count", criteria)
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"category":1,"image":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"_id":0}, 
+                           {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     
@@ -111,9 +112,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     
     # result transformation #
     for item in result:
-        flag = False
         item["name"] = item["name"].capitalize()
-        item["image"] = item.get("image") or item["variations"][0]["image"]
+        item["image"] = item.get("image") or item.get("furnitureImage") or item.get("variations")[0]["image"]
         if "height" in item:
             for key,value in heights.items():
                 if value[0] <= item["height"] < value[1]:
