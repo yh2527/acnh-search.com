@@ -146,6 +146,57 @@ const tags = [
   'Vehicle',
   'Work Bench',
 ];
+const series_list = [
+  'Bunny Day',
+  'Cinnamoroll',
+  'Festivale',
+  'Hello Kitty',
+  'Kerokerokeroppi',
+  'Kiki & Lala',
+  'Mario',
+  'Moroccan',
+  'My Melody',
+  'Nordic',
+  'Pompompurin',
+  'Turkey Day',
+  'antique',
+  'bamboo',
+  'cardboard',
+  'cherry blossoms',
+  'cool',
+  'cute',
+  'diner',
+  'dreamy',
+  'elegant',
+  'festive',
+  'flowers',
+  'frozen',
+  'fruits',
+  'golden',
+  'imperial',
+  'iron',
+  'ironwood',
+  'log',
+  'mermaid',
+  'motherly',
+  'mush',
+  'patchwork',
+  'pirate',
+  'plaza',
+  'ranch',
+  'rattan',
+  'shell',
+  'simple',
+  'sloppy',
+  'spooky',
+  'stars',
+  'throwback',
+  "tree's bounty or leaves",
+  'vintage',
+  'wedding',
+  'wooden',
+  'wooden block',
+];
 
 const Home = () => {
   const router = useRouter();
@@ -552,6 +603,10 @@ const Home = () => {
     setSelectedItem(null);
     setIsModalOpen(false);
   };
+  const UpFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
 
   return (
     <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
@@ -848,9 +903,9 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Surface All</option>
-                <option value="True">Have Surface</option>
-                <option value="False">No Surface</option>
+                <option value="">Surface: All</option>
+                <option value="True">Surface: Yes</option>
+                <option value="False">Surface: No</option>
               </select>
               {/* series drop-down */}
               <select
@@ -869,8 +924,12 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Series All</option>
-                <option value="fruits">Fruits</option>
+                <option value="">Series: All</option>
+                {series_list.map((series) => (
+                  <option key={series} value={series}>
+                    Series: {UpFirstLetter(series)}
+                  </option>
+                ))}
               </select>
             </div>
           )}{' '}
