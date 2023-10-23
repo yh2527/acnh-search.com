@@ -410,11 +410,13 @@ const Home = () => {
     const [hoveredColor, setHoveredColor] = React.useState(item.variations?.[0].variation);
     return (
       <div
-        className="p-5 flex flex-col items-center w-64 h-74 overflow-hidden bg-slate-50 rounded-lg shadow-md"
+        className="p-5 flex flex-col items-center w-64 h-84 overflow-hidden bg-slate-50 rounded-lg shadow-md"
         onClick={() => openModal(item)}
       >
         <h3 className="text-lg font-semibold h-10">{item.name}</h3>
-        <img className="w-50 h-auto mb-4" src={hoveredImage} alt={item.name} />
+        <div className="flex items-center justify-center w-50 h-40">
+          <img className="w-auto h-auto max-w-full max-h-full" src={hoveredImage} alt={item.name} />
+        </div>
         <div className="flex flex-row overflow-x-auto items-center h-11">
           {
             !!item.variations ? (
@@ -469,8 +471,10 @@ const Home = () => {
           </div>
           {/* Image and Description */}
           <div className="flex items-start">
-            <div className="w-[25%] px-5 mt-2">
-              <img src={hoveredImage} alt={item.name} className="w-full h-full object-contain" />
+            <div className="w-[25%] h-36 px-5 mt-2">
+              <div className="flex items-center justify-center w-full h-full">
+                <img src={hoveredImage} alt={item.name} className="" />
+              </div>
               <div className="text-sm pl-1">
                 {item.size ? (
                   <>
@@ -521,7 +525,7 @@ const Home = () => {
                   {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
                 </div>
                 <div>
-                  <strong>Series: </strong> {item?.series ?? ''}{' '}
+                  <strong>Series: </strong> {item?.series ?? 'None'}
                 </div>
               </div>
               {
@@ -605,8 +609,7 @@ const Home = () => {
   };
   const UpFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
-};
-
+  };
 
   return (
     <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
@@ -628,6 +631,7 @@ const Home = () => {
                 series: '',
               }));
               setSearchBar(''); // clear out search bar value
+              setShowFilters(false)
               router.push({}, undefined, { shallow: true });
             }}
             className="px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
