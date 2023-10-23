@@ -30,7 +30,7 @@ collection.find({
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
-         series: str = ''):
+         series: str = '', lightingType: str = '', speakerType: str = ''):
     search = re.escape(search)
     offset = (page - 1) * limit
     # text search
@@ -102,11 +102,17 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         else:
             print(heights[height])
             criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
-    print("criteria before total count", criteria)
+    # ligthingType
+    if lightingType:
+        criteria["lightingType"] = lightingType
+    # speakerType
+    if speakerType:
+        criteria["speakerType"] = speakerType
+    #print("criteria before total count", criteria)
     total_count = collection.count_documents(criteria)
     
     bson = collection.find(filter = criteria, projection =
-                           {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"_id":0}, 
+                           {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"surface":1,"_id":0}, 
                            skip = offset, limit = limit,
                            sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     

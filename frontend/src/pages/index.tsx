@@ -212,6 +212,8 @@ const Home = () => {
     tags: '',
     surface: '',
     series: '',
+    lightingType: '',
+    speakerType: '',
     // ... any other filters you have
   });
   const isAnyFilterActive = () => {
@@ -233,7 +235,9 @@ const Home = () => {
       const surface = searchParams.get('surface') ?? '';
       const height = searchParams.get('height') ?? '';
       const series = searchParams.get('series') ?? '';
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&surface=${surface}&height=${height}&series=${series}&limit=40&page=${currentPage}`;
+      const lightingType = searchParams.get('lightingType') ?? '';
+      const speakerType = searchParams.get('speakerType') ?? '';
+      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&surface=${surface}&height=${height}&series=${series}&lightingType=${lightingType}&speakerType=${speakerType}&limit=40&page=${currentPage}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       console.log(`tag: ${tag}`);
@@ -521,7 +525,7 @@ const Home = () => {
                 </div>
                 <div>
                   <strong>Has surface: </strong>
-                  {item?.surface ?? (item.variations ? item.variations[0].surface : false === true && 'True')}
+                  {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True'}
                   {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
                 </div>
                 <div>
@@ -631,7 +635,7 @@ const Home = () => {
                 series: '',
               }));
               setSearchBar(''); // clear out search bar value
-              setShowFilters(false)
+              setShowFilters(false);
               router.push({}, undefined, { shallow: true });
             }}
             className="px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
@@ -759,7 +763,7 @@ const Home = () => {
             )}
             onClick={() => setShowFilters(!showFilters)}
           >
-            {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
+            {isAnyFilterActive && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
             <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
             More Filters
           </button>
@@ -934,6 +938,55 @@ const Home = () => {
                     Series: {UpFirstLetter(series)}
                   </option>
                 ))}
+              </select>
+              {/* lighting type drop-down */}
+              <select
+                value={moreFilters['lightingType']}
+                onChange={(e) => {
+                  setMoreFilters((prevFilters) => ({
+                    ...prevFilters,
+                    lightingType: e.target.value,
+                  }));
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    lightingType: e.target.value,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">Lighting Type: All</option>
+                <option value="Candle">Lighting: Candle</option>
+                <option value="Emission">Lighting: Emission</option>
+                <option value="Fluorescent">Lighting: Fluorescent</option>
+                <option value="Monitor">Lighting: Monitor</option>
+                <option value="Shade">Lighting: Shade</option>
+                <option value="Spotlight">Lighting: Spotlight</option>
+              </select>
+              {/* speaker type drop-down */}
+              <select
+                value={moreFilters['speakerType']}
+                onChange={(e) => {
+                  setMoreFilters((prevFilters) => ({
+                    ...prevFilters,
+                    speakerType: e.target.value,
+                  }));
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    speakerType: e.target.value,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">Music Player: All</option>
+                <option value="Cheap">Speaker: Cheap</option>
+                <option value="Hi-fi">Speaker: Hi-fi</option>
+                <option value="Music Box">Speaker: Music Box</option>
+                <option value="Phono">Speaker: Phono</option>
+                <option value="Retro">Speaker: Retro</option>
               </select>
             </div>
           )}{' '}
