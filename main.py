@@ -30,7 +30,8 @@ collection.find({
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
-         series: str = '', lightingType: str = '', speakerType: str = ''):
+         series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
+         maxHeight: int =-1):
     search = re.escape(search)
     offset = (page - 1) * limit
     # text search
@@ -87,6 +88,14 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 {"variations.surface": {'$ne': True}}
             ]
     # height
+    print("height ranges", minHeight, maxHeight)
+    if minHeight >= 0:
+        if maxHeight < 0:
+            maxHeight = 100
+    elif maxHeight >= 0:
+        minHeight = 0
+    if minHeight >= 0 and maxHeight >= 0:
+        criteria['height'] = { "$gte": minHeight, "$lte": maxHeight }
     print(height)
     heights = {
             'Low': (0, 3), 
@@ -96,20 +105,23 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             'High': (17, 25),
             'Very High': (25, 40)
     }
+    '''
     if height:
         if height == "No Height":
             criteria['height'] = {"$exists": False}
         else:
             print(heights[height])
             criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
+    '''
     # ligthingType
     if lightingType:
         criteria["lightingType"] = lightingType
     # speakerType
     if speakerType:
         criteria["speakerType"] = speakerType
-    #print("criteria before total count", criteria)
+    print("criteria before total count", criteria)
     total_count = collection.count_documents(criteria)
+    print(total_count)
     
     bson = collection.find(filter = criteria, projection =
                            {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"surface":1,"_id":0}, 
@@ -131,7 +143,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             for key,value in heights.items():
                 if value[0] <= item["height"] < value[1]:
                     item["heightGroup"] = key
-            
+            item["height"] = round(item["height"],1)
         if "variations" in item:
             item["variations_info"] = {}
             for v in item["variations"]:
@@ -139,8 +151,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                     item["variations_info"][v["variation"]] = {}
                 item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v.get("colors",None)}
     #if result and "variations_info" in result[0]:
-    #    print(result[0]["variations_info"])
-    
+        #print(result[0]["variations_info"])
+    #print("first result ",result[0])
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
     #return {"message": "Hello World"}

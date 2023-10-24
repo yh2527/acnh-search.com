@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
@@ -199,15 +199,15 @@ const series_list = [
 ];
 
 const Home = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [searchBar, setSearchBar] = useState(searchParams?.get('textSearch') ?? '');
+  const [searchBar, setSearchBar] = useState('');
+  const [minHeight, setMinHeight] = useState('0');
+  const [maxHeight, setMaxHeight] = useState('40');
   const [showFilters, setShowFilters] = useState(false);
   const [moreFilters, setMoreFilters] = useState({
     height: '',
-    colors: searchParams?.get('colors') ?? '',
+    colors: '',
     interactions: '',
     tags: '',
     surface: '',
@@ -216,6 +216,23 @@ const Home = () => {
     speakerType: '',
     // ... any other filters you have
   });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  useEffect(()=>{
+    setSearchBar(searchParams?.get('textSearch') ?? '')
+    setMinHeight(searchParams?.get('minHeight') ?? '0')
+    setMaxHeight(searchParams?.get('maxHeight') ?? '40')
+    setMoreFilters({
+    colors: searchParams?.get('colors') ?? '',
+    interactions: searchParams?.get('interact') ?? '',
+    tags: searchParams?.get('tags') ?? '',
+    surface: searchParams?.get('surface') ?? '',
+    series: searchParams?.get('series') ?? '',
+    lightingType: searchParams?.get('lightingType') ?? '',
+    speakerType: searchParams?.get('speakerType') ?? '',
+    // ... any other filters you have
+  });
+  },[searchParams])
   const isAnyFilterActive = () => {
     console.log('isAnyFilterActive', moreFilters);
     console.log(searchParams?.get('colors'));
@@ -225,22 +242,26 @@ const Home = () => {
   const { isLoading, error, data } = useQuery<ApiResponse>({
     queryKey: ['searchCache', Array.from(searchParams.entries())],
     queryFn: async (): Promise<ApiResponse> => {
-      const searchTerm = searchParams.get('textSearch') ?? '';
-      const category = searchParams.get('category') ?? '';
-      const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
-      const size = searchParams.get('size') ?? '';
-      const tag = searchParams.get('tag') ?? '';
-      const interact = searchParams.get('interact') ?? '';
-      const colors = searchParams.get('colors') ?? '';
-      const surface = searchParams.get('surface') ?? '';
-      const height = searchParams.get('height') ?? '';
-      const series = searchParams.get('series') ?? '';
-      const lightingType = searchParams.get('lightingType') ?? '';
-      const speakerType = searchParams.get('speakerType') ?? '';
-      const apiUrl = `http://localhost:8000?category=${category}&search=${searchTerm}&size=${size}&tag=${tag}&interact=${interact}&colors=${colors}&surface=${surface}&height=${height}&series=${series}&lightingType=${lightingType}&speakerType=${speakerType}&limit=40&page=${currentPage}`;
+      const newParams = new URLSearchParams({
+        category: searchParams.get('category') ?? '',
+        search: searchParams.get('textSearch') ?? '',
+        currentPage: parseInt(searchParams.get('page') ?? '1', 10),
+        size: searchParams.get('size') ?? '',
+        tag: searchParams.get('tag') ?? '',
+        interact: searchParams.get('interact') ?? '',
+        colors: searchParams.get('colors') ?? '',
+        surface: searchParams.get('surface') ?? '',
+        height: searchParams.get('height') ?? '',
+        series: searchParams.get('series') ?? '',
+        lightingType: searchParams.get('lightingType') ?? '',
+        speakerType: searchParams.get('speakerType') ?? '',
+        // other stuff
+        ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') } : {}),
+        ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') } : {}),
+      });
+      const apiUrl = `http://localhost:8000?${newParams}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
-      console.log(`tag: ${tag}`);
       return json;
     },
   });
@@ -489,18 +510,22 @@ const Home = () => {
               <div className="text-sm pl-1">
                 {item.heightGroup ? (
                   <>
-                    <strong>Height:</strong> {item.heightGroup}
+                    <strong>Height:</strong> {item.height}
                   </>
                 ) : null}
               </div>
               <div className="text-sm pl-1">
                 {item.variations_info ? (
-                  <>
-                    <strong>Color:</strong>{' '}
-                    {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(
-                      ', ',
-                    )}
-                  </>
+                  Object.values(Object.values(item.variations_info)[0])[0].colors.length ? (
+                    <>
+                      <strong>Color:</strong>{' '}
+                      {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(
+                        ', ',
+                      )}
+                    </>
+                  ) : (
+                    ''
+                  )
                 ) : item.colors ? (
                   <>
                     <strong>Color:</strong> {Array.from(new Set(item?.colors ?? [])).join(', ')}
@@ -634,6 +659,8 @@ const Home = () => {
                 surface: '',
                 series: '',
               }));
+              setMinHeight('0');
+              setMaxHeight('40');
               setSearchBar(''); // clear out search bar value
               setShowFilters(false);
               router.push({}, undefined, { shallow: true });
@@ -763,41 +790,77 @@ const Home = () => {
             )}
             onClick={() => setShowFilters(!showFilters)}
           >
-            {isAnyFilterActive && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
+            {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
             <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
             More Filters
           </button>
           {showFilters && (
             <div className="px-5 h-96 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
-              <div className="mt-3 mb-5">
                 {' '}
                 {/* height start */}
-                <div className="mb-1">Height:</div>
+                <div className="mt-4 mb-3 flex">
                 <button
                   onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      height: '',
-                    }));
                     const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      height: '', // empty height
+                      ...Object.fromEntries(Array.from(searchParams.entries()).filter(([k,v])=>k!== "minHeight" && k!== "maxHeight")),
                       page: 1,
                     };
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
                   className={classNames(
                     'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('height') ?? '')
+                    '' === (searchParams?.get('minHeight') ?? '' || (searchParams.get('maxHeight') ?? ''))
                       ? 'bg-amber-300 text-slate-500'
                       : 'bg-white text-slate-500 hover:bg-amber-300',
                   )}
                 >
                   X
                 </button>
-                {heights.map((h) => (
-                  <HeightFilters height={h} key={h} />
-                ))}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        minHeight: minHeight, // updated minHeight
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                  >
+                    <label htmlFor="minHeight">Min Height: </label>
+                    <input
+                      className="mr-2 w-16 h-7 rounded text-sm"
+                      name="minHeight"
+                      type="number"
+                      value={minHeight}
+                      onChange={(e) => {
+                        setMinHeight(e.target.value);
+                      }}
+                    />
+                  </form>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        maxHeight: maxHeight, // updated maxHeight
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                  >
+                    <label htmlFor="maxHeight">Max Height: </label>
+                    <input
+                      className="mr-2 w-16 h-7 rounded text-sm"
+                      name="maxHeight"
+                      type="number"
+                      value={maxHeight}
+                      onChange={(e) => {
+                        setMaxHeight(e.target.value);
+                      }}
+                    />
+                  </form>
+                  <span>* For reference, the height of the player in the game is 20</span>
               </div>{' '}
               {/* height end */}
               <div className="mb-5">
