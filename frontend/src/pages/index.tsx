@@ -103,7 +103,6 @@ const tags = [
   'Chair',
   'Chest',
   'Clock',
-  'Counter',
   'Desk',
   'Dining',
   'DishDrink',
@@ -206,7 +205,6 @@ const Home = () => {
   const [maxHeight, setMaxHeight] = useState('40');
   const [showFilters, setShowFilters] = useState(false);
   const [moreFilters, setMoreFilters] = useState({
-    height: '',
     colors: '',
     interactions: '',
     tags: '',
@@ -245,7 +243,7 @@ const Home = () => {
       const newParams = new URLSearchParams({
         category: searchParams.get('category') ?? '',
         search: searchParams.get('textSearch') ?? '',
-        currentPage: parseInt(searchParams.get('page') ?? '1', 10),
+        page: parseInt(searchParams.get('page') ?? '1', 10),
         size: searchParams.get('size') ?? '',
         tag: searchParams.get('tag') ?? '',
         interact: searchParams.get('interact') ?? '',

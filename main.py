@@ -32,6 +32,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
          series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1):
+    print("page info", page, limit)
     search = re.escape(search)
     offset = (page - 1) * limit
     # text search
