@@ -95,55 +95,27 @@ const colors = [
   'Yellow',
 ];
 const tags = [
-  'Animal',
-  'Arch',
-  'Audio',
-  'Bathtub',
-  'Bed',
-  'Chair',
-  'Chest',
-  'Clock',
-  'Desk',
-  'Dining',
-  'DishDrink',
-  'DishFood',
-  'Dresser',
-  'Facility Decor',
-  'Fireplace',
-  'Folk Craft Decor',
-  'Game Console',
-  'Garden',
-  'Heating',
-  'Home Appliances',
-  'Hospital',
-  'House Door Decor',
-  'Japanese Style',
-  'Kitchen',
-  'Kitchen Things',
-  'Lamp',
-  'Mario',
-  'Museum',
-  'Musical Instrument',
-  'Plants',
-  'Playground',
-  'Ranch',
-  'School',
-  'Screen',
-  'Seaside',
-  'Seasonal Decor',
-  'Shelf',
-  'Shop',
-  'Sofa',
-  'Space',
-  'Sports',
-  'Study',
-  'Supplies',
-  'TV',
+  'Seating',
   'Table',
-  'Toilet',
-  'Toy',
-  'Vehicle',
-  'Work Bench',
+  'Bed',
+  'Storage & Display',
+  'Space Dividers',
+  'Kitchen & Dining',
+  'Food',
+  'Drinks',
+  'Lights',
+  'Audiovisual',
+  'Musical Instrument',
+  'Appliances',
+  'Bath & Hygiene',
+  'Plants',
+  'Business & Civic',
+  'Travel & Transit',
+  'Recreation & Play',
+  'Outdoor & Natural',
+  'Cultural & Decor',
+  'Seasonal & Franchise',
+  'Door Decor',
 ];
 const series_list = [
   'Bunny Day',
@@ -205,9 +177,12 @@ const Home = () => {
   const [maxHeight, setMaxHeight] = useState('40');
   const [showFilters, setShowFilters] = useState(false);
   const [moreFilters, setMoreFilters] = useState({
+    tag: '',
+    size: '',
+    minHeight: '0',
+    maxHeight: '40',
     colors: '',
     interactions: '',
-    tags: '',
     surface: '',
     series: '',
     lightingType: '',
@@ -216,25 +191,34 @@ const Home = () => {
   });
   const router = useRouter();
   const searchParams = useSearchParams();
-  useEffect(()=>{
-    setSearchBar(searchParams?.get('textSearch') ?? '')
-    setMinHeight(searchParams?.get('minHeight') ?? '0')
-    setMaxHeight(searchParams?.get('maxHeight') ?? '40')
+  useEffect(() => {
+    setSearchBar(searchParams?.get('textSearch') ?? '');
+    setMinHeight(searchParams?.get('minHeight') ?? '0');
+    setMaxHeight(searchParams?.get('maxHeight') ?? '40');
     setMoreFilters({
-    colors: searchParams?.get('colors') ?? '',
-    interactions: searchParams?.get('interact') ?? '',
-    tags: searchParams?.get('tags') ?? '',
-    surface: searchParams?.get('surface') ?? '',
-    series: searchParams?.get('series') ?? '',
-    lightingType: searchParams?.get('lightingType') ?? '',
-    speakerType: searchParams?.get('speakerType') ?? '',
-    // ... any other filters you have
-  });
-  },[searchParams])
+      tag: searchParams?.get('tag') ?? '',
+      size: searchParams?.get('size') ?? '',
+      minHeight: searchParams?.get('minHeight') ?? '0',
+      maxHeight: searchParams?.get('maxHeight') ?? '40',
+      colors: searchParams?.get('colors') ?? '',
+      interactions: searchParams?.get('interact') ?? '',
+      surface: searchParams?.get('surface') ?? '',
+      series: searchParams?.get('series') ?? '',
+      lightingType: searchParams?.get('lightingType') ?? '',
+      speakerType: searchParams?.get('speakerType') ?? '',
+      // ... any other filters you have
+    });
+  }, [searchParams]);
   const isAnyFilterActive = () => {
-    console.log('isAnyFilterActive', moreFilters);
-    console.log(searchParams?.get('colors'));
-    return Object.values(moreFilters).some((value) => value !== '');
+    //console.log('isAnyFilterActive', moreFilters);
+    //console.log(searchParams?.get('colors'));
+    const { minHeight, maxHeight, ...restOfFilters } = moreFilters;
+    const hasSpecialValues = minHeight === '0' && maxHeight === '40';
+    console.log('hasSpecialValues', hasSpecialValues);
+    const areOthersEmpty = Object.values(restOfFilters).every((value) => value === '');
+    console.log('areOthersEmpty', areOthersEmpty);
+    return !(hasSpecialValues && areOthersEmpty);
+    // return Object.values(moreFilters).some((value) => value !== '');
   };
 
   const { isLoading, error, data } = useQuery<ApiResponse>({
@@ -253,9 +237,9 @@ const Home = () => {
         series: searchParams.get('series') ?? '',
         lightingType: searchParams.get('lightingType') ?? '',
         speakerType: searchParams.get('speakerType') ?? '',
-        // other stuff
         ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') } : {}),
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') } : {}),
+        // other stuff
       });
       const apiUrl = `http://localhost:8000?${newParams}`;
       const result = await fetch(apiUrl);
@@ -283,36 +267,37 @@ const Home = () => {
           `px-2 py-1 mr-2 mb-1 rounded`,
           (interact === 'Other' ? 'True' : interact) === (searchParams?.get('interact') ?? '')
             ? 'bg-amber-300 text-slate-500'
-            : 'bg-white text-slate-500',
+            : 'bg-white text-slate-500 hover:bg-amber-300',
         )}
       >
         {interact}
       </button>
     );
   };
-  const HeightFilters = ({ height }: { height: string }) => {
+  const SizeFilters = ({ size }: { size: string }) => {
     return (
       <button
         onClick={(e) => {
           e.preventDefault();
           setMoreFilters((prevFilters) => ({
             ...prevFilters,
-            height: height,
+            size: size,
           }));
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
+            size: size, // updated size
             page: 1,
-            height: height,
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
         }}
-        //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
-          height === (searchParams?.get('height') ?? '') ? 'bg-amber-300 text-slate-500' : 'bg-white text-slate-500',
+          size === searchParams.get('size')
+            ? 'bg-amber-300 text-slate-500'
+            : 'bg-white text-slate-500 hover:bg-amber-300',
         )}
       >
-        {height}
+        {size}
       </button>
     );
   };
@@ -355,42 +340,26 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
-          setMoreFilters((prevFilters) => ({
-            ...prevFilters,
-            tags: tagName,
-          }));
-          let tagObject = JSON.parse(searchParams.get('tag') || '{}');
-          let flag = tagObject[tagName] ?? '';
-          if (flag === '1') {
-            flag = '-1';
-          } else if (flag === '-1') {
-            flag = '';
-          } else {
-            flag = '1';
-          }
-          if (flag === '') {
-            delete tagObject[tagName];
-          } else {
-            tagObject[tagName] = flag;
-          }
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
-            tag: JSON.stringify(tagObject),
+            tag: tagName,
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
+          setMoreFilters((prevFilters) => ({
+            ...prevFilters,
+            tag: tagName,
+          }));
         }}
         //console.log('tagObject',tagObject,tagName,flag)
         //console.log(JSON.stringify(tagObject))
         className={classNames(
           `px-2 py-1 mr-2 mb-1 rounded`,
-          '' === (JSON.parse(searchParams?.get('tag') ?? '{}')[tagName] ?? '')
-            ? 'bg-white text-slate-500'
-            : 'bg-amber-300 text-slate-500',
+          tagName === (searchParams?.get('tag') ?? '')
+            ? 'bg-amber-300 text-slate-500'
+            : 'bg-white text-slate-500 hover:bg-amber-300',
         )}
       >
-        {(JSON.parse(searchParams?.get('tag') ?? '{}')[tagName] ?? '') === '1' && '✓ '}
-        {(JSON.parse(searchParams?.get('tag') ?? '{}')[tagName] ?? '') === '-1' && '✗ '}
         {tagName}
       </button>
     );
@@ -649,16 +618,6 @@ const Home = () => {
         <div className="flex w-full my-3 gap-2 items-center">
           <button
             onClick={() => {
-              setMoreFilters(() => ({
-                height: '',
-                colors: '',
-                interactions: '',
-                tags: '',
-                surface: '',
-                series: '',
-              }));
-              setMinHeight('0');
-              setMaxHeight('40');
               setSearchBar(''); // clear out search bar value
               setShowFilters(false);
               router.push({}, undefined, { shallow: true });
@@ -735,50 +694,6 @@ const Home = () => {
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2 mb-5">
-          {' '}
-          {/* size filters*/}
-          <button
-            onClick={() => {
-              const updatedQuery = {
-                ...Object.fromEntries(searchParams.entries()), // current query params
-                size: '', // updated size
-                page: 1,
-              };
-              router.push({ query: updatedQuery }, undefined, { shallow: true });
-            }}
-            className={classNames(
-              'px-4 py-2 rounded',
-              '' === (searchParams?.get('size') ?? '')
-                ? 'bg-amber-300 text-slate-500'
-                : 'bg-white text-slate-500 hover:bg-amber-300',
-            )}
-          >
-            All sizes
-          </button>
-          {sizes.map((size) => (
-            <button
-              key={size}
-              onClick={(e) => {
-                e.preventDefault();
-                const updatedQuery = {
-                  ...Object.fromEntries(searchParams.entries()), // current query params
-                  size: size, // updated size
-                  page: 1,
-                };
-                router.push({ query: updatedQuery }, undefined, { shallow: true });
-              }}
-              className={classNames(
-                `px-4 py-2 rounded`,
-                size === searchParams.get('size')
-                  ? 'bg-amber-300 text-slate-500'
-                  : 'bg-white text-slate-500 hover:bg-amber-300',
-              )}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
         {/* toggle filters */}
         <div className="mt-2">
           <button
@@ -793,78 +708,146 @@ const Home = () => {
             More Filters
           </button>
           {showFilters && (
-            <div className="px-5 h-96 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
-                {' '}
-                {/* height start */}
-                <div className="mt-4 mb-3 flex">
+            <div className="px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
+              {' '}
+              {/* tag start */}
+              <div className="mt-3 mb-4">
+                <div className="mb-1 text-base">Function/Theme:</div>
                 <button
                   onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      tag: '',
+                    }));
                     const updatedQuery = {
-                      ...Object.fromEntries(Array.from(searchParams.entries()).filter(([k,v])=>k!== "minHeight" && k!== "maxHeight")),
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      tag: '', // empty tag
                       page: 1,
                     };
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
                   className={classNames(
                     'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('minHeight') ?? '' || (searchParams.get('maxHeight') ?? ''))
+                    '' === (searchParams?.get('tag') ?? '')
                       ? 'bg-amber-300 text-slate-500'
                       : 'bg-white text-slate-500 hover:bg-amber-300',
                   )}
                 >
                   X
                 </button>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        minHeight: minHeight, // updated minHeight
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                {tags.map((tag) => (
+                  <TagFilters tagName={tag} key={tag} />
+                ))}
+              </div>
+              {/* tag end */}
+              {/* size start */}
+              <div className="mb-4">
+                <div className="mb-1 text-base">Size:</div>
+                <button
+                  onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      size: '',
+                    }));
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      size: '', // updated size
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={classNames(
+                    'px-3 py-1 mr-2 mb-1 rounded',
+                    '' === (searchParams?.get('size') ?? '')
+                      ? 'bg-amber-300 text-slate-500'
+                      : 'bg-white text-slate-500 hover:bg-amber-300',
+                  )}
+                >
+                  X
+                </button>
+                {sizes.map((size) => (
+                  <SizeFilters size={size} key={size} />
+                ))}
+              </div>
+              {/* size end */}
+              {/* height start */}
+              <div className="mb-1 text-base">Height:</div>
+              <div className="mb-4 flex">
+                <button
+                  onClick={() => {
+                    setMoreFilters((prevFilters) => ({
+                      ...prevFilters,
+                      minHeight: { minHeight },
+                      maxHeight: { maxHeight },
+                    }));
+                    const updatedQuery = {
+                      ...Object.fromEntries(
+                        Array.from(searchParams.entries()).filter(([k, v]) => k !== 'minHeight' && k !== 'maxHeight'),
+                      ),
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={classNames(
+                    'px-3 py-1 mr-2 mb-1 rounded',
+                    '' === (searchParams?.get('minHeight') ?? ('' || (searchParams.get('maxHeight') ?? '')))
+                      ? 'bg-amber-300 text-slate-500'
+                      : 'bg-white text-slate-500 hover:bg-amber-300',
+                  )}
+                >
+                  X
+                </button>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      minHeight: minHeight, // updated minHeight
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                >
+                  <label className="text-base">Min Height: </label>
+                  <input
+                    className="mr-2 w-16 h-7 rounded text-sm"
+                    name="minHeight"
+                    type="number"
+                    value={minHeight}
+                    onChange={(e) => {
+                      setMinHeight(e.target.value);
                     }}
-                  >
-                    <label htmlFor="minHeight">Min Height: </label>
-                    <input
-                      className="mr-2 w-16 h-7 rounded text-sm"
-                      name="minHeight"
-                      type="number"
-                      value={minHeight}
-                      onChange={(e) => {
-                        setMinHeight(e.target.value);
-                      }}
-                    />
-                  </form>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        maxHeight: maxHeight, // updated maxHeight
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  />
+                </form>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      maxHeight: maxHeight, // updated maxHeight
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                >
+                  <label className="text-base">Max Height: </label>
+                  <input
+                    className="mr-2 w-16 h-7 rounded text-sm"
+                    name="maxHeight"
+                    type="number"
+                    value={maxHeight}
+                    onChange={(e) => {
+                      setMaxHeight(e.target.value);
                     }}
-                  >
-                    <label htmlFor="maxHeight">Max Height: </label>
-                    <input
-                      className="mr-2 w-16 h-7 rounded text-sm"
-                      name="maxHeight"
-                      type="number"
-                      value={maxHeight}
-                      onChange={(e) => {
-                        setMaxHeight(e.target.value);
-                      }}
-                    />
-                  </form>
-                  <span>* For reference, the height of the player in the game is 20</span>
+                  />
+                </form>
+                <span>* For reference, the height of the player in the game is 20</span>
               </div>{' '}
               {/* height end */}
-              <div className="mb-5">
+              {/* color start */}
+              <div className="mb-4">
                 {' '}
-                {/* color start */}
-                <div className="mb-1">Colors:</div>
+                <div className="mb-1 text-base">Color:</div>
                 <button
                   onClick={() => {
                     setMoreFilters((prevFilters) => ({
@@ -892,10 +875,10 @@ const Home = () => {
                 ))}
               </div>{' '}
               {/* color end */}
-              <div className="mb-5">
+              {/* interact start */}
+              <div className="mb-4">
                 {' '}
-                {/* interact start */} {/* Interact Types */}
-                <div className="mb-1">Interactions:</div>
+                <div className="mb-1 text-base">Interaction Type:</div>
                 <button
                   onClick={() => {
                     setMoreFilters((prevFilters) => ({
@@ -923,38 +906,7 @@ const Home = () => {
                 ))}
               </div>{' '}
               {/* interact end */}
-              <div className="mb-5">
-                {' '}
-                {/* tag start */} {/* tag Types */}
-                <div className="mb-1">Tags:</div>
-                <button
-                  onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      tags: '',
-                    }));
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      tag: '{}', // empty tag
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={classNames(
-                    'px-3 py-1 mr-2 mb-1 rounded',
-                    '{}' === (searchParams?.get('tag') ?? '{}')
-                      ? 'bg-amber-300 text-slate-500'
-                      : 'bg-white text-slate-500 hover:bg-amber-300',
-                  )}
-                >
-                  X
-                </button>
-                {tags.map((tag) => (
-                  <TagFilters tagName={tag} key={tag} />
-                ))}
-              </div>
-              {/* tag end */}
-              <div className="mb-1">Other Filters:</div>
+              <div className="mb-1 text-base">Other Filters:</div>
               {/* surface drop-down */}
               <select
                 value={moreFilters['surface']}
@@ -1042,12 +994,12 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Music Player: All</option>
-                <option value="Cheap">Speaker: Cheap</option>
-                <option value="Hi-fi">Speaker: Hi-fi</option>
-                <option value="Music Box">Speaker: Music Box</option>
-                <option value="Phono">Speaker: Phono</option>
-                <option value="Retro">Speaker: Retro</option>
+                <option value="">Album Player: All</option>
+                <option value="Cheap">Album Player: Cheap</option>
+                <option value="Hi-fi">Album Player: Hi-fi</option>
+                <option value="Music Box">Album Player: Music Box</option>
+                <option value="Phono">Album Player: Phono</option>
+                <option value="Retro">Album Player: Retro</option>
               </select>
             </div>
           )}{' '}

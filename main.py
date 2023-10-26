@@ -32,7 +32,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
          series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1):
-    print("page info", page, limit)
+    #print("page info", page, limit)
     search = re.escape(search)
     offset = (page - 1) * limit
     # text search
@@ -49,33 +49,38 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             interact = True
         criteria["interact"] = interact
     # tag
-    tag = json.loads(tag or '{}')
-    tagIn = []
-    tagOut = []
+    tag_matches = {
+            'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],
+            'Audiovisual':['Audio', 'Game Console'],
+            'Bath & Hygiene':['Bathroom Things','Bathtub','Toilet'],
+            'Bed':['Bed'],
+            'Business & Civic': ['Facility Decor','Hospital','Museum','Office','School','Shop','Study','Supplies'],
+            'Cultural & Decor':['Folk Craft Decor','Japanese Style'],
+            'Door Decor':['House Door Decor'],
+            'Drinks':['DishDrink'],
+            'Food':['DishFood'],
+            'Kitchen & Dining':['Dining','Kitchen','Kitchen Things'],
+            'Lights':['CeilingLamp','Lamp'],
+            'Musical Instrument':['Musical Instrument'],
+            'Outdoor & Natural':['Garden','Ranch'],
+            'Plants':['Plants'],
+            'Recreation & Play':['Animal','Playground','Special Fish','Special Insect','Sports','Toy'],
+            'Seasonal & Franchise':['Cinnamoroll','Compass','Easter','Hello Kitty','Kerokerokeroppi','Kiki & Lala','Mario','My Melody','Pompompurin','Seasonal Decor'],
+            'Seating':['Chair','Sofa'],
+            'Space Dividers':['Arch','Screen'],
+            'Storage & Display':['Chest','Dresser','Shelf'],
+            'Table':['Desk','Table'],
+            'Travel & Transit':['Seaside','Space','Vehicle']
+            }
     if tag:
-        for tagName in tag:
-            tagFlag = tag.get(tagName, 0)
-            if tagFlag == '1':
-                tagIn.append(tagName)
-            elif tagFlag == '-1':
-                tagOut.append(tagName)
-    tag_criteria = {}
-    if tagIn:
-        tag_criteria["$in"] = tagIn
-    if tagOut:
-        tag_criteria["$nin"] = tagOut
-    if tag_criteria:
-        criteria['tag'] = tag_criteria
-    #print(f'{tag}, {criteria}')
+        criteria['tag'] = {'$in':tag_matches[tag]}
     # colors
     if colors:
         colors = colors.split(',') # convert string into array
         criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
-    #print("colors criteria", criteria.get("colors","no colors"))
     # series
     if series:
         criteria["series"] = series
-        print(criteria)
     # surface
     if surface:
         if surface == "True":
@@ -89,7 +94,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 {"variations.surface": {'$ne': True}}
             ]
     # height
-    print("height ranges", minHeight, maxHeight)
+    #print("height ranges", minHeight, maxHeight)
     if minHeight >= 0:
         if maxHeight < 0:
             maxHeight = 100
@@ -97,7 +102,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         minHeight = 0
     if minHeight >= 0 and maxHeight >= 0:
         criteria['height'] = { "$gte": minHeight, "$lte": maxHeight }
-    print(height)
     heights = {
             'Low': (0, 3), 
             'Medium Low': (3, 7), 
@@ -154,6 +158,9 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     #if result and "variations_info" in result[0]:
         #print(result[0]["variations_info"])
     #print("first result ",result[0])
+    ###### NEED DEBUG ######
+    if tag:
+        result.sort(key = lambda x: x["tag"])
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
     #return {"message": "Hello World"}
