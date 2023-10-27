@@ -5,9 +5,9 @@ import requests
 client = MongoClient("mongodb://localhost:27017/")
 db = client["acnh-furnitures"]
 
-whichCategory = 1 # CHANGE to choose fish or insects
-collections = ['Fish','Insects',];
-nookCategory = ['fish/', 'bugs/']
+whichCategory = 2 ### CHANGE 0-1-2 to choose fish, insects, or sea creatures ###
+collections = ['Fish','Insects','Sea Creatures'];
+nookCategory = ['fish/', 'bugs/','sea/']
 
 url = 'https://api.nookipedia.com/nh/'
 headers = {

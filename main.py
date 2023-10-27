@@ -30,7 +30,7 @@ collection.find({
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
-         series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
+         source: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1):
     #print("page info", page, limit)
     search = re.escape(search)
@@ -52,6 +52,9 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     if colors:
         colors = colors.split(',') # convert string into array
         criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
+    # source
+    if source:
+        criteria['source'] = source 
     # series
     if series:
         criteria["series"] = series
@@ -68,7 +71,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 {"variations.surface": {'$ne': True}}
             ]
     # height
-    #print("height ranges", minHeight, maxHeight)
+    print("height ranges", minHeight, maxHeight)
     if minHeight >= 0:
         if maxHeight < 0:
             maxHeight = 100
@@ -144,7 +147,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                                {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"surface":1,"_id":0}, 
                                skip = offset, limit = limit,
                                sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
-    print("criteria before total count", criteria)
+    print("criteria at total count", criteria)
     total_count = collection.count_documents(criteria)
     print(total_count)
     # Convert ObjectId to str for JSON serialization

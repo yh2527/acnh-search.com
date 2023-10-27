@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
+import { heights, categories, sizes, interactTypes, colors_object, tags, series_list, sources } from './lists';
 
 interface Item {
   name: string;
@@ -27,163 +28,23 @@ interface ApiResponse {
     max_page: number;
   };
 }
-const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
-const categories = [
-  'All Categories',
-  'Housewares',
-  'Miscellaneous',
-  'Wall-mounted',
-  'Wallpaper',
-  'Floors',
-  'Rugs',
-  'Fencing',
-  'Tools-Goods',
-  'Ceiling Decor',
-  'Interior Structures',
-  'Cooking',
-  'Fish/Insects',
-  'Models',
-];
-const sizes = [
-  '0.5x0.5',
-  '0.5x1',
-  '1.5x1.5',
-  '1x0.5',
-  '1x1',
-  '1x1.5',
-  '1x2',
-  '2x0.5',
-  '2x1',
-  '2x1.5',
-  '2x2',
-  '3x1',
-  '3x2',
-  '3x3',
-  '4x3',
-  '4x4',
-  '5x5',
-];
-const interactTypes = [
-  'Bed',
-  'Chair',
-  'Kitchenware',
-  'Mirror',
-  'Music Player',
-  'Musical Instrument',
-  'Storage',
-  'TV',
-  'Toilet',
-  'Trash',
-  'Wardrobe',
-  'Workbench',
-  'Other',
-];
-const colors = [
-  'Aqua',
-  'Beige',
-  'Black',
-  'Blue',
-  'Brown',
-  'Colorful',
-  'Gray',
-  'Green',
-  'Orange',
-  'Pink',
-  'Purple',
-  'Red',
-  'White',
-  'Yellow',
-];
-const tags = [
-  'Seating',
-  'Table',
-  'Bed',
-  'Storage & Display',
-  'Space Dividers',
-  'Kitchen & Dining',
-  'Food',
-  'Drinks',
-  'Lights',
-  'Audiovisual',
-  'Musical Instrument',
-  'Appliances',
-  'Bath & Hygiene',
-  'Plants',
-  'Business & Civic',
-  'Travel & Transit',
-  'Recreation & Play',
-  'Outdoor & Natural',
-  'Cultural & Decor',
-  'Seasonal & Franchise',
-  'Door Decor',
-];
-const series_list = [
-  'Bunny Day',
-  'Cinnamoroll',
-  'Festivale',
-  'Hello Kitty',
-  'Kerokerokeroppi',
-  'Kiki & Lala',
-  'Mario',
-  'Moroccan',
-  'My Melody',
-  'Nordic',
-  'Pompompurin',
-  'Turkey Day',
-  'antique',
-  'bamboo',
-  'cardboard',
-  'cherry blossoms',
-  'cool',
-  'cute',
-  'diner',
-  'dreamy',
-  'elegant',
-  'festive',
-  'flowers',
-  'frozen',
-  'fruits',
-  'golden',
-  'imperial',
-  'iron',
-  'ironwood',
-  'log',
-  'mermaid',
-  'motherly',
-  'mush',
-  'patchwork',
-  'pirate',
-  'plaza',
-  'ranch',
-  'rattan',
-  'shell',
-  'simple',
-  'sloppy',
-  'spooky',
-  'stars',
-  'throwback',
-  "tree's bounty or leaves",
-  'vintage',
-  'wedding',
-  'wooden',
-  'wooden block',
-];
 
 const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchBar, setSearchBar] = useState('');
-  const [minHeight, setMinHeight] = useState('0');
-  const [maxHeight, setMaxHeight] = useState('40');
+  const [minHeight, setMinHeight] = useState('');
+  const [maxHeight, setMaxHeight] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [moreFilters, setMoreFilters] = useState({
     tag: '',
     size: '',
-    minHeight: '0',
-    maxHeight: '40',
+    minHeight: '',
+    maxHeight: '',
     colors: '',
     interactions: '',
     surface: '',
+    source: '',
     series: '',
     lightingType: '',
     speakerType: '',
@@ -193,16 +54,17 @@ const Home = () => {
   const searchParams = useSearchParams();
   useEffect(() => {
     setSearchBar(searchParams?.get('textSearch') ?? '');
-    setMinHeight(searchParams?.get('minHeight') ?? '0');
-    setMaxHeight(searchParams?.get('maxHeight') ?? '40');
+    setMinHeight(searchParams?.get('minHeight') ?? '');
+    setMaxHeight(searchParams?.get('maxHeight') ?? '');
     setMoreFilters({
       tag: searchParams?.get('tag') ?? '',
       size: searchParams?.get('size') ?? '',
-      minHeight: searchParams?.get('minHeight') ?? '0',
-      maxHeight: searchParams?.get('maxHeight') ?? '40',
+      minHeight: searchParams?.get('minHeight') ?? '',
+      maxHeight: searchParams?.get('maxHeight') ?? '',
       colors: searchParams?.get('colors') ?? '',
       interactions: searchParams?.get('interact') ?? '',
       surface: searchParams?.get('surface') ?? '',
+      source: searchParams?.get('source') ?? '',
       series: searchParams?.get('series') ?? '',
       lightingType: searchParams?.get('lightingType') ?? '',
       speakerType: searchParams?.get('speakerType') ?? '',
@@ -210,15 +72,12 @@ const Home = () => {
     });
   }, [searchParams]);
   const isAnyFilterActive = () => {
-    //console.log('isAnyFilterActive', moreFilters);
-    //console.log(searchParams?.get('colors'));
-    const { minHeight, maxHeight, ...restOfFilters } = moreFilters;
-    const hasSpecialValues = minHeight === '0' && maxHeight === '40';
-    console.log('hasSpecialValues', hasSpecialValues);
-    const areOthersEmpty = Object.values(restOfFilters).every((value) => value === '');
-    console.log('areOthersEmpty', areOthersEmpty);
-    return !(hasSpecialValues && areOthersEmpty);
-    // return Object.values(moreFilters).some((value) => value !== '');
+    //const { minHeight, maxHeight, ...restOfFilters } = moreFilters;
+    //const hasSpecialValues = minHeight === '0' && maxHeight === '40';
+    //const areOthersEmpty = Object.values(restOfFilters).every((value) => value === '');
+    //console.log('areOthersEmpty', areOthersEmpty);
+    //return !(hasSpecialValues && areOthersEmpty);
+    return Object.values(moreFilters).some((value) => value !== '');
   };
 
   const { isLoading, error, data } = useQuery<ApiResponse>({
@@ -234,6 +93,7 @@ const Home = () => {
         colors: searchParams.get('colors') ?? '',
         surface: searchParams.get('surface') ?? '',
         height: searchParams.get('height') ?? '',
+        source: searchParams.get('source') ?? '',
         series: searchParams.get('series') ?? '',
         lightingType: searchParams.get('lightingType') ?? '',
         speakerType: searchParams.get('speakerType') ?? '',
@@ -252,10 +112,6 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
-          setMoreFilters((prevFilters) => ({
-            ...prevFilters,
-            interactions: interact,
-          }));
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             page: 1,
@@ -279,10 +135,6 @@ const Home = () => {
       <button
         onClick={(e) => {
           e.preventDefault();
-          setMoreFilters((prevFilters) => ({
-            ...prevFilters,
-            size: size,
-          }));
           const updatedQuery = {
             ...Object.fromEntries(searchParams.entries()), // current query params
             size: size, // updated size
@@ -316,14 +168,11 @@ const Home = () => {
             colors: Array.from(colorsSet).join(','),
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
-          setMoreFilters((prevFilters) => ({
-            ...prevFilters,
-            colors: Array.from(colorsSet).join(','),
-          }));
-          console.log(moreFilters);
         }}
         className={classNames(
-          `px-2 py-1 mr-2 mb-1 rounded`,
+          `px-2 py-1 mr-2 mb-1 rounded bg-white`,
+          colors_object[color],
+          'bg-opacity-30',
           (searchParams?.get('colors') ?? '').split(',').includes(color)
             ? 'bg-amber-300 text-slate-500'
             : 'bg-white text-slate-500',
@@ -346,10 +195,6 @@ const Home = () => {
             tag: tagName,
           };
           router.push({ query: updatedQuery }, undefined, { shallow: true });
-          setMoreFilters((prevFilters) => ({
-            ...prevFilters,
-            tag: tagName,
-          }));
         }}
         //console.log('tagObject',tagObject,tagName,flag)
         //console.log(JSON.stringify(tagObject))
@@ -384,7 +229,14 @@ const Home = () => {
       >
         &lt;
       </button>
-      <span className="text-center mt-1">Page {currentPage}</span>
+      {/* Dropdown for page selection */}
+      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded">
+        {[...Array(totalPages).keys()].map((_, index) => (
+          <option key={index} value={index + 1}>
+            Page {index + 1}
+          </option>
+        ))}
+      </select>
       <button
         className={`text-slate-500 px-3 py-1 ${
           currentPage === totalPages ? 'text-yellow-100' : 'hover:bg-amber-300 transition text-slate-500'
@@ -639,7 +491,6 @@ const Home = () => {
                   textSearch: searchBar, // updated search value
                   page: 1,
                 };
-                console.log(`onSubmit: ${searchBar}`);
                 console.log(`onSubmit: ${JSON.stringify(updatedQuery)}`);
                 router.push({ query: updatedQuery }, undefined, { shallow: true });
               }}
@@ -719,10 +570,6 @@ const Home = () => {
                 <div className="mb-1 text-base">Function/Theme:</div>
                 <button
                   onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      tag: '',
-                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       tag: '', // empty tag
@@ -749,10 +596,6 @@ const Home = () => {
                 <div className="mb-1 text-base">Size:</div>
                 <button
                   onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      size: '',
-                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       size: '', // updated size
@@ -779,11 +622,6 @@ const Home = () => {
               <div className="mb-4 flex">
                 <button
                   onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      minHeight: { minHeight },
-                      maxHeight: { maxHeight },
-                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(
                         Array.from(searchParams.entries()).filter(([k, v]) => k !== 'minHeight' && k !== 'maxHeight'),
@@ -854,10 +692,6 @@ const Home = () => {
                 <div className="mb-1 text-base">Color:</div>
                 <button
                   onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      colors: '',
-                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       colors: '', // empty colors
@@ -874,7 +708,7 @@ const Home = () => {
                 >
                   X
                 </button>
-                {colors.map((color) => (
+                {Object.keys(colors_object).map((color) => (
                   <ColorFilters color={color} key={color} />
                 ))}
               </div>{' '}
@@ -885,10 +719,6 @@ const Home = () => {
                 <div className="mb-1 text-base">Interaction Type:</div>
                 <button
                   onClick={() => {
-                    setMoreFilters((prevFilters) => ({
-                      ...prevFilters,
-                      interactions: '',
-                    }));
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       interact: '', // empty interact
@@ -915,10 +745,6 @@ const Home = () => {
               <select
                 value={moreFilters['surface']}
                 onChange={(e) => {
-                  setMoreFilters((prevFilters) => ({
-                    ...prevFilters,
-                    surface: e.target.value,
-                  }));
                   const updatedQuery = {
                     ...Object.fromEntries(searchParams.entries()), // current query params
                     surface: e.target.value,
@@ -932,14 +758,30 @@ const Home = () => {
                 <option value="True">Surface: Yes</option>
                 <option value="False">Surface: No</option>
               </select>
+              {/* sources drop-down */}
+              <select
+                value={moreFilters['source']}
+                onChange={(e) => {
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    source: e.target.value,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">Source: All</option>
+                {sources.map((s) => (
+                  <option key={s} value={s}>
+                    Source: {UpFirstLetter(s)}
+                  </option>
+                ))}
+              </select>
               {/* series drop-down */}
               <select
                 value={moreFilters['series']}
                 onChange={(e) => {
-                  setMoreFilters((prevFilters) => ({
-                    ...prevFilters,
-                    series: e.target.value,
-                  }));
                   const updatedQuery = {
                     ...Object.fromEntries(searchParams.entries()), // current query params
                     series: e.target.value,
@@ -960,10 +802,6 @@ const Home = () => {
               <select
                 value={moreFilters['lightingType']}
                 onChange={(e) => {
-                  setMoreFilters((prevFilters) => ({
-                    ...prevFilters,
-                    lightingType: e.target.value,
-                  }));
                   const updatedQuery = {
                     ...Object.fromEntries(searchParams.entries()), // current query params
                     lightingType: e.target.value,
@@ -973,7 +811,7 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Lighting Type: All</option>
+                <option value="">Lighting Type:</option>
                 <option value="Candle">Lighting: Candle</option>
                 <option value="Emission">Lighting: Emission</option>
                 <option value="Fluorescent">Lighting: Fluorescent</option>
@@ -985,10 +823,6 @@ const Home = () => {
               <select
                 value={moreFilters['speakerType']}
                 onChange={(e) => {
-                  setMoreFilters((prevFilters) => ({
-                    ...prevFilters,
-                    speakerType: e.target.value,
-                  }));
                   const updatedQuery = {
                     ...Object.fromEntries(searchParams.entries()), // current query params
                     speakerType: e.target.value,
@@ -998,7 +832,7 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Album Player: All</option>
+                <option value="">Album Player Type:</option>
                 <option value="Cheap">Album Player: Cheap</option>
                 <option value="Hi-fi">Album Player: Hi-fi</option>
                 <option value="Music Box">Album Player: Music Box</option>
@@ -1015,7 +849,17 @@ const Home = () => {
         {' '}
         {/* item cards */}
         <div className="flex w-full items-center justify-between mb-2">
-          <div className="flex-grow pl-1">Item Counts: {data?.page_info.total_count ?? '...'}</div>
+          <div className="flex-grow pl-1">
+            {data?.page_info?.total_count ? (
+              <>
+                {40 * ((searchParams?.get('page') ?? 1) - 1) + 1}-
+                {Math.min(40 * (searchParams?.get('page') ?? 1), data.page_info.total_count)} of{' '}
+                {data.page_info.total_count} Items
+              </>
+            ) : (
+              'Loading...'
+            )}
+          </div>
           <PaginationControls
             currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
             totalPages={data?.page_info.max_page ?? 1}
