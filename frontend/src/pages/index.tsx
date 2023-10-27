@@ -520,9 +520,13 @@ const Home = () => {
                   {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True'}
                   {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
                 </div>
-                <div>
-                  <strong>Series: </strong> {item?.series ?? 'None'}
-                </div>
+                {item.series && (
+                  <>
+                    <div>
+                      <strong>Series: </strong> {item.series}
+                    </div>
+                  </>
+                )}
               </div>
               {
                 !!item.variations_info ? (

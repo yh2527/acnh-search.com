@@ -48,32 +48,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         if interact == "True":
             interact = True
         criteria["interact"] = interact
-    # tag
-    tag_matches = {
-            'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],
-            'Audiovisual':['Audio', 'Game Console'],
-            'Bath & Hygiene':['Bathroom Things','Bathtub','Toilet'],
-            'Bed':['Bed'],
-            'Business & Civic': ['Facility Decor','Hospital','Museum','Office','School','Shop','Study','Supplies'],
-            'Cultural & Decor':['Folk Craft Decor','Japanese Style'],
-            'Door Decor':['House Door Decor'],
-            'Drinks':['DishDrink'],
-            'Food':['DishFood'],
-            'Kitchen & Dining':['Dining','Kitchen','Kitchen Things'],
-            'Lights':['CeilingLamp','Lamp'],
-            'Musical Instrument':['Musical Instrument'],
-            'Outdoor & Natural':['Garden','Ranch'],
-            'Plants':['Plants'],
-            'Recreation & Play':['Animal','Playground','Special Fish','Special Insect','Sports','Toy'],
-            'Seasonal & Franchise':['Cinnamoroll','Compass','Easter','Hello Kitty','Kerokerokeroppi','Kiki & Lala','Mario','My Melody','Pompompurin','Seasonal Decor'],
-            'Seating':['Chair','Sofa'],
-            'Space Dividers':['Arch','Screen'],
-            'Storage & Display':['Chest','Dresser','Shelf'],
-            'Table':['Desk','Table'],
-            'Travel & Transit':['Seaside','Space','Vehicle']
-            }
-    if tag:
-        criteria['tag'] = {'$in':tag_matches[tag]}
     # colors
     if colors:
         colors = colors.split(',') # convert string into array
@@ -102,37 +76,77 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         minHeight = 0
     if minHeight >= 0 and maxHeight >= 0:
         criteria['height'] = { "$gte": minHeight, "$lte": maxHeight }
-    heights = {
-            'Low': (0, 3), 
-            'Medium Low': (3, 7), 
-            'Medium': (7, 10), 
-            'Medium High': (10, 17),
-            'High': (17, 25),
-            'Very High': (25, 40)
-    }
-    '''
-    if height:
-        if height == "No Height":
-            criteria['height'] = {"$exists": False}
-        else:
-            print(heights[height])
-            criteria['height'] ={"$gte": heights[height][0], "$lt": heights[height][1]} 
-    '''
     # ligthingType
     if lightingType:
         criteria["lightingType"] = lightingType
     # speakerType
     if speakerType:
         criteria["speakerType"] = speakerType
+    # tag
+    tag_matches = {
+            'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],
+            'Audiovisual':['Audio', 'Game Console'],
+            'Bath & Hygiene':['Bathroom Things','Bathtub','Toilet'],
+            'Bed':['Bed'],
+            'Business & Civic': ['Facility Decor','Hospital','Museum','Office','School','Shop','Study','Supplies'],
+            'Cultural & Decor':['Folk Craft Decor','Japanese Style'],
+            'Door Decor':['House Door Decor'],
+            'Drinks':['DishDrink'],
+            'Food':['DishFood'],
+            'Kitchen & Dining':['Dining','Kitchen','Kitchen Things'],
+            'Lights':['CeilingLamp','Lamp'],
+            'Musical Instrument':['Musical Instrument'],
+            'Outdoor & Natural':['Garden','Ranch'],
+            'Plants':['Plants'],
+            'Recreation & Play':['Animal','Playground','Special Fish','Special Insect','Sports','Toy'],
+            'Seasonal & Franchise':['Cinnamoroll','Compass','Easter','Hello Kitty','Kerokerokeroppi','Kiki & Lala','Mario','My Melody','Pompompurin','Seasonal Decor'],
+            'Seating':['Chair','Sofa'],
+            'Space Dividers':['Arch','Screen'],
+            'Storage & Display':['Chest','Dresser','Shelf'],
+            'Table':['Desk','Table'],
+            'Travel & Transit':['Seaside','Space','Vehicle']
+            }
+    if tag:
+        criteria['tag'] = {'$in':tag_matches[tag]}
+        pipeline = [
+        {
+            '$match': criteria
+        },
+        {
+            '$addFields': {
+                'tag_order': {
+                    '$indexOfArray': [tag_matches[tag], '$tag']
+                }
+            }
+        },
+        {
+            '$sort': {
+                'tag_order': 1,
+                'name': 1
+            }
+        },
+        {
+            '$project': {
+                "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
+                "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
+                "url": 1, "series": 1, "surface": 1, "_id": 0
+            }
+        },
+        {
+            '$skip': offset
+        },
+        {
+            '$limit': limit
+        }]
+        bson = collection.aggregate(pipeline, collation=pymongo.collation.Collation(locale="en", caseLevel=True))
+    else:
+        bson = collection.find(filter = criteria, projection =
+                               {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"surface":1,"_id":0}, 
+                               skip = offset, limit = limit,
+                               sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     print("criteria before total count", criteria)
     total_count = collection.count_documents(criteria)
     print(total_count)
-    
-    bson = collection.find(filter = criteria, projection =
-                           {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"surface":1,"_id":0}, 
-                           skip = offset, limit = limit,
-                           sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
-    
     # Convert ObjectId to str for JSON serialization
     #result["_id"] = str(result["_id"])
     result = json.loads(dumps(bson))
@@ -145,9 +159,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             item["series"] = item["series"] and item["series"].capitalize()
         item["image"] = item.get("image") or item.get("furnitureImage") or item.get("variations")[0]["image"]
         if "height" in item:
-            for key,value in heights.items():
-                if value[0] <= item["height"] < value[1]:
-                    item["heightGroup"] = key
             item["height"] = round(item["height"],1)
         if "variations" in item:
             item["variations_info"] = {}
@@ -158,9 +169,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     #if result and "variations_info" in result[0]:
         #print(result[0]["variations_info"])
     #print("first result ",result[0])
-    ###### NEED DEBUG ######
-    if tag:
-        result.sort(key = lambda x: x["tag"])
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
     #return {"message": "Hello World"}
