@@ -30,7 +30,7 @@ collection.find({
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
-         source: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
+         source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1):
     #print("page info", page, limit)
     search = re.escape(search)
@@ -51,25 +51,50 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # colors
     if colors:
         colors = colors.split(',') # convert string into array
-        criteria['$or'] = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
+        color_criteria = [{'colors':{'$all':colors}},{"variations":{"$elemMatch":{"colors":{"$all":colors}}}}]
+        criteria['$and'] = [{'$or': color_criteria}]
     # source
     if source:
         criteria['source'] = source 
+    # seasonal
+    if season:
+        if season == "Celeste":
+            criteria['recipe.source'] = season
+        else:
+            regex_pattern = re.compile(season, re.IGNORECASE)
+            season_criteria = [
+                {'seasonEvent': regex_pattern},
+                {"variations": {"$elemMatch": {'seasonEvent': regex_pattern}}},
+                {"recipe.source": season}
+            ]
+            if '$and' in criteria:
+                criteria['$and'].append({'$or':season_criteria})
+            else:
+                criteria['$and'] = [{'$or': season_criteria}]
     # series
     if series:
         criteria["series"] = series
     # surface
     if surface:
         if surface == "True":
-            criteria['$or'] = [
+            surface_criteria = [
                 {'surface': True},
                 {"variations": {"$elemMatch": {"surface": True}}}
             ]
+            if '$and' in criteria:
+                criteria['$and'].append({'$or':surface_criteria})
+            else:
+                criteria['$and'] = [{'$or': surface_criteria}]
         else:
-            criteria['$and'] = [
+            surface_criteria = [
                 {'surface': {'$ne': True}},
                 {"variations.surface": {'$ne': True}}
             ]
+            if '$and' in criteria:
+                criteria['$and'].append({'$and':surface_criteria})
+            else:
+                criteria['$and'] = [{'$and': surface_criteria}]
+            
     # height
     print("height ranges", minHeight, maxHeight)
     if minHeight >= 0:
@@ -102,7 +127,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             'Outdoor & Natural':['Garden','Ranch'],
             'Plants':['Plants'],
             'Recreation & Play':['Animal','Playground','Special Fish','Special Insect','Sports','Toy'],
-            'Seasonal & Franchise':['Cinnamoroll','Compass','Easter','Hello Kitty','Kerokerokeroppi','Kiki & Lala','Mario','My Melody','Pompompurin','Seasonal Decor'],
+            'Events & Franchise':['Cinnamoroll','Compass','Easter','Hello Kitty','Kerokerokeroppi','Kiki & Lala','Mario','My Melody','Pompompurin','Seasonal Decor'],
             'Seating':['Chair','Sofa'],
             'Space Dividers':['Arch','Screen'],
             'Storage & Display':['Chest','Dresser','Shelf'],

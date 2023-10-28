@@ -5,7 +5,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
-import { heights, categories, sizes, interactTypes, colors_object, tags, series_list, sources } from './lists';
+import {
+  heights,
+  categories,
+  sizes,
+  interactTypes,
+  colors_object,
+  tags,
+  series_list,
+  sources,
+  seasonals,
+} from './lists';
 
 interface Item {
   name: string;
@@ -45,6 +55,7 @@ const Home = () => {
     interactions: '',
     surface: '',
     source: '',
+    seasib: '',
     series: '',
     lightingType: '',
     speakerType: '',
@@ -65,6 +76,7 @@ const Home = () => {
       interactions: searchParams?.get('interact') ?? '',
       surface: searchParams?.get('surface') ?? '',
       source: searchParams?.get('source') ?? '',
+      season: searchParams?.get('season') ?? '',
       series: searchParams?.get('series') ?? '',
       lightingType: searchParams?.get('lightingType') ?? '',
       speakerType: searchParams?.get('speakerType') ?? '',
@@ -94,6 +106,7 @@ const Home = () => {
         surface: searchParams.get('surface') ?? '',
         height: searchParams.get('height') ?? '',
         source: searchParams.get('source') ?? '',
+        season: searchParams.get('season') ?? '',
         series: searchParams.get('series') ?? '',
         lightingType: searchParams.get('lightingType') ?? '',
         speakerType: searchParams.get('speakerType') ?? '',
@@ -170,9 +183,7 @@ const Home = () => {
           router.push({ query: updatedQuery }, undefined, { shallow: true });
         }}
         className={classNames(
-          `px-2 py-1 mr-2 mb-1 rounded bg-white`,
-          colors_object[color],
-          'bg-opacity-30',
+          `px-2 py-1 mr-2 mb-1 rounded`,
           (searchParams?.get('colors') ?? '').split(',').includes(color)
             ? 'bg-amber-300 text-slate-500'
             : 'bg-white text-slate-500',
@@ -345,7 +356,7 @@ const Home = () => {
                   ) : (
                     ''
                   )
-                ) : item.colors ? (
+                ) : item.colors?.length ? (
                   <>
                     <strong>Color:</strong> {Array.from(new Set(item?.colors ?? [])).join(', ')}
                   </>
@@ -775,6 +786,26 @@ const Home = () => {
                 {sources.map((s) => (
                   <option key={s} value={s}>
                     Source: {UpFirstLetter(s)}
+                  </option>
+                ))}
+              </select>
+              {/* seasonal drop-down */}
+              <select
+                value={moreFilters['season']}
+                onChange={(e) => {
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    season: e.target.value,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">Seasonal: All</option>
+                {seasonals.map((s) => (
+                  <option key={s} value={s}>
+                    Seasonal: {UpFirstLetter(s)}
                   </option>
                 ))}
               </select>
