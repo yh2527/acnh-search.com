@@ -214,3 +214,10 @@ export const seasonals = [
   'summer shells',
   'young spring bamboo',
 ];
+export const kit = {
+  'Rainbow feather': 'https://acnhcdn.com/latest/MenuIcon/FeatherRainbow.png',
+  Normal: 'https://acnhcdn.com/latest/MenuIcon/RemakeKit.png',
+  Pumpkin: 'https://acnhcdn.com/latest/MenuIcon/SquashOrange.png',
+  Bell: 'https://acnhcdn.com/latest/MenuIcon/MoneyBag010.png',
+  Cyrus: 'https://acnhcdn.com/latest/NpcIcon/alp.png',
+};

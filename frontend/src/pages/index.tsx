@@ -15,6 +15,7 @@ import {
   series_list,
   sources,
   seasonals,
+  kit,
 } from './lists';
 
 interface Item {
@@ -317,7 +318,7 @@ const Home = () => {
         onClick={onClose}
         style={{ backdropFilter: 'blur(5px)' }}
       >
-        <div className="bg-white rounded-lg w-3/5 min-h-[500px]" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-white rounded-lg w-3/5 min-h-[300px] pb-2" onClick={(e) => e.stopPropagation()}>
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
             <div className="text-xl text-center">{item.name}</div>
             <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
@@ -346,7 +347,7 @@ const Home = () => {
               </div>
               <div className="text-sm pl-1">
                 {item.variations_info ? (
-                  Object.values(Object.values(item.variations_info)[0])[0].colors.length ? (
+                  Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
                     <>
                       <strong>Color:</strong>{' '}
                       {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(
@@ -366,34 +367,18 @@ const Home = () => {
               </div>
             </div>
             <div className="w-[75%] pr-10 mt-5">
-              <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5">
+              {/* category and source */}
+              <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
                 <div>
                   <strong>Category:</strong> {item.category}{' '}
                 </div>
                 <div>
                   <strong>Source:</strong> {item.source ? item.source.join(', ') : item.category}{' '}
                 </div>
-                <div>
-                  <strong>Interaction: </strong>
-                  {item.interact === true && 'True'} {!item.interact && 'False'}{' '}
-                  {typeof item.interact === 'string' && item.interact}{' '}
-                </div>
-                <div>
-                  <strong>Has surface: </strong>
-                  {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True'}
-                  {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
-                </div>
-                {item.series && (
-                  <>
-                    <div>
-                      <strong>Series: </strong> {item.series}
-                    </div>
-                  </>
-                )}
               </div>
               {
                 !!item.variations_info ? (
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
+                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
                     {/* Variation */}
                     <div>
                       <strong>Variation:</strong> {hoveredVariation === 'null' ? 'None' : hoveredVariation}{' '}
@@ -423,7 +408,7 @@ const Home = () => {
               }
               {
                 !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5 flex flex-col overflow-x-auto">
+                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
                     {/* Variation */}
                     <div>
                       <strong>Pattern:</strong> {hoveredPattern === 'null' ? 'None' : hoveredPattern}{' '}
@@ -454,6 +439,68 @@ const Home = () => {
                   <div className="flex-grow"></div>
                 ) /* Empty div to maintain space */
               }
+              {/* diy info */}
+              {Object.keys(item?.recipe ?? {})?.length ? (
+                <>
+                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
+                    <div>
+                      <strong>DIY Materials: </strong>
+                      {Object.entries(item.diy_info).map(([key, value]) => (
+                        <div className="flex items-center" key={key}>
+                          <img className={`object-contain h-6 mx-1 rounded`} src={value.inventoryImage} />
+                          {value.amount}x {key}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                ''
+              )}
+              {/* customization info */}
+              {item.variations ? (
+                <>
+                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
+                    <strong>Customization: </strong>
+                    <div className="flex items-center">
+                      {item.kitCost && (
+                        <>
+                          <img className={`object-contain h-6 mx-1 rounded`} src={kit['Normal']} />
+                          {item.kitCost}x customization kit
+                          {Object.keys(item.variations_info).length > 1 && !item.bodyCustomize && ' - patterns only'}
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center">
+                      <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} />
+                      Cyrus: <img className={`object-contain h-6 rounded`} src={kit['Bell']} />
+                      {item.variations[0].cyrusCustomizePrice} bells
+                    </div>
+                  </div>
+                </>
+              ) : (
+                ''
+              )}
+              {/* interaction, surface, series */}
+              <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5">
+                <div>
+                  <strong>Interaction: </strong>
+                  {item.interact === true && 'True'} {!item.interact && 'False'}{' '}
+                  {typeof item.interact === 'string' && item.interact}{' '}
+                </div>
+                <div>
+                  <strong>Has surface: </strong>
+                  {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True'}
+                  {!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False'}{' '}
+                </div>
+                {item.series && (
+                  <>
+                    <div>
+                      <strong>Series: </strong> {item.series}
+                    </div>
+                  </>
+                )}
+              </div>
               {/* Additional content can be placed here */}
             </div>
           </div>
@@ -888,7 +935,7 @@ const Home = () => {
                 {data.page_info.total_count} Items
               </>
             ) : (
-              'Loading...'
+              '...'
             )}
           </div>
           <PaginationControls

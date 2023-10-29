@@ -134,6 +134,13 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             'Table':['Desk','Table'],
             'Travel & Transit':['Seaside','Space','Vehicle']
             }
+    ### Fields that will be returned fron the mongoDB querry ###
+    projection = {
+                "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
+                "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
+                "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
+                "bodyCustomize":1, "_id": 0
+            }
     if tag:
         criteria['tag'] = {'$in':tag_matches[tag]}
         pipeline = [
@@ -154,11 +161,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             }
         },
         {
-            '$project': {
-                "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
-                "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
-                "url": 1, "series": 1, "surface": 1, "_id": 0
-            }
+            '$project': projection
         },
         {
             '$skip': offset
@@ -168,8 +171,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         }]
         bson = collection.aggregate(pipeline, collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     else:
-        bson = collection.find(filter = criteria, projection =
-                               {"name":1,"category":1,"image":1,"furnitureImage":1,"variations":1,"size":1,"tag":1,"source":1,"colors":1,"interact":1,"height":1,"url":1,"series":1,"surface":1,"_id":0}, 
+        bson = collection.find(filter = criteria, projection = projection,
                                skip = offset, limit = limit,
                                sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
     print("criteria at total count", criteria)
@@ -194,6 +196,24 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {}
                 item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v.get("colors",None)}
+        if item.get("recipe",None):
+            item["diy_info"] = {}
+            for m in list(item['recipe']['materials'].keys()):
+                if m not in item["diy_info"]:
+                    item["diy_info"][m] = {}
+                item["diy_info"][m]['amount'] = item['recipe']['materials'][m]
+                icon = db["Other"].find_one(filter={'name':m},projection= {'inventoryImage':1,"_id":0})
+                if icon:
+                    item["diy_info"][m].update(icon)
+                else:
+                    more_icons = collection.find_one(filter={'name':m},projection=
+                                                     {'image':1,'iconImage':1,'variations':1,"_id":0})
+                    if "variations" in more_icons:
+                        icon = more_icons['variations'][0]['image']
+                    else:
+                        icon = more_icons.get('image',more_icons.get('iconImage',None))
+                    item["diy_info"][m].update({'inventoryImage':icon})
+
     #if result and "variations_info" in result[0]:
         #print(result[0]["variations_info"])
     #print("first result ",result[0])
