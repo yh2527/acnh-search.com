@@ -41,6 +41,7 @@ interface ApiResponse {
 }
 
 const Home = () => {
+  const [lan, setLan] = useState('en');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [searchBar, setSearchBar] = useState('');
@@ -55,6 +56,10 @@ const Home = () => {
     colors: '',
     interactions: '',
     surface: '',
+    body: '',
+    pattern: '',
+    custom: '',
+    sable: '',
     source: '',
     seasib: '',
     series: '',
@@ -76,6 +81,10 @@ const Home = () => {
       colors: searchParams?.get('colors') ?? '',
       interactions: searchParams?.get('interact') ?? '',
       surface: searchParams?.get('surface') ?? '',
+      body: searchParams?.get('body') ?? '',
+      pattern: searchParams?.get('pattern') ?? '',
+      custom: searchParams?.get('custom') ?? '',
+      sable: searchParams?.get('sable') ?? '',
       source: searchParams?.get('source') ?? '',
       season: searchParams?.get('season') ?? '',
       series: searchParams?.get('series') ?? '',
@@ -105,6 +114,10 @@ const Home = () => {
         interact: searchParams.get('interact') ?? '',
         colors: searchParams.get('colors') ?? '',
         surface: searchParams.get('surface') ?? '',
+        body: searchParams?.get('body') ?? '',
+        pattern: searchParams?.get('pattern') ?? '',
+        custom: searchParams?.get('custom') ?? '',
+        sable: searchParams?.get('sable') ?? '',
         height: searchParams.get('height') ?? '',
         source: searchParams.get('source') ?? '',
         season: searchParams.get('season') ?? '',
@@ -217,7 +230,7 @@ const Home = () => {
             : 'bg-white text-slate-500 hover:bg-amber-300',
         )}
       >
-        {tagName}
+        {lan === 'en' ? tagName : tags[tagName]}
       </button>
     );
   };
@@ -526,6 +539,23 @@ const Home = () => {
       <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
         ACNH Item Search
       </div>
+      <div className="absolute top-0 right-0 p-3 m-3">
+        <div className="flex">
+          <button
+            onClick={() => setLan('en')}
+            className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'en' && 'bg-amber-200')}
+          >
+            ENG
+          </button>
+          |
+          <button
+            onClick={() => setLan('cn')}
+            className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'cn' && 'bg-amber-200')}
+          >
+            中文
+          </button>
+        </div>
+      </div>
       <div className="flex flex-col w-full relative">
         {' '}
         {/* parent container for categories, toggle filters, text search*/}
@@ -536,9 +566,9 @@ const Home = () => {
               setShowFilters(false);
               router.push({}, undefined, { shallow: true });
             }}
-            className="px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
+            className= "w-20 px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
           >
-            Reset All
+           {lan === 'en' ? 'Reset All' : '重置'}
           </button>
           <div className="relative flex-grow">
             <form
@@ -557,7 +587,7 @@ const Home = () => {
                 className="rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500 w-full"
                 type="text"
                 name="searchBar"
-                placeholder={'Search for items...'}
+                placeholder={lan === 'en' ? 'Search for items...' : '输入搜索...'}
                 autoComplete="off"
                 value={searchBar}
                 onChange={(e) => {
@@ -584,7 +614,7 @@ const Home = () => {
         <div className="flex flex-wrap gap-2 mb-5">
           {' '}
           {/* category buttons*/}
-          {categories.map((category) => (
+          {Object.keys(categories).map((category) => (
             <button
               key={category}
               onClick={(e) => {
@@ -597,13 +627,15 @@ const Home = () => {
                 router.push({ query: updatedQuery }, undefined, { shallow: true });
               }}
               className={classNames(
-                `px-4 py-2 rounded`,
+                `px-4 py-2 `,
                 category === (searchParams.get('category') || 'All Categories')
                   ? 'bg-amber-300 text-slate-500'
                   : 'bg-white text-slate-500 hover:bg-amber-300',
+                lan === 'en' ? 'rounded' : 'rounded-lg',
+                category === 'All Categories' ? 'font-extrabold' : ''
               )}
             >
-              {category}
+              {lan === 'en' ? category : categories[category]}
             </button>
           ))}
         </div>
@@ -618,14 +650,101 @@ const Home = () => {
           >
             {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
             <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
-            More Filters
+            {lan === 'en' ? 'More Filters' : '更多筛选'}
           </button>
           {showFilters && (
             <div className="px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
               {' '}
               {/* tag start */}
               <div className="mt-3 mb-4">
-                <div className="mb-1 text-base">Function/Theme:</div>
+                <div className="flex items-center cursor-pointer mb-5">
+                  {/* surface checkbox */}
+                  <span className="mr-1">{lan === 'en' ? 'Has surface:' : '有台面:'} </span>
+                  <div
+                    onClick={() => {
+                      var surface = searchParams.get('surface');
+                      surface = surface === 'True' ? 'False' : surface === 'False' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        surface: surface,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('surface') === 'True' ? '✓' : searchParams.get('surface') === 'False' ? '✗' : ''}
+                  </div>
+                  {/* body variants checkbox */}
+                  <span className="mr-1">{lan === 'en' ? 'Base variants:' : '有多种款式:'} </span>
+                  <div
+                    onClick={() => {
+                      var body = searchParams.get('body');
+                      body = body === 'True' ? 'False' : body === 'False' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        body: body,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('body') === 'True' ? '✓' : searchParams.get('body') === 'False' ? '✗' : ''}
+                  </div>
+                  {/* pattern checkbox */}
+                  <span className="mr-1">{lan === 'en' ? 'Pattern variants:' : '有多种图案:'} </span>
+                  <div
+                    onClick={() => {
+                      var pattern = searchParams.get('pattern');
+                      pattern = pattern === 'True' ? 'False' : pattern === 'False' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        pattern: pattern,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('pattern') === 'True' ? '✓' : searchParams.get('pattern') === 'False' ? '✗' : ''}
+                  </div>
+                  {/* custom pattern checkbox */}
+                  <span className="mr-1">{lan === 'en' ? 'Custom patterns:' : '可用设计码:'} </span>
+                  <div
+                    onClick={() => {
+                      var custom = searchParams.get('custom');
+                      custom = custom === 'True' ? 'False' : custom === 'False' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        custom: custom,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('custom') === 'True' ? '✓' : searchParams.get('custom') === 'False' ? '✗' : ''}
+                  </div>
+                  {/* sable pattern checkbox */}
+                  <span className="mr-1">{lan === 'en' ? 'Sable patterns:' : '可用麻儿图案:'} </span>
+                  <div
+                    onClick={() => {
+                      var sable = searchParams.get('sable');
+                      sable = sable === 'True' ? 'False' : sable === 'False' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        sable: sable,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('sable') === 'True' ? '✓' : searchParams.get('sable') === 'False' ? '✗' : ''}
+                  </div>
+                </div>
+                <div className="mb-1 text-base">{lan === 'en' ? 'Function/Theme:' : '功能 / 主题:'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -644,7 +763,7 @@ const Home = () => {
                 >
                   X
                 </button>
-                {tags.map((tag) => (
+                {Object.keys(tags).map((tag) => (
                   <TagFilters tagName={tag} key={tag} />
                 ))}
               </div>
@@ -798,24 +917,6 @@ const Home = () => {
                 ))}
               </div>{' '}
               {/* interact end */}
-              <div className="mb-1 text-base">Other Filters:</div>
-              {/* surface drop-down */}
-              <select
-                value={moreFilters['surface']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    surface: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">Surface: All</option>
-                <option value="True">Surface: Yes</option>
-                <option value="False">Surface: No</option>
-              </select>
               {/* sources drop-down */}
               <select
                 value={moreFilters['source']}
@@ -928,14 +1029,16 @@ const Home = () => {
         {/* item cards */}
         <div className="flex w-full items-center justify-between mb-2">
           <div className="flex-grow pl-1">
-            {data?.page_info?.total_count ? (
+            {isLoading ? (
+              '...'
+            ) : data?.page_info?.total_count ? (
               <>
                 {40 * ((searchParams?.get('page') ?? 1) - 1) + 1}-
                 {Math.min(40 * (searchParams?.get('page') ?? 1), data.page_info.total_count)} of{' '}
                 {data.page_info.total_count} Items
               </>
             ) : (
-              '...'
+              'No result ... :('
             )}
           </div>
           <PaginationControls

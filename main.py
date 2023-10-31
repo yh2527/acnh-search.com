@@ -5,6 +5,7 @@ from bson.json_util import dumps
 from pymongo import MongoClient, InsertOne
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from langdetect import detect
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client["acnh-furnitures"]
@@ -18,25 +19,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-'''
-collection.find({
-    "columnA": {
-        "$in": [1, 2],
-        "$nin": [3, 4]
-    }
-})
-'''
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
-         maxHeight: int =-1):
-    #print("page info", page, limit)
-    search = re.escape(search)
+         maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = ''):
+    
     offset = (page - 1) * limit
-    # text search
-    criteria = {"name":{"$regex": search, "$options": "ix"}}
+    
+    # text search EN/ZH
+    def is_chinese(input_string):
+        for char in input_string:
+            if '\u4e00' <= char <= '\u9fff':
+                return True
+        return False
+    if is_chinese(search):
+        collation_to_use = pymongo.collation.Collation(locale="zh")
+        criteria = {"translations.cNzh":{"$regex": search, "$options": "i"}}
+    else:
+        collation_to_use = pymongo.collation.Collation(locale="en", caseLevel=True)
+        search = re.escape(search)
+        criteria = {"name":{"$regex": search, "$options": "ix"}}
+    
     # category
     if category:
         criteria["category"] = category
@@ -94,9 +99,20 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 criteria['$and'].append({'$and':surface_criteria})
             else:
                 criteria['$and'] = [{'$and': surface_criteria}]
-            
+    # body            
+    if body:
+        criteria["bodyTitle"] = {'$ne': None} if body == "True" else None
+    # pattern            
+    if pattern:
+        criteria["patternCustomize"] = True if pattern == "True" else {'$ne': True}
+    # custom            
+    if custom:
+        criteria["customPattern"] = True if custom == "True" else {'$ne': True}
+    # sable            
+    if sable:
+        criteria["sablePattern"] = True if sable == "True" else {'$ne': True}
     # height
-    print("height ranges", minHeight, maxHeight)
+    #print("height ranges", minHeight, maxHeight)
     if minHeight >= 0:
         if maxHeight < 0:
             maxHeight = 100
@@ -169,14 +185,14 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         {
             '$limit': limit
         }]
-        bson = collection.aggregate(pipeline, collation=pymongo.collation.Collation(locale="en", caseLevel=True))
+        bson = collection.aggregate(pipeline, collation=collation_to_use)
     else:
-        bson = collection.find(filter = criteria, projection = projection,
-                               skip = offset, limit = limit,
-                               sort=[("name",pymongo.ASCENDING)],collation=pymongo.collation.Collation(locale="en", caseLevel=True))
+        bson = collection.find(filter = criteria, projection = projection, skip = offset, limit = limit,
+                               sort=[("name",pymongo.ASCENDING)], collation = collation_to_use)
     print("criteria at total count", criteria)
     total_count = collection.count_documents(criteria)
     print(total_count)
+    
     # Convert ObjectId to str for JSON serialization
     #result["_id"] = str(result["_id"])
     result = json.loads(dumps(bson))
@@ -214,8 +230,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                         icon = more_icons.get('image',more_icons.get('iconImage',None))
                     item["diy_info"][m].update({'inventoryImage':icon})
 
-    #if result and "variations_info" in result[0]:
-        #print(result[0]["variations_info"])
     #print("first result ",result[0])
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
