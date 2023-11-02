@@ -155,7 +155,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
                 "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
                 "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
-                "bodyCustomize":1, "_id": 0
+                "translations": 1, "bodyCustomize":1, "_id": 0
             }
     if tag:
         criteria['tag'] = {'$in':tag_matches[tag]}
@@ -211,24 +211,32 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {}
-                item["variations_info"][v["variation"]][v.get("pattern")]={'image':v["image"],'colors':v.get("colors",None)}
+                item["variations_info"][v["variation"]][v.get("pattern")]={
+                        'image':v["image"],
+                        'colors':v.get("colors",None),
+                        'variantTranslations': v.get("variantTranslations", None),
+                        'patternTranslations': v.get("patternTranslations", None)
+                        }
         if item.get("recipe",None):
             item["diy_info"] = {}
             for m in list(item['recipe']['materials'].keys()):
                 if m not in item["diy_info"]:
                     item["diy_info"][m] = {}
                 item["diy_info"][m]['amount'] = item['recipe']['materials'][m]
-                icon = db["Other"].find_one(filter={'name':m},projection= {'inventoryImage':1,"_id":0})
+                find_material = "Bell bag" if "Bell" in m else m
+                icon = db["Other"].find_one(filter={'name':find_material},projection= {'inventoryImage':1,"_id":0})
                 if icon:
                     item["diy_info"][m].update(icon)
                 else:
-                    more_icons = collection.find_one(filter={'name':m},projection=
+                    more_icons = collection.find_one(filter={'name':find_material},projection=
                                                      {'image':1,'iconImage':1,'variations':1,"_id":0})
-                    if "variations" in more_icons:
-                        icon = more_icons['variations'][0]['image']
-                    else:
-                        icon = more_icons.get('image',more_icons.get('iconImage',None))
-                    item["diy_info"][m].update({'inventoryImage':icon})
+                    print("debug", item["name"])
+                    if more_icons:
+                        if "variations" in more_icons:
+                            icon = more_icons['variations'][0]['image']
+                        else:
+                            icon = more_icons.get('image',more_icons.get('iconImage',None))
+                        item["diy_info"][m].update({'inventoryImage':icon})
 
     #print("first result ",result[0])
     return {"result":result,

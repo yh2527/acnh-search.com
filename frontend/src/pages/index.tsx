@@ -16,6 +16,7 @@ import {
   sources,
   seasonals,
   kit,
+  translation,
 } from './lists';
 
 interface Item {
@@ -101,6 +102,9 @@ const Home = () => {
     //return !(hasSpecialValues && areOthersEmpty);
     return Object.values(moreFilters).some((value) => value !== '');
   };
+  const localize = (eng: string) => {
+    return lan === 'en' ? eng : translation[eng];
+  };
 
   const { isLoading, error, data } = useQuery<ApiResponse>({
     queryKey: ['searchCache', Array.from(searchParams.entries())],
@@ -153,7 +157,7 @@ const Home = () => {
             : 'bg-white text-slate-500 hover:bg-amber-300',
         )}
       >
-        {interact}
+        {localize(interact)}
       </button>
     );
   };
@@ -204,7 +208,7 @@ const Home = () => {
         )}
       >
         {(searchParams?.get('colors') ?? '').split(',').includes(color) && '✓ '}
-        {color}
+        {localize(color)}
       </button>
     );
   };
@@ -230,7 +234,7 @@ const Home = () => {
             : 'bg-white text-slate-500 hover:bg-amber-300',
         )}
       >
-        {lan === 'en' ? tagName : tags[tagName]}
+        {localize(tagName)}
       </button>
     );
   };
@@ -258,7 +262,7 @@ const Home = () => {
       <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded">
         {[...Array(totalPages).keys()].map((_, index) => (
           <option key={index} value={index + 1}>
-            Page {index + 1}
+            {localize('Page')} {index + 1}
           </option>
         ))}
       </select>
@@ -276,15 +280,29 @@ const Home = () => {
 
   const ItemCard = ({ item }: { item: Item }) => {
     const [hoveredImage, setHoveredImage] = React.useState(item.image);
-    const [hoveredColor, setHoveredColor] = React.useState(item.variations?.[0].variation);
+    const [hoveredColor, setHoveredColor] = React.useState(
+      lan === 'en'
+        ? (item.variations?.[0]?.variation ?? '') +
+            (item.variations?.[0]?.variation && item.variations?.[0]?.pattern ? ': ' : '') +
+            (item.variations?.[0]?.pattern ?? '')
+        : (item.variations?.[0]?.variantTranslations?.cNzh ?? '') +
+            (item.variations?.[0]?.variantTranslations?.cNzh && item.variations?.[0]?.patternTranslations?.cNzh
+              ? ': '
+              : '') +
+            (item.variations?.[0]?.patternTranslations?.cNzh ?? ''),
+    );
     return (
       <div
         className="p-5 flex flex-col items-center w-64 h-84 overflow-hidden bg-slate-50 rounded-lg shadow-md"
         onClick={() => openModal(item)}
       >
-        <h3 className="text-lg font-semibold h-10">{item.name}</h3>
+        <h3 className="text-center text-lg font-semibold h-10">{lan === 'en' ? item.name : item.translations.cNzh}</h3>
         <div className="flex items-center justify-center w-50 h-40">
-          <img className="w-auto h-auto max-w-full max-h-full" src={hoveredImage} alt={item.name} />
+          <img
+            className="w-auto h-auto max-w-full max-h-full"
+            src={hoveredImage}
+            alt={lan === 'en' ? item.name : item.translations.cNzh}
+          />
         </div>
         <div className="flex flex-row overflow-x-auto items-center h-11">
           {
@@ -297,11 +315,13 @@ const Home = () => {
                   alt={`${item.name} variation ${index}`}
                   onMouseEnter={() => {
                     setHoveredImage(v.image);
-                    setHoveredColor(v.variation);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredImage(item.image);
-                    setHoveredColor(item.variations[0].variation);
+                    setHoveredColor(
+                      lan === 'en'
+                        ? (v.variation ?? '') + (v.variation && v.pattern ? ': ' : '') + (v.pattern ?? '')
+                        : (v.variantTranslations?.cNzh ?? '') +
+                            (v.variantTranslations?.cNzh && v.patternTranslations?.cNzh ? ': ' : '') +
+                            (v.patternTranslations?.cNzh ?? ''),
+                    );
                   }}
                 />
               ))
@@ -310,7 +330,7 @@ const Home = () => {
             ) /* Empty div to maintain space */
           }
         </div>
-        <h3 className="text-sm font-semibold mb-4 pt-2 h-3">{hoveredColor}</h3>
+        <h3 className="text-sm font-semibold mb-4 pt-2 h-5">{hoveredColor}</h3>
       </div>
     );
   };
@@ -319,12 +339,18 @@ const Home = () => {
     const [hoveredImage, setHoveredImage] = React.useState(item.image);
     let defaultVariation = '';
     let defaultPattern = '';
+    let defaultVarTranslation = '';
+    let defaultPaTranslation = '';
     if (item.variations_info) {
       defaultVariation = Object.keys(item.variations_info)[0];
       defaultPattern = Object.keys(Object.values(item.variations_info)[0])[0];
+      defaultVarTranslation = Object.values(Object.values(item.variations_info)[0])[0].variantTranslations?.cNzh;
+      defaultPaTranslation = Object.values(Object.values(item.variations_info)[0])[0].patternTranslations?.cNzh;
     }
     const [hoveredVariation, setHoveredVariation] = React.useState(defaultVariation);
     const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
+    const [hoveredVarTranslation, setHoveredVarTranslation] = React.useState(defaultVarTranslation);
+    const [hoveredPaTranslation, setHoveredPaTranslation] = React.useState(defaultPaTranslation);
     return (
       <div
         className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center"
@@ -333,7 +359,7 @@ const Home = () => {
       >
         <div className="bg-white rounded-lg w-3/5 min-h-[300px] pb-2" onClick={(e) => e.stopPropagation()}>
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
-            <div className="text-xl text-center">{item.name}</div>
+            <div className="text-xl text-center">{lan === 'en' ? item.name : item.translations.cNzh}</div>
             <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
               &times;
             </button>
@@ -347,14 +373,14 @@ const Home = () => {
               <div className="text-sm pl-1">
                 {item.size ? (
                   <>
-                    <strong>Size:</strong> {item.size}
+                    <strong>{localize('Size') + ':'}</strong> {item.size}
                   </>
                 ) : null}
               </div>
               <div className="text-sm pl-1">
-                {item.heightGroup ? (
+                {item.height ? (
                   <>
-                    <strong>Height:</strong> {item.height}
+                    <strong>{localize('Height') + ':'}</strong> {item.height}
                   </>
                 ) : null}
               </div>
@@ -362,17 +388,20 @@ const Home = () => {
                 {item.variations_info ? (
                   Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
                     <>
-                      <strong>Color:</strong>{' '}
-                      {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])).join(
-                        ', ',
-                      )}
+                      <strong>{localize('Color') + ':'}</strong>{' '}
+                      {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
+                        .map((color) => localize(color))
+                        .join(', ')}
                     </>
                   ) : (
                     ''
                   )
                 ) : item.colors?.length ? (
                   <>
-                    <strong>Color:</strong> {Array.from(new Set(item?.colors ?? [])).join(', ')}
+                    <strong>{localize('Color') + ':'}</strong>{' '}
+                    {Array.from(new Set(item?.colors ?? []))
+                      .map((color) => localize(color))
+                      .join(', ')}
                   </>
                 ) : (
                   ''
@@ -383,10 +412,10 @@ const Home = () => {
               {/* category and source */}
               <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
                 <div>
-                  <strong>Category:</strong> {item.category}{' '}
+                  <strong>{localize('Category') + ':'}</strong> {localize(item.category)}{' '}
                 </div>
                 <div>
-                  <strong>Source:</strong> {item.source ? item.source.join(', ') : item.category}{' '}
+                  <strong>{localize('Source') + ':'}</strong> {item.source.map((s) => localize(s)).join(', ')}{' '}
                 </div>
               </div>
               {
@@ -394,7 +423,12 @@ const Home = () => {
                   <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
                     {/* Variation */}
                     <div>
-                      <strong>Variation:</strong> {hoveredVariation === 'null' ? 'None' : hoveredVariation}{' '}
+                      <strong>{localize('Variation') + ':'}</strong>{' '}
+                      {hoveredVariation === 'null'
+                        ? localize('None')
+                        : lan === 'en'
+                        ? hoveredVariation
+                        : hoveredVarTranslation}{' '}
                     </div>
                     <div className="flex flex-row items-center">
                       {Object.entries(item.variations_info).map(([key, value], index) => (
@@ -410,6 +444,7 @@ const Home = () => {
                               hoveredPattern ? value[hoveredPattern].image : Object.values(value)[0].image,
                             );
                             setHoveredVariation(key);
+                            setHoveredVarTranslation(Object.values(value)[0].variantTranslations?.cNzh);
                           }}
                         />
                       ))}
@@ -422,15 +457,17 @@ const Home = () => {
               {
                 !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
                   <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
-                    {/* Variation */}
+                    {/* Pattern */}
                     <div>
-                      <strong>Pattern:</strong> {hoveredPattern === 'null' ? 'None' : hoveredPattern}{' '}
+                      <strong>{localize('Pattern') + ':'}</strong>{' '}
+                      {hoveredPattern === 'null'
+                        ? localize('None')
+                        : lan === 'en'
+                        ? hoveredPattern
+                        : hoveredPaTranslation}{' '}
                     </div>
                     <div className="flex flex-row items-center">
                       {Object.entries(item.variations_info[hoveredVariation]).map(([key, value], index) => {
-                        console.log('variation', hoveredVariation);
-                        console.log(Object.values(item.variations_info));
-                        console.log('pattern', hoveredPattern);
                         return (
                           <img
                             key={index}
@@ -442,6 +479,7 @@ const Home = () => {
                             onMouseEnter={() => {
                               setHoveredImage(value.image);
                               setHoveredPattern(key);
+                              setHoveredPaTranslation(value.patternTranslations?.cNzh);
                             }}
                           />
                         );
@@ -566,9 +604,9 @@ const Home = () => {
               setShowFilters(false);
               router.push({}, undefined, { shallow: true });
             }}
-            className= "w-20 px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
+            className="w-20 px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
           >
-           {lan === 'en' ? 'Reset All' : '重置'}
+            {localize('Reset All')}
           </button>
           <div className="relative flex-grow">
             <form
@@ -632,7 +670,7 @@ const Home = () => {
                   ? 'bg-amber-300 text-slate-500'
                   : 'bg-white text-slate-500 hover:bg-amber-300',
                 lan === 'en' ? 'rounded' : 'rounded-lg',
-                category === 'All Categories' ? 'font-extrabold' : ''
+                category === 'All Categories' ? 'font-extrabold' : '',
               )}
             >
               {lan === 'en' ? category : categories[category]}
@@ -770,7 +808,7 @@ const Home = () => {
               {/* tag end */}
               {/* size start */}
               <div className="mb-4">
-                <div className="mb-1 text-base">Size:</div>
+                <div className="mb-1 text-base">{lan === 'en' ? 'Size:' : '占地面积:'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -795,7 +833,7 @@ const Home = () => {
               </div>
               {/* size end */}
               {/* height start */}
-              <div className="mb-1 text-base">Height:</div>
+              <div className="mb-1 text-base">{lan === 'en' ? 'Height:' : '高度:'}</div>
               <div className="mb-4 flex">
                 <button
                   onClick={() => {
@@ -827,7 +865,7 @@ const Home = () => {
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
                 >
-                  <label className="text-base">Min Height: </label>
+                  <label className="text-base">{lan === 'en' ? 'Min Height:' : '高度下限:'} </label>
                   <input
                     className="mr-2 w-16 h-7 rounded text-sm"
                     name="minHeight"
@@ -849,7 +887,7 @@ const Home = () => {
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
                 >
-                  <label className="text-base">Max Height: </label>
+                  <label className="text-base">{lan === 'en' ? 'Max Height:' : '高度上限:'}</label>
                   <input
                     className="mr-2 w-16 h-7 rounded text-sm"
                     name="maxHeight"
@@ -860,13 +898,13 @@ const Home = () => {
                     }}
                   />
                 </form>
-                <span>* For reference, the height of the player in the game is 20</span>
+                <span>{lan === 'en' ? "* The player's height in the game is 15." : '* 玩家游戏中高度为15'}</span>
               </div>{' '}
               {/* height end */}
               {/* color start */}
               <div className="mb-4">
                 {' '}
-                <div className="mb-1 text-base">Color:</div>
+                <div className="mb-1 text-base">{lan === 'en' ? 'Color:' : '颜色:'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -893,7 +931,7 @@ const Home = () => {
               {/* interact start */}
               <div className="mb-4">
                 {' '}
-                <div className="mb-1 text-base">Interaction Type:</div>
+                <div className="mb-1 text-base">{lan === 'en' ? 'Interaction Type:' : '交互种类:'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -912,7 +950,7 @@ const Home = () => {
                 >
                   X
                 </button>
-                {interactTypes.map((interact) => (
+                {Object.keys(interactTypes).map((interact) => (
                   <InteractFilters interact={interact} key={interact} />
                 ))}
               </div>{' '}
@@ -930,12 +968,21 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Source: All</option>
-                {sources.map((s) => (
-                  <option key={s} value={s}>
-                    Source: {UpFirstLetter(s)}
-                  </option>
-                ))}
+                <option value="">{lan === 'en' ? 'Source:' : '来源:'}</option>
+                {Object.keys(sources).map((s) => {
+                  if (sources[s] === 'divider') {
+                    return (
+                      <option key={s} disabled>
+                        ──────────
+                      </option>
+                    );
+                  }
+                  return (
+                    <option key={s} value={s}>
+                      {lan === 'en' ? `Source: ${UpFirstLetter(s)}` : `来源: ${sources[s]}`}
+                    </option>
+                  );
+                })}
               </select>
               {/* seasonal drop-down */}
               <select
@@ -950,12 +997,21 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Seasonal: All</option>
-                {seasonals.map((s) => (
-                  <option key={s} value={s}>
-                    Seasonal: {UpFirstLetter(s)}
-                  </option>
-                ))}
+                <option value="">{lan === 'en' ? 'Seasonal:' : '季节:'}</option>
+                {Object.keys(seasonals).map((s) => {
+                  if (seasonals[s] === 'divider') {
+                    return (
+                      <option key={s} disabled>
+                        ──────────
+                      </option>
+                    );
+                  }
+                  return (
+                    <option key={s} value={s}>
+                      {lan === 'en' ? `Seasonal: ${UpFirstLetter(s)}` : `季节: ${seasonals[s]}`}
+                    </option>
+                  );
+                })}
               </select>
               {/* series drop-down */}
               <select
@@ -970,12 +1026,21 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">Series: All</option>
-                {series_list.map((series) => (
-                  <option key={series} value={series}>
-                    Series: {UpFirstLetter(series)}
-                  </option>
-                ))}
+                <option value="">{lan === 'en' ? 'Series:' : '系列:'}</option>
+                {Object.keys(series_list).map((series) => {
+                  if (series_list[series] === 'divider') {
+                    return (
+                      <option key={series} disabled>
+                        ──────────
+                      </option>
+                    );
+                  }
+                  return (
+                    <option key={series} value={series}>
+                      {lan === 'en' ? `Seasonal: ${UpFirstLetter(series)}` : `系列: ${series_list[series]}`}
+                    </option>
+                  );
+                })}
               </select>
               {/* lighting type drop-down */}
               <select
@@ -1034,8 +1099,10 @@ const Home = () => {
             ) : data?.page_info?.total_count ? (
               <>
                 {40 * ((searchParams?.get('page') ?? 1) - 1) + 1}-
-                {Math.min(40 * (searchParams?.get('page') ?? 1), data.page_info.total_count)} of{' '}
-                {data.page_info.total_count} Items
+                {Math.min(40 * (searchParams?.get('page') ?? 1), data.page_info.total_count)}
+                {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
+                {data.page_info.total_count}
+                {lan === 'en' ? ' Items' : '项'}
               </>
             ) : (
               'No result ... :('
