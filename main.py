@@ -204,8 +204,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # result transformation #
     for item in result:
         item["name"] = item["name"].capitalize()
-        if "series" in item:
-            item["series"] = item["series"] and item["series"].capitalize()
         item["image"] = item.get("image") or item.get("furnitureImage") or item.get("variations")[0]["image"]
         if "height" in item:
             item["height"] = round(item["height"],1)
