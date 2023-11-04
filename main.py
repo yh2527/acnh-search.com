@@ -60,11 +60,14 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         criteria['$and'] = [{'$or': color_criteria}]
     # source
     if source:
-        criteria['source'] = source 
+        if source == "Celeste":
+            criteria['recipe.source'] = "Celeste"
+        else:
+            criteria['source'] = source 
     # seasonal
     if season:
-        if season == "Celeste":
-            criteria['recipe.source'] = season
+        if season == "Constellation":
+            criteria['recipe.source'] = "Celeste"
         else:
             regex_pattern = re.compile(season, re.IGNORECASE)
             season_criteria = [
@@ -155,7 +158,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
                 "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
                 "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
-                "translations": 1, "bodyCustomize":1, "_id": 0
+                "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1, "_id": 0
             }
     if tag:
         criteria['tag'] = {'$in':tag_matches[tag]}
@@ -224,19 +227,21 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                     item["diy_info"][m] = {}
                 item["diy_info"][m]['amount'] = item['recipe']['materials'][m]
                 find_material = "Bell bag" if "Bell" in m else m
-                icon = db["Other"].find_one(filter={'name':find_material},projection= {'inventoryImage':1,"_id":0})
+                icon = db["Other"].find_one(filter={'name':find_material},projection=
+                                            {'inventoryImage':1,'translations':1,"_id":0})
                 if icon:
                     item["diy_info"][m].update(icon)
                 else:
                     more_icons = collection.find_one(filter={'name':find_material},projection=
-                                                     {'image':1,'iconImage':1,'variations':1,"_id":0})
+                                                     {'image':1,'iconImage':1,'variations':1,'translations':1,"_id":0})
                     print("debug", item["name"])
                     if more_icons:
                         if "variations" in more_icons:
                             icon = more_icons['variations'][0]['image']
                         else:
                             icon = more_icons.get('image',more_icons.get('iconImage',None))
-                        item["diy_info"][m].update({'inventoryImage':icon})
+                        item["diy_info"][m].update({'inventoryImage':icon,
+                                                    'translations':more_icons.get('translations',None)})
 
     #print("first result ",result[0])
     return {"result":result,

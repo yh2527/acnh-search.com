@@ -370,47 +370,49 @@ const Home = () => {
               <div className="flex items-center justify-center w-full h-full">
                 <img src={hoveredImage} alt={item.name} className="" />
               </div>
-              <div className="text-sm pl-1">
-                {item.size ? (
-                  <>
-                    <strong>{localize('Size') + ':'}</strong> {item.size}
-                  </>
-                ) : null}
-              </div>
-              <div className="text-sm pl-1">
-                {item.height ? (
-                  <>
-                    <strong>{localize('Height') + ':'}</strong> {item.height}
-                  </>
-                ) : null}
-              </div>
-              <div className="text-sm pl-1">
-                {item.variations_info ? (
-                  Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
+              <div className="rounded-lg">
+                <div className="text-sm pl-1">
+                  {item.size ? (
+                    <>
+                      <strong>{localize('Size') + ':'}</strong> {item.size}
+                    </>
+                  ) : null}
+                </div>
+                <div className="text-sm pl-1">
+                  {item.height ? (
+                    <>
+                      <strong>{localize('Height') + ':'}</strong> {item.height}
+                    </>
+                  ) : null}
+                </div>
+                <div className="text-sm pl-1">
+                  {item.variations_info ? (
+                    Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
+                      <>
+                        <strong>{localize('Color') + ':'}</strong>{' '}
+                        {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
+                          .map((color) => localize(color))
+                          .join(', ')}
+                      </>
+                    ) : (
+                      ''
+                    )
+                  ) : item.colors?.length ? (
                     <>
                       <strong>{localize('Color') + ':'}</strong>{' '}
-                      {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
+                      {Array.from(new Set(item?.colors ?? []))
                         .map((color) => localize(color))
                         .join(', ')}
                     </>
                   ) : (
                     ''
-                  )
-                ) : item.colors?.length ? (
-                  <>
-                    <strong>{localize('Color') + ':'}</strong>{' '}
-                    {Array.from(new Set(item?.colors ?? []))
-                      .map((color) => localize(color))
-                      .join(', ')}
-                  </>
-                ) : (
-                  ''
-                )}
+                  )}
+                </div>
               </div>
             </div>
             <div className="w-[75%] pr-10 mt-5">
               {/* category and source */}
-              <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
+              <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                 <div>
                   <strong>{localize('Category') + ':'}</strong> {localize(item.category)}{' '}
                 </div>
@@ -418,10 +420,10 @@ const Home = () => {
                   <strong>{localize('Source') + ':'}</strong> {item.source.map((s) => localize(s)).join(', ')}{' '}
                 </div>
               </div>
+              {/* Variation */}
               {
                 !!item.variations_info ? (
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
-                    {/* Variation */}
+                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
                     <div>
                       <strong>{localize('Variation') + ':'}</strong>{' '}
                       {hoveredVariation === 'null'
@@ -454,10 +456,10 @@ const Home = () => {
                   <div className="flex-grow"></div>
                 ) /* Empty div to maintain space */
               }
+              {/* Pattern */}
               {
                 !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
-                    {/* Pattern */}
+                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3 flex flex-col overflow-x-auto">
                     <div>
                       <strong>{localize('Pattern') + ':'}</strong>{' '}
                       {hoveredPattern === 'null'
@@ -485,6 +487,13 @@ const Home = () => {
                         );
                       })}
                     </div>
+                    {item.sablePattern || item.customPattern ? (
+                      <span className="ml-1 mt-1 flex">
+                        {item.sablePattern && <span>✓{localize("Sable patterns")}</span>}
+                        {item.sablePattern && item.customPattern && <span className="ml-5"></span>}
+                        {item.customPattern && <span>✓{localize("Custom patterns")}</span>}
+                      </span>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="flex-grow"></div>
@@ -493,13 +502,13 @@ const Home = () => {
               {/* diy info */}
               {Object.keys(item?.recipe ?? {})?.length ? (
                 <>
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
+                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-1 shadow-sm mb-3">
                     <div>
-                      <strong>DIY Materials: </strong>
+                      <strong>{localize("DIY Materials")+':'}</strong>
                       {Object.entries(item.diy_info).map(([key, value]) => (
                         <div className="flex items-center" key={key}>
                           <img className={`object-contain h-6 mx-1 rounded`} src={value.inventoryImage} />
-                          {value.amount}x {key}
+                          {value.amount}x {lan === 'en' ? key : value.translations.cNzh}
                         </div>
                       ))}
                     </div>
@@ -511,21 +520,23 @@ const Home = () => {
               {/* customization info */}
               {item.variations ? (
                 <>
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-3">
-                    <strong>Customization: </strong>
+                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+                    <strong>{localize('Customization') + ':'} </strong>
                     <div className="flex items-center">
                       {item.kitCost && (
                         <>
                           <img className={`object-contain h-6 mx-1 rounded`} src={kit['Normal']} />
-                          {item.kitCost}x customization kit
-                          {Object.keys(item.variations_info).length > 1 && !item.bodyCustomize && ' - patterns only'}
+                          {item.kitCost}x {localize('customization kit')}
+                          {Object.keys(item.variations_info).length > 1 &&
+                            !item.bodyCustomize &&
+                            ' - ' + localize('patterns only')}
                         </>
                       )}
                     </div>
                     <div className="flex items-center">
                       <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} />
-                      Cyrus: <img className={`object-contain h-6 rounded`} src={kit['Bell']} />
-                      {item.variations[0].cyrusCustomizePrice} bells
+                      {localize('Cyrus') + ':'} <img className={`object-contain h-6 rounded`} src={kit['Bell']} />
+                      {item.variations[0].cyrusCustomizePrice} {localize('bells')}
                     </div>
                   </div>
                 </>
@@ -533,7 +544,7 @@ const Home = () => {
                 ''
               )}
               {/* interaction, surface, series */}
-              <div className="rounded-lg bg-slate-100 px-3 py-2 shadow-sm mb-5">
+              <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-5">
                 <div>
                   <strong>Interaction: </strong>
                   {item.interact === true && 'True'} {!item.interact && 'False'}{' '}
@@ -568,8 +579,8 @@ const Home = () => {
     setSelectedItem(null);
     setIsModalOpen(false);
   };
-  const UpFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  const UpFirstLetter = (word) => {
+        return lan === 'en' ? word.charAt(0).toUpperCase() + word.slice(1) : word
   };
 
   return (
@@ -625,7 +636,7 @@ const Home = () => {
                 className="rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500 w-full"
                 type="text"
                 name="searchBar"
-                placeholder={lan === 'en' ? 'Search for items...' : '输入搜索...'}
+                placeholder={localize('Search for items...')}
                 autoComplete="off"
                 value={searchBar}
                 onChange={(e) => {
@@ -673,7 +684,7 @@ const Home = () => {
                 category === 'All Categories' ? 'font-extrabold' : '',
               )}
             >
-              {lan === 'en' ? category : categories[category]}
+              {localize(category)}
             </button>
           ))}
         </div>
@@ -688,7 +699,7 @@ const Home = () => {
           >
             {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
             <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
-            {lan === 'en' ? 'More Filters' : '更多筛选'}
+            {localize('More Filters')}
           </button>
           {showFilters && (
             <div className="px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
@@ -697,7 +708,7 @@ const Home = () => {
               <div className="mt-3 mb-4">
                 <div className="flex items-center cursor-pointer mb-5">
                   {/* surface checkbox */}
-                  <span className="mr-1">{lan === 'en' ? 'Has surface:' : '有台面:'} </span>
+                  <span className="mr-1">{localize('Has surface')+':'} </span>
                   <div
                     onClick={() => {
                       var surface = searchParams.get('surface');
@@ -714,7 +725,7 @@ const Home = () => {
                     {searchParams.get('surface') === 'True' ? '✓' : searchParams.get('surface') === 'False' ? '✗' : ''}
                   </div>
                   {/* body variants checkbox */}
-                  <span className="mr-1">{lan === 'en' ? 'Base variants:' : '有多种款式:'} </span>
+                  <span className="mr-1">{localize('Base variants')+':'} </span>
                   <div
                     onClick={() => {
                       var body = searchParams.get('body');
@@ -731,7 +742,7 @@ const Home = () => {
                     {searchParams.get('body') === 'True' ? '✓' : searchParams.get('body') === 'False' ? '✗' : ''}
                   </div>
                   {/* pattern checkbox */}
-                  <span className="mr-1">{lan === 'en' ? 'Pattern variants:' : '有多种图案:'} </span>
+                  <span className="mr-1">{localize('Pattern variants') + ':'} </span>
                   <div
                     onClick={() => {
                       var pattern = searchParams.get('pattern');
@@ -748,7 +759,7 @@ const Home = () => {
                     {searchParams.get('pattern') === 'True' ? '✓' : searchParams.get('pattern') === 'False' ? '✗' : ''}
                   </div>
                   {/* custom pattern checkbox */}
-                  <span className="mr-1">{lan === 'en' ? 'Custom patterns:' : '可用设计码:'} </span>
+                  <span className="mr-1">{localize('Custom patterns') + ':'} </span>
                   <div
                     onClick={() => {
                       var custom = searchParams.get('custom');
@@ -765,7 +776,7 @@ const Home = () => {
                     {searchParams.get('custom') === 'True' ? '✓' : searchParams.get('custom') === 'False' ? '✗' : ''}
                   </div>
                   {/* sable pattern checkbox */}
-                  <span className="mr-1">{lan === 'en' ? 'Sable patterns:' : '可用麻儿图案:'} </span>
+                  <span className="mr-1">{localize('Sable patterns') + ':'} </span>
                   <div
                     onClick={() => {
                       var sable = searchParams.get('sable');
@@ -782,7 +793,7 @@ const Home = () => {
                     {searchParams.get('sable') === 'True' ? '✓' : searchParams.get('sable') === 'False' ? '✗' : ''}
                   </div>
                 </div>
-                <div className="mb-1 text-base">{lan === 'en' ? 'Function/Theme:' : '功能 / 主题:'}</div>
+                <div className="mb-1 text-base">{localize('Function/Theme') +':'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -808,7 +819,7 @@ const Home = () => {
               {/* tag end */}
               {/* size start */}
               <div className="mb-4">
-                <div className="mb-1 text-base">{lan === 'en' ? 'Size:' : '占地面积:'}</div>
+                <div className="mb-1 text-base">{localize('Size')+':'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -833,7 +844,7 @@ const Home = () => {
               </div>
               {/* size end */}
               {/* height start */}
-              <div className="mb-1 text-base">{lan === 'en' ? 'Height:' : '高度:'}</div>
+              <div className="mb-1 text-base">{localize('Height')+':'}</div>
               <div className="mb-4 flex">
                 <button
                   onClick={() => {
@@ -865,7 +876,7 @@ const Home = () => {
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
                 >
-                  <label className="text-base">{lan === 'en' ? 'Min Height:' : '高度下限:'} </label>
+                  <label className="text-base">{localize('Min Height')+':'} </label>
                   <input
                     className="mr-2 w-16 h-7 rounded text-sm"
                     name="minHeight"
@@ -887,7 +898,7 @@ const Home = () => {
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
                 >
-                  <label className="text-base">{lan === 'en' ? 'Max Height:' : '高度上限:'}</label>
+                  <label className="text-base">{localize('Max Height')+':'}</label>
                   <input
                     className="mr-2 w-16 h-7 rounded text-sm"
                     name="maxHeight"
@@ -898,13 +909,13 @@ const Home = () => {
                     }}
                   />
                 </form>
-                <span>{lan === 'en' ? "* The player's height in the game is 15." : '* 玩家游戏中高度为15'}</span>
+                <span>{localize("* The player's height in the game is 15.")}</span>
               </div>{' '}
               {/* height end */}
               {/* color start */}
               <div className="mb-4">
                 {' '}
-                <div className="mb-1 text-base">{lan === 'en' ? 'Color:' : '颜色:'}</div>
+                <div className="mb-1 text-base">{localize('Color')+':'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -931,7 +942,7 @@ const Home = () => {
               {/* interact start */}
               <div className="mb-4">
                 {' '}
-                <div className="mb-1 text-base">{lan === 'en' ? 'Interaction Type:' : '交互种类:'}</div>
+                <div className="mb-1 text-base">{localize('Interaction Type')+':'}</div>
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -968,7 +979,7 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">{lan === 'en' ? 'Source:' : '来源:'}</option>
+                <option value="">{localize('Source')+':'}</option>
                 {Object.keys(sources).map((s) => {
                   if (sources[s] === 'divider') {
                     return (
@@ -979,7 +990,8 @@ const Home = () => {
                   }
                   return (
                     <option key={s} value={s}>
-                      {lan === 'en' ? `Source: ${UpFirstLetter(s)}` : `来源: ${sources[s]}`}
+                      {localize('Source')+ ':'}{' '}
+                      {UpFirstLetter(localize(s))}
                     </option>
                   );
                 })}
@@ -997,7 +1009,7 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">{lan === 'en' ? 'Seasonal:' : '季节:'}</option>
+                <option value="">{localize('Seasonal') +':'}</option>
                 {Object.keys(seasonals).map((s) => {
                   if (seasonals[s] === 'divider') {
                     return (
@@ -1008,7 +1020,8 @@ const Home = () => {
                   }
                   return (
                     <option key={s} value={s}>
-                      {lan === 'en' ? `Seasonal: ${UpFirstLetter(s)}` : `季节: ${seasonals[s]}`}
+                      {localize('Seasonal')+ ':'}{' '}
+                      {UpFirstLetter(localize(s))}
                     </option>
                   );
                 })}
@@ -1026,7 +1039,7 @@ const Home = () => {
                 }}
                 className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
               >
-                <option value="">{lan === 'en' ? 'Series:' : '系列:'}</option>
+                <option value="">{localize('Series') +':'}</option>
                 {Object.keys(series_list).map((series) => {
                   if (series_list[series] === 'divider') {
                     return (
@@ -1037,7 +1050,8 @@ const Home = () => {
                   }
                   return (
                     <option key={series} value={series}>
-                      {lan === 'en' ? `Seasonal: ${UpFirstLetter(series)}` : `系列: ${series_list[series]}`}
+                      {localize('Series')+ ':'}{' '}
+                      {UpFirstLetter(localize(series))}
                     </option>
                   );
                 })}
