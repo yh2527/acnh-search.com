@@ -17,7 +17,7 @@ for p in critters:
         collection.update_one({'_id': p['_id']}, {'$set': {'interact': True}})
 '''
 
-# add source info for critters
+# add source/tag info for critters
 fish = db["Fish"]
 bugs = db["Insects"]
 sea = db["Sea Creatures"]
@@ -27,12 +27,12 @@ print(type(critters[0]))
 count = 0
 for p in critters:
     if fish.find_one({'name': p['name']}):
-        collection.update_one({'_id': p['_id']}, {'$set': {'source': ['Fish']}})
+        collection.update_one({'_id': p['_id']}, {'$set': {'tag': 'Fish'}})
         count += 1
     elif bugs.find_one({'name': p['name']}):
-        collection.update_one({'_id': p['_id']}, {'$set': {'source': ['Insects']}})
+        collection.update_one({'_id': p['_id']}, {'$set': {'tag': 'Insect'}})
         count += 1
     elif sea.find_one({'name': p['name']}):
-        collection.update_one({'_id': p['_id']}, {'$set': {'source': ['Sea Creatures']}})
+        collection.update_one({'_id': p['_id']}, {'$set': {'tag': 'Sea Creatures'}})
         count += 1
 print("number of entreis modified:", count) #200

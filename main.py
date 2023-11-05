@@ -24,7 +24,8 @@ app.add_middleware(
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
-         maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = ''):
+         maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
+         concept: str = ''):
     
     offset = (page - 1) * limit
     
@@ -82,6 +83,9 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # series
     if series:
         criteria["series"] = series
+    # concept
+    if concept:
+        criteria["concepts"] = concept
     # surface
     if surface:
         if surface == "True":
@@ -151,14 +155,15 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
             'Space Dividers':['Arch','Screen'],
             'Storage & Display':['Chest','Dresser','Shelf'],
             'Table':['Desk','Table'],
-            'Travel & Transit':['Seaside','Space','Vehicle']
+            'Adventure & Transit':['Seaside','Space','Vehicle']
             }
     ### Fields that will be returned fron the mongoDB querry ###
     projection = {
                 "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
                 "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
                 "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
-                "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1, "_id": 0
+                "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1,
+                "concepts":1, "lightingType":1, "speakerType":1,"_id": 0
             }
     if tag:
         criteria['tag'] = {'$in':tag_matches[tag]}

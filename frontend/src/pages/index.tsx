@@ -13,6 +13,7 @@ import {
   interactTypes,
   colors_object,
   tags,
+  concepts,
   series_list,
   sources,
   seasonals,
@@ -69,6 +70,7 @@ const Home = () => {
     series: '',
     lightingType: '',
     speakerType: '',
+    concept: '',
     // ... any other filters you have
   });
   const router = useRouter();
@@ -94,6 +96,7 @@ const Home = () => {
       series: searchParams?.get('series') ?? '',
       lightingType: searchParams?.get('lightingType') ?? '',
       speakerType: searchParams?.get('speakerType') ?? '',
+      concept: searchParams?.get('concept') ?? '',
       // ... any other filters you have
     });
   }, [searchParams]);
@@ -131,6 +134,7 @@ const Home = () => {
         series: searchParams.get('series') ?? '',
         lightingType: searchParams.get('lightingType') ?? '',
         speakerType: searchParams.get('speakerType') ?? '',
+        concept: searchParams.get('concept') ?? '',
         ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') } : {}),
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') } : {}),
         // other stuff
@@ -354,6 +358,13 @@ const Home = () => {
     const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
     const [hoveredVarTranslation, setHoveredVarTranslation] = React.useState(defaultVarTranslation);
     const [hoveredPaTranslation, setHoveredPaTranslation] = React.useState(defaultPaTranslation);
+    const [lastDiv, setLastDiv] = useState(false);
+    useEffect(() => {
+      if (item.interact || item.surface || item.series || findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) {
+        setLastDiv(true);
+      }
+    }, [item.interact, item.surface, item.series, findKeyByValue(tags, item.tag), item.concepts]); // dependencies array
+
     return (
       <div
         className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center"
@@ -554,38 +565,120 @@ const Home = () => {
                 ''
               )}
               {/* interaction, surface, series */}
-              <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
-                <div>
-                  <strong>{localize('Interaction') + ':'}</strong>
-                  {localize(item.interact === true && 'True')} {localize(!item.interact && 'False')}{' '}
-                  {localize(typeof item.interact === 'string' && item.interact)}{' '}
-                </div>
-                <div>
-                  <strong>{localize('Has surface') + ':'}</strong>{' '}
-                  {localize(
-                    (item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True',
-                  )}
-                  {localize(!(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False')}{' '}
-                </div>
-                {item.series && (
-                  <>
-                    <div>
-                      <strong>{localize('Series') + ':'}</strong> {UpFirstLetter(localize(item.series))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="pl-1 text-sm text-slate-400">
+              {lastDiv && (
+                <>
+                  <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
+                    {item.surface && (
+                      <div>
+                        <strong>{localize('Has surface') + ':'}</strong>{' '}
+                        {localize(
+                          (item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True',
+                        )}
+                        {localize(
+                          !(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False',
+                        )}{' '}
+                      </div>
+                    )}
+                    {item.series && (
+                      <>
+                        <div>
+                          <strong>{localize('Series') + ':'}</strong> {UpFirstLetter(localize(item.series))}
+                        </div>
+                      </>
+                    )}
+                    {item.interact && (
+                      <div>
+                        <strong>{localize('Interaction Type') + ':'}</strong>{' '}
+                        {localize(item.interact === true && 'Other')} {localize(!item.interact && 'False')}{' '}
+                        {localize(typeof item.interact === 'string' && item.interact)}{' '}
+                      </div>
+                    )}
+                    {item.lightingType && (
+                      <>
+                        <div>
+                          <strong>{localize('Lighting Type') + ':'}</strong>{' '}
+                          {UpFirstLetter(localize(item.lightingType))}
+                        </div>
+                      </>
+                    )}
+                    {item.speakerType && (
+                      <>
+                        <div>
+                          <strong>{localize('Album Player Type') + ':'}</strong>{' '}
+                          {UpFirstLetter(localize(item.speakerType))}
+                        </div>
+                      </>
+                    )}
+                    {(findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) && (
+                      <>
+                        <div>
+                          <strong>{localize('Keyword') + ':'}</strong>{' '}
+                          {findKeyByValue(tags, item.tag) && (
+                            <span
+                              className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                              onClick={() => {
+                                setSearchBar(''); // clear out search bar value
+                                setShowFilters(false);
+                                const updatedQuery = {
+                                  tag: findKeyByValue(tags, item.tag), // only filter on tag
+                                  page: 1,
+                                };
+                                router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                closeModal();
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              #{localize(findKeyByValue(tags, item.tag))}
+                            </span>
+                          )}
+                          {findKeyByValue(tags, item.tag) && (item.concepts?.length ?? 0) > 0 && ', '}
+                          {(item.concepts?.length ?? 0) > 0 &&
+                            item.concepts.map((concept, index) => (
+                              <React.Fragment key={index}>
+                                {index > 0 && ', '}
+                                <span
+                                  className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                                  onClick={() => {
+                                    //concept
+                                setSearchBar(''); // clear out search bar value
+                                setShowFilters(false);
+                                const updatedQuery = {
+                                  concept: concept, // only filter on concept
+                                  page: 1,
+                                };
+                                router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                closeModal();
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  #{UpFirstLetter(localize(concept))}
+                                </span>
+                              </React.Fragment>
+                            ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+              {/* Additional content can be placed here */}
+              <div className="pl-1 text-sm text-slate-400 mb-3">
                 {item.url ? (
                   <>
-                    <span>{localize("* More details on the item's")}</span>{' '}
-                    <a className="text-amber-400" href={item.url} target="_blank" rel="noopener noreferrer">
-                      Nookipedia Page
+                    <span>{'* ' + localize("More details on the item's")}</span>{' '}
+                    <a
+                      className="text-amber-400 hover:text-amber-500"
+                      href={item.url.replace('?', '%3F')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {localize('Nookipedia Page')}
                     </a>
                   </>
                 ) : null}
               </div>
-              {/* Additional content can be placed here */}
             </div>
           </div>
         </div>
@@ -603,6 +696,14 @@ const Home = () => {
   };
   const UpFirstLetter = (word) => {
     return lan === 'en' ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+  };
+  const findKeyByValue = (tags, valueToFind) => {
+    for (let [key, values] of Object.entries(tags)) {
+      if (values.includes(valueToFind)) {
+        return key;
+      }
+    }
+    return null; // or a default value or an empty string if you prefer
   };
 
   return (
@@ -893,6 +994,7 @@ const Home = () => {
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
                       minHeight: minHeight, // updated minHeight
+                      maxHeight: maxHeight, // updated maxHeight
                       page: 1,
                     };
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -914,6 +1016,7 @@ const Home = () => {
                     e.preventDefault();
                     const updatedQuery = {
                       ...Object.fromEntries(searchParams.entries()), // current query params
+                      minHeight: minHeight, // updated minHeight
                       maxHeight: maxHeight, // updated maxHeight
                       page: 1,
                     };
@@ -964,7 +1067,7 @@ const Home = () => {
               {/* interact start */}
               <div className="mb-4">
                 {' '}
-                <div className="mb-1 text-base">{localize('Interaction Type') + ':'}</div>
+                <div className="mb-1 text-base">{localize('Interaction Type') + ':'}</div>{' '}
                 <button
                   onClick={() => {
                     const updatedQuery = {
@@ -1114,6 +1217,35 @@ const Home = () => {
                     {localize('Album Player') + ': ' + localize(player)}
                   </option>
                 ))}
+              </select>
+              {/* concept drop-down */}
+              <select
+                value={moreFilters['concept']}
+                onChange={(e) => {
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    concept: e.target.value,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
+              >
+                <option value="">{localize('Concept') + ':'}</option>
+                {Object.keys(concepts).map((s) => {
+                  if (concepts[s] === 'divider') {
+                    return (
+                      <option key={s} disabled>
+                        ──────────
+                      </option>
+                    );
+                  }
+                  return (
+                    <option key={s} value={s}>
+                      {localize('Concept') + ':'} {UpFirstLetter(localize(s))}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}{' '}
