@@ -25,7 +25,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
-         concept: str = ''):
+         concept: str = '', rug: str = ''):
     
     offset = (page - 1) * limit
     
@@ -133,6 +133,10 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # speakerType
     if speakerType:
         criteria["speakerType"] = speakerType
+    # rug
+    if rug:
+        criteria["tag"] = rug
+        criteria["category"] = "Rugs"
     # tag
     tag_matches = {
             'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],

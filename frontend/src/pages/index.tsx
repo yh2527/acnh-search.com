@@ -19,6 +19,7 @@ import {
   seasonals,
   lightings,
   album_players,
+  rugs,
   kit,
   translation,
 } from './lists';
@@ -70,6 +71,7 @@ const Home = () => {
     series: '',
     lightingType: '',
     speakerType: '',
+    rug: '',
     concept: '',
     // ... any other filters you have
   });
@@ -97,6 +99,7 @@ const Home = () => {
       lightingType: searchParams?.get('lightingType') ?? '',
       speakerType: searchParams?.get('speakerType') ?? '',
       concept: searchParams?.get('concept') ?? '',
+      rug: searchParams?.get('rug') ?? '',
       // ... any other filters you have
     });
   }, [searchParams]);
@@ -135,6 +138,7 @@ const Home = () => {
         lightingType: searchParams.get('lightingType') ?? '',
         speakerType: searchParams.get('speakerType') ?? '',
         concept: searchParams.get('concept') ?? '',
+        rug: searchParams?.get('rug') ?? '',
         ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') } : {}),
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') } : {}),
         // other stuff
@@ -360,10 +364,26 @@ const Home = () => {
     const [hoveredPaTranslation, setHoveredPaTranslation] = React.useState(defaultPaTranslation);
     const [lastDiv, setLastDiv] = useState(false);
     useEffect(() => {
-      if (item.interact || item.surface || item.series || findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) {
+      if (
+        item.interact ||
+        (item.surface ?? (item.variations ? item.variations[0].surface : false)) ||
+        item.series ||
+        findKeyByValue(tags, item.tag) ||
+        (item.concepts?.length ?? 0) > 0 ||
+        item.lightingType ||
+        item.speakerType
+      ) {
         setLastDiv(true);
       }
-    }, [item.interact, item.surface, item.series, findKeyByValue(tags, item.tag), item.concepts]); // dependencies array
+    }, [
+      item.interact,
+      item.surface,
+      item.series,
+      findKeyByValue(tags, item.tag),
+      item.concepts,
+      item.lightingType,
+      item.speakerType,
+    ]); // dependencies array
 
     return (
       <div
@@ -568,24 +588,14 @@ const Home = () => {
               {lastDiv && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
-                    {item.surface && (
-                      <div>
-                        <strong>{localize('Has surface') + ':'}</strong>{' '}
-                        {localize(
-                          (item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && 'True',
-                        )}
-                        {localize(
-                          !(item?.surface ?? (item.variations ? item.variations[0].surface : false)) && 'False',
-                        )}{' '}
-                      </div>
-                    )}
-                    {item.series && (
-                      <>
+                    {item.surface ??
+                      ((item.variations ? item.variations[0].surface : false) && (
                         <div>
-                          <strong>{localize('Series') + ':'}</strong> {UpFirstLetter(localize(item.series))}
+                          {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && (
+                            <strong>{localize('Has surface')}</strong>
+                          )}
                         </div>
-                      </>
-                    )}
+                      ))}
                     {item.interact && (
                       <div>
                         <strong>{localize('Interaction Type') + ':'}</strong>{' '}
@@ -606,6 +616,32 @@ const Home = () => {
                         <div>
                           <strong>{localize('Album Player Type') + ':'}</strong>{' '}
                           {UpFirstLetter(localize(item.speakerType))}
+                        </div>
+                      </>
+                    )}
+                    {item.series && (
+                      <>
+                        <div>
+                          <strong>{localize('Series') + ':'}</strong>
+                          {
+                            <span
+                              className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                              onClick={() => {
+                                setSearchBar(''); // clear out search bar value
+                                setShowFilters(false);
+                                const updatedQuery = {
+                                  series: item.series,
+                                  page: 1,
+                                };
+                                router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                closeModal();
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              #{UpFirstLetter(localize(item.series))}
+                            </span>
+                          }
                         </div>
                       </>
                     )}
@@ -641,14 +677,14 @@ const Home = () => {
                                   className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
                                   onClick={() => {
                                     //concept
-                                setSearchBar(''); // clear out search bar value
-                                setShowFilters(false);
-                                const updatedQuery = {
-                                  concept: concept, // only filter on concept
-                                  page: 1,
-                                };
-                                router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                closeModal();
+                                    setSearchBar(''); // clear out search bar value
+                                    setShowFilters(false);
+                                    const updatedQuery = {
+                                      concept: concept, // only filter on concept
+                                      page: 1,
+                                    };
+                                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                    closeModal();
                                   }}
                                   role="button"
                                   tabIndex={0}
@@ -1091,162 +1127,347 @@ const Home = () => {
                 ))}
               </div>{' '}
               {/* interact end */}
-              {/* sources drop-down */}
-              <select
-                value={moreFilters['source']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    source: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">{localize('Source') + ':'}</option>
-                {Object.keys(sources).map((s) => {
-                  if (sources[s] === 'divider') {
-                    return (
-                      <option key={s} disabled>
-                        ──────────
-                      </option>
-                    );
-                  }
-                  return (
-                    <option key={s} value={s}>
-                      {localize('Source') + ':'} {UpFirstLetter(localize(s))}
-                    </option>
-                  );
-                })}
-              </select>
-              {/* seasonal drop-down */}
-              <select
-                value={moreFilters['season']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    season: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">{localize('Seasonal') + ':'}</option>
-                {Object.keys(seasonals).map((s) => {
-                  if (seasonals[s] === 'divider') {
-                    return (
-                      <option key={s} disabled>
-                        ──────────
-                      </option>
-                    );
-                  }
-                  return (
-                    <option key={s} value={s}>
-                      {localize('Seasonal') + ':'} {UpFirstLetter(localize(s))}
-                    </option>
-                  );
-                })}
-              </select>
-              {/* series drop-down */}
-              <select
-                value={moreFilters['series']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    series: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">{localize('Series') + ':'}</option>
-                {Object.keys(series_list).map((series) => {
-                  if (series_list[series] === 'divider') {
-                    return (
-                      <option key={series} disabled>
-                        ──────────
-                      </option>
-                    );
-                  }
-                  return (
-                    <option key={series} value={series}>
-                      {localize('Series') + ':'} {UpFirstLetter(localize(series))}
-                    </option>
-                  );
-                })}
-              </select>
-              {/* lighting type drop-down */}
-              <select
-                value={moreFilters['lightingType']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    lightingType: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">{localize('Lighting Type') + ':'}</option>
-                {Object.keys(lightings).map((l) => (
-                  <option key={l} value={l}>
-                    {localize('Lighting') + ': ' + localize(l)}
-                  </option>
-                ))}
-              </select>
-              {/* speaker type drop-down */}
-              <select
-                value={moreFilters['speakerType']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    speakerType: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">{localize('Album Player Type') + ':'}</option>
-                {Object.keys(album_players).map((player) => (
-                  <option key={player} value={player}>
-                    {localize('Album Player') + ': ' + localize(player)}
-                  </option>
-                ))}
-              </select>
-              {/* concept drop-down */}
-              <select
-                value={moreFilters['concept']}
-                onChange={(e) => {
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    concept: e.target.value,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className="form-select p-1 mr-2 mb-2 rounded text-amber-500 border border-amber-500"
-              >
-                <option value="">{localize('Concept') + ':'}</option>
-                {Object.keys(concepts).map((s) => {
-                  if (concepts[s] === 'divider') {
-                    return (
-                      <option key={s} disabled>
-                        ──────────
-                      </option>
-                    );
-                  }
-                  return (
-                    <option key={s} value={s}>
-                      {localize('Concept') + ':'} {UpFirstLetter(localize(s))}
-                    </option>
-                  );
-                })}
-              </select>
+              <div>
+                {/* sources drop-down */}
+                <div className="mb-1 text-base">{localize('Other Filters') + ':'}</div>{' '}
+                <div className="flex flex-wrap">
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['source']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          source: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                        searchParams.get('source') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Source') + ':'}</option>
+                      {Object.keys(sources).map((s) => {
+                        if (sources[s] === 'divider') {
+                          return (
+                            <option key={s} disabled>
+                              ──────────
+                            </option>
+                          );
+                        }
+                        return (
+                          <option key={s} value={s}>
+                            {localize('Source') + ':'} {UpFirstLetter(localize(s))}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {searchParams.get('source') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            source: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                  {/* seasonal drop-down */}
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['season']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          season: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                        searchParams.get('season') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Seasonal') + ':'}</option>
+                      {Object.keys(seasonals).map((s) => {
+                        if (seasonals[s] === 'divider') {
+                          return (
+                            <option key={s} disabled>
+                              ──────────
+                            </option>
+                          );
+                        }
+                        return (
+                          <option key={s} value={s}>
+                            {localize('Seasonal') + ':'} {UpFirstLetter(localize(s))}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {searchParams.get('season') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            season: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                  {/* series drop-down */}
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['series']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          series: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                        searchParams.get('series') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Series') + ':'}</option>
+                      {Object.keys(series_list).map((series) => {
+                        if (series_list[series] === 'divider') {
+                          return (
+                            <option key={series} disabled>
+                              ──────────
+                            </option>
+                          );
+                        }
+                        return (
+                          <option key={series} value={series}>
+                            {localize('Series') + ':'} {UpFirstLetter(localize(series))}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {searchParams.get('series') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            series: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                  {/* concept drop-down */}
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['concept']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          concept: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                        searchParams.get('concept') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Concept') + ':'}</option>
+                      {Object.keys(concepts).map((s) => {
+                        if (concepts[s] === 'divider') {
+                          return (
+                            <option key={s} disabled>
+                              ──────────
+                            </option>
+                          );
+                        }
+                        return (
+                          <option key={s} value={s}>
+                            {localize('Concept') + ':'} {UpFirstLetter(localize(s))}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {searchParams.get('concept') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            concept: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div>
+                {/* lighting type drop-down */}
+                <div className="flex flex-wrap">
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['lightingType']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          lightingType: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                        searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Lighting Type') + ':'}</option>
+                      {Object.keys(lightings).map((l) => (
+                        <option key={l} value={l}>
+                          {localize('Lighting') + ': ' + localize(l)}
+                        </option>
+                      ))}
+                    </select>
+                    {searchParams.get('lightingType') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            lightingType: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                  {/* speaker type drop-down */}
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['speakerType']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          speakerType: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                        searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Album Player Type') + ':'}</option>
+                      {Object.keys(album_players).map((player) => (
+                        <option key={player} value={player}>
+                          {localize('Album Player') + ': ' + localize(player)}
+                        </option>
+                      ))}
+                    </select>
+                    {searchParams.get('speakerType') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            speakerType: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                  {/* rugs drop-down */}
+                  <div className="relative mr-2 mb-2 ">
+                    <select
+                      value={moreFilters['rug']}
+                      onChange={(e) => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          rug: e.target.value,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                        searchParams.get('rug') && 'text-slate-500 bg-amber-200',
+                      )}
+                    >
+                      <option value="">{localize('Rug Filter') + ':'}</option>
+                      {Object.keys(rugs).map((s) => {
+                        if (rugs[s] === 'divider') {
+                          return (
+                            <option key={s} disabled>
+                              ──────────
+                            </option>
+                          );
+                        }
+                        return (
+                          <option key={s} value={s}>
+                            {localize('Rug') + ':'} {UpFirstLetter(localize(s))}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {searchParams.get('rug') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()),
+                            rug: '',
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}{' '}
           {/* end of showFilters div*/}
