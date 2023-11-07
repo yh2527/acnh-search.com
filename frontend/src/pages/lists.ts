@@ -339,7 +339,7 @@ export const kit = {
   Cyrus: 'https://acnhcdn.com/latest/NpcIcon/alp.png',
 };
 
-export const translation = {
+export const translation: Record<string, string> = {
   //website display
   'Search for items...': '输入搜索...',
   'Reset All': '重置',
@@ -385,6 +385,8 @@ export const translation = {
   Concept: '概念',
   True: '有',
   False: '无',
+  '99,000 Bells': '99,000 铃钱',
+  '50,000 Bells': '50,000 铃钱',
   "More details on the item's": '更多信息请访问本物品的',
   'Nookipedia Page': 'Nookipedia 页面',
   //categories

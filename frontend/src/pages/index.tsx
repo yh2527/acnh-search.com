@@ -26,16 +26,48 @@ import {
 
 interface Item {
   name: string;
+  patternCustomize: string;
+  kitCost: number;
+  size: string[];
+  interact: boolean;
+  tag: string;
+  speakerType: string;
+  lightingType: string;
+  bodyCustomize: boolean;
+  source: string[];
+  translations: {
+    sourceSheet: string;
+    id: number;
+    plural: boolean;
+  } & Record<string, string>;
+  colors: string[];
+  concepts: string[];
+  series: string;
+  surface: boolean;
+  height: number;
+  recipe: Record<string, any>;
+  category: string;
+  url: string;
+  sablePattern: boolean;
+  customPattern: boolean;
   image: string;
-  variations: {
+  diy_info: Record<string, any>;
+  variations: ({
     variation: string;
     image: string;
-  }[];
-  variations_info: Record<string, Record<string | null, { image: string; colors: string[] }>>;
-  category: string;
-  tag: string;
-  source: string[];
-  size: string[];
+  } & Record<string, any>)[];
+  variations_info: Record<
+    string,
+    Record<
+      string,
+      {
+        image: string;
+        colors: string[];
+        variantTranslations: Record<string, any>;
+        patternTranslations: Record<string, any>;
+      }
+    >
+  >;
 }
 
 interface ApiResponse {
@@ -44,6 +76,11 @@ interface ApiResponse {
     total_count: number;
     max_page: number;
   };
+}
+
+interface ModalProps {
+  item: Item;
+  onClose: () => void;
 }
 
 const Home = () => {
@@ -67,7 +104,7 @@ const Home = () => {
     custom: '',
     sable: '',
     source: '',
-    seasib: '',
+    season: '',
     series: '',
     lightingType: '',
     speakerType: '',
@@ -121,16 +158,16 @@ const Home = () => {
       const newParams = new URLSearchParams({
         category: searchParams.get('category') ?? '',
         search: searchParams.get('textSearch') ?? '',
-        page: parseInt(searchParams.get('page') ?? '1', 10),
+        page: searchParams.get('page') ?? '1',
         size: searchParams.get('size') ?? '',
         tag: searchParams.get('tag') ?? '',
         interact: searchParams.get('interact') ?? '',
         colors: searchParams.get('colors') ?? '',
         surface: searchParams.get('surface') ?? '',
-        body: searchParams?.get('body') ?? '',
-        pattern: searchParams?.get('pattern') ?? '',
-        custom: searchParams?.get('custom') ?? '',
-        sable: searchParams?.get('sable') ?? '',
+        body: searchParams.get('body') ?? '',
+        pattern: searchParams.get('pattern') ?? '',
+        custom: searchParams.get('custom') ?? '',
+        sable: searchParams.get('sable') ?? '',
         height: searchParams.get('height') ?? '',
         source: searchParams.get('source') ?? '',
         season: searchParams.get('season') ?? '',
@@ -138,9 +175,9 @@ const Home = () => {
         lightingType: searchParams.get('lightingType') ?? '',
         speakerType: searchParams.get('speakerType') ?? '',
         concept: searchParams.get('concept') ?? '',
-        rug: searchParams?.get('rug') ?? '',
-        ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') } : {}),
-        ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') } : {}),
+        rug: searchParams.get('rug') ?? '',
+        ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') ?? '' } : {}),
+        ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
         // other stuff
       });
       const apiUrl = `http://localhost:8000?${newParams}`;
@@ -346,7 +383,7 @@ const Home = () => {
     );
   };
 
-  const Modal = ({ item, onClose }) => {
+  const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
     const [hoveredImage, setHoveredImage] = React.useState(item.image);
     let defaultVariation = '';
     let defaultPattern = '';
@@ -369,7 +406,7 @@ const Home = () => {
         (item.surface ?? (item.variations ? item.variations[0].surface : false)) ||
         item.series ||
         findKeyByValue(tags, item.tag) ||
-        (item.concepts?.length ?? 0) > 0 ||
+        (item.concepts?.length ?? item.variations?.[0]?.concepts?.length ?? 0) > 0 ||
         item.lightingType ||
         item.speakerType
       ) {
@@ -549,7 +586,12 @@ const Home = () => {
                       {Object.entries(item.diy_info).map(([key, value]) => (
                         <div className="flex items-center" key={key}>
                           <img className={`object-contain h-6 mx-1 rounded`} src={value.inventoryImage} />
-                          {value.amount}x {lan === 'en' ? key : value.translations.cNzh}
+                          {value.amount}x{' '}
+                          {lan === 'en'
+                            ? key
+                            : key === '99,000 Bells' || key === '50,000 Bells'
+                            ? localize(key)
+                            : value.translations.cNzh}
                         </div>
                       ))}
                     </div>
@@ -645,7 +687,8 @@ const Home = () => {
                         </div>
                       </>
                     )}
-                    {(findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) && (
+                    {(findKeyByValue(tags, item.tag) ||
+                      (item.concepts?.length ?? item.variations?.[0]?.concepts?.length ?? 0) > 0) && (
                       <>
                         <div>
                           <strong>{localize('Keyword') + ':'}</strong>{' '}
@@ -668,9 +711,35 @@ const Home = () => {
                               #{localize(findKeyByValue(tags, item.tag))}
                             </span>
                           )}
-                          {findKeyByValue(tags, item.tag) && (item.concepts?.length ?? 0) > 0 && ', '}
+                          {findKeyByValue(tags, item.tag) &&
+                            (item.concepts?.length ?? item.variations?.[0]?.concepts?.length ?? 0) > 0 &&
+                            ', '}
                           {(item.concepts?.length ?? 0) > 0 &&
                             item.concepts.map((concept, index) => (
+                              <React.Fragment key={index}>
+                                {index > 0 && ', '}
+                                <span
+                                  className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                                  onClick={() => {
+                                    //concept
+                                    setSearchBar(''); // clear out search bar value
+                                    setShowFilters(false);
+                                    const updatedQuery = {
+                                      concept: concept, // only filter on concept
+                                      page: 1,
+                                    };
+                                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                    closeModal();
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  #{UpFirstLetter(localize(concept))}
+                                </span>
+                              </React.Fragment>
+                            ))}
+                          {(item.variations?.[0]?.concepts?.length ?? 0) > 0 &&
+                            item.variations[0].concepts.map((concept, index) => (
                               <React.Fragment key={index}>
                                 {index > 0 && ', '}
                                 <span
