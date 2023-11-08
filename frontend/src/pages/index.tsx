@@ -22,7 +22,7 @@ import {
   rugs,
   kit,
   translation,
-} from './lists';
+} from '../lists';
 
 interface Item {
   name: string;
@@ -45,7 +45,9 @@ interface Item {
   series: string;
   surface: boolean;
   height: number;
-  recipe: Record<string, any>;
+  recipe: {
+    source: string[];
+  } & Record<string, any>;
   category: string;
   url: string;
   sablePattern: boolean;
@@ -55,6 +57,7 @@ interface Item {
   variations: ({
     variation: string;
     image: string;
+    concepts: string[];
   } & Record<string, any>)[];
   variations_info: Record<
     string,
@@ -86,7 +89,7 @@ interface ModalProps {
 const Home = () => {
   const [lan, setLan] = useState('en');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [searchBar, setSearchBar] = useState('');
   const [minHeight, setMinHeight] = useState('');
   const [maxHeight, setMaxHeight] = useState('');
@@ -342,7 +345,7 @@ const Home = () => {
     return (
       <div
         className="p-5 flex flex-col items-center w-64 h-84 overflow-hidden bg-slate-50 rounded-lg shadow-md"
-        onClick={() => openModal(item)}
+        onClick={() => openModal({ item })}
       >
         <h3 className="text-center text-lg font-semibold h-10">{lan === 'en' ? item.name : item.translations.cNzh}</h3>
         <div className="flex items-center justify-center w-50 h-40">
@@ -415,8 +418,9 @@ const Home = () => {
     }, [
       item.interact,
       item.surface,
+      item.variations,
       item.series,
-      findKeyByValue(tags, item.tag),
+      item.tag,
       item.concepts,
       item.lightingType,
       item.speakerType,
@@ -585,7 +589,11 @@ const Home = () => {
                       </span>
                       {Object.entries(item.diy_info).map(([key, value]) => (
                         <div className="flex items-center" key={key}>
-                          <img className={`object-contain h-6 mx-1 rounded`} src={value.inventoryImage} />
+                          <img
+                            className={`object-contain h-6 mx-1 rounded`}
+                            src={value.inventoryImage}
+                            alt="image of materials"
+                          />
                           {value.amount}x{' '}
                           {lan === 'en'
                             ? key
@@ -608,7 +616,11 @@ const Home = () => {
                     <div className="flex items-center">
                       {item.kitCost && (
                         <>
-                          <img className={`object-contain h-6 mx-1 rounded`} src={kit['Normal']} />
+                          <img
+                            className={`object-contain h-6 mx-1 rounded`}
+                            src={kit['Normal']}
+                            alt="image of customization kit"
+                          />
                           {item.kitCost}x {localize('customization kit')}
                           {Object.keys(item.variations_info).length > 1 &&
                             !item.bodyCustomize &&
@@ -617,8 +629,9 @@ const Home = () => {
                       )}
                     </div>
                     <div className="flex items-center">
-                      <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} />
-                      {localize('Cyrus') + ':'} <img className={`object-contain h-6 rounded`} src={kit['Bell']} />
+                      <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} alt="image of Cyrus" />
+                      {localize('Cyrus') + ':'}{' '}
+                      <img className={`object-contain h-6 rounded`} src={kit['Bell']} alt="image of bell bag" />
                       {item.variations[0].cyrusCustomizePrice} {localize('bells')}
                     </div>
                   </div>
@@ -630,19 +643,29 @@ const Home = () => {
               {lastDiv && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
-                    {item.surface ??
-                      ((item.variations ? item.variations[0].surface : false) && (
+                    {item.surface ? (
+                      <div>
+                        <strong>{localize('Has surface')}</strong>
+                      </div>
+                    ) : (
+                      (item.variations ? item.variations[0].surface : false) && (
                         <div>
                           {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && (
                             <strong>{localize('Has surface')}</strong>
                           )}
                         </div>
-                      ))}
+                      )
+                    )}
                     {item.interact && (
                       <div>
                         <strong>{localize('Interaction Type') + ':'}</strong>{' '}
-                        {localize(item.interact === true && 'Other')} {localize(!item.interact && 'False')}{' '}
-                        {localize(typeof item.interact === 'string' && item.interact)}{' '}
+                        {localize(
+                          item.interact === true
+                            ? 'Other'
+                            : typeof item.interact === 'string'
+                            ? item.interact
+                            : 'False',
+                        )}{' '}
                       </div>
                     )}
                     {item.lightingType && (
@@ -664,7 +687,7 @@ const Home = () => {
                     {item.series && (
                       <>
                         <div>
-                          <strong>{localize('Series') + ':'}</strong>
+                          <strong>{localize('Series') + ':'}</strong>{' '}
                           {
                             <span
                               className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
@@ -708,7 +731,7 @@ const Home = () => {
                               role="button"
                               tabIndex={0}
                             >
-                              #{localize(findKeyByValue(tags, item.tag))}
+                              #{localize(findKeyByValue(tags, item.tag) ?? '')}
                             </span>
                           )}
                           {findKeyByValue(tags, item.tag) &&
@@ -791,7 +814,7 @@ const Home = () => {
     );
   };
 
-  const openModal = (item) => {
+  const openModal = ({ item }: { item: Item }) => {
     setSelectedItem(item);
     setIsModalOpen(true);
   };
@@ -799,10 +822,10 @@ const Home = () => {
     setSelectedItem(null);
     setIsModalOpen(false);
   };
-  const UpFirstLetter = (word) => {
+  const UpFirstLetter = (word: string) => {
     return lan === 'en' ? word.charAt(0).toUpperCase() + word.slice(1) : word;
   };
-  const findKeyByValue = (tags, valueToFind) => {
+  const findKeyByValue = (tags: Record<string, string[]>, valueToFind: string) => {
     for (let [key, values] of Object.entries(tags)) {
       if (values.includes(valueToFind)) {
         return key;
@@ -1552,8 +1575,8 @@ const Home = () => {
               '...'
             ) : data?.page_info?.total_count ? (
               <>
-                {40 * ((searchParams?.get('page') ?? 1) - 1) + 1}-
-                {Math.min(40 * (searchParams?.get('page') ?? 1), data.page_info.total_count)}
+                {40 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
+                {Math.min(40 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
                 {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
                 {data.page_info.total_count}
                 {lan === 'en' ? ' Items' : '项'}

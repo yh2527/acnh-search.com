@@ -1,5 +1,24 @@
+export interface Categories {
+  [key: string]: string;
+}
+export interface Sources {
+  [key: string]: string;
+}
+export interface Seasonals {
+  [key: string]: string;
+}
+export interface Series {
+  [key: string]: string;
+}
+export interface Concepts {
+  [key: string]: string;
+}
+export interface Rugs {
+  [key: string]: string;
+}
+
 export const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
-export const categories = {
+export const categories: Categories = {
   'All Categories': '全部',
   Housewares: '家具',
   Miscellaneous: '小物件',
@@ -100,7 +119,7 @@ export const tags = {
   ],
   'Door Decor': ['House Door Decor'],
 };
-export const concepts = {
+export const concepts: Concepts = {
   divider0: 'divider',
   European: '欧式',
   ancient: '古代风',
@@ -151,7 +170,7 @@ export const concepts = {
   supermarket: '超市',
   workshop: '车间',
 };
-export const series_list = {
+export const series_list: Series = {
   divider0: 'divider',
   Cinnamoroll: 'Cinnamoroll',
   'Hello Kitty': 'Hello Kitty',
@@ -208,7 +227,7 @@ export const series_list = {
   sloppy: '邋遢',
   stars: '星星',
 };
-export const sources = {
+export const sources: Sources = {
   divider0: 'divider',
   "Nook's Cranny": '商店售卖',
   Crafting: 'DIY制作',
@@ -273,7 +292,7 @@ export const sources = {
   'Donating all art': '捐赠所有艺术品',
 };
 
-export const seasonals = {
+export const seasonals: Seasonals = {
   divider0: 'divider',
   Constellation: '星座/星星',
   'Fishing Tourney': '钓鱼大会',
@@ -314,7 +333,7 @@ export const album_players = {
   Phono: '留声机',
   Retro: '复古',
 };
-export const rugs = {
+export const rugs: Rugs = {
   'Fruit Rugs': '水果地毯',
   'Heart Rugs': '心形地毯',
   'Icon Rugs': '图标地毯',
@@ -372,8 +391,6 @@ export const translation: Record<string, string> = {
   'customization kit': '改造工具组',
   'patterns only': '只能改造图案',
   bells: '铃钱',
-  'Sable patterns': '可用麻儿图案',
-  'Custom patterns': '可用设计码',
   'DIY Materials': 'DIY材料',
   'Lighting Type': '照明种类',
   Lighting: '照明',
@@ -436,7 +453,6 @@ export const translation: Record<string, string> = {
   //tags
   Seating: '座椅',
   Table: '桌子',
-  Bed: '床',
   'Storage & Display': '存储/展示',
   'Space Dividers': '空间/隔断',
   'Kitchen & Dining': '厨房/餐饮',
@@ -444,7 +460,6 @@ export const translation: Record<string, string> = {
   Drinks: '饮料',
   Lights: '灯具',
   Audiovisual: '视听',
-  'Musical Instrument': '乐器',
   Appliances: '家电',
   'Bath & Hygiene': '浴室/卫生',
   Plants: '植物',
@@ -458,7 +473,6 @@ export const translation: Record<string, string> = {
   //sources
   "Nook's Cranny": '商店售卖',
   Crafting: 'DIY制作',
-  Cooking: '烹饪',
   'Nook Miles Redemption': '狸数兑换',
   'Nook Shopping Daily Selection': '狸端机每日购物',
   'Nook Shopping Promotion': '狸端机购物促销',
@@ -542,7 +556,6 @@ export const translation: Record<string, string> = {
   Phono: '留声机',
   Retro: '复古',
   //recipe sources
-  'All villagers': '所有村民',
   Balloons: '气球',
   'Basic Cooking Recipes': '基础烹饪食谱',
   'Be a Chef! DIY Recipes+': '成为厨师！DIY食谱+',
