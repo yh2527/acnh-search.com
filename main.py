@@ -85,7 +85,11 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         criteria["series"] = series
     # concept
     if concept:
-        criteria["concepts"] = concept
+        concept_criteria = [{'concepts': concept},{"variations":{"$elemMatch":{"concepts": concept}}}]
+        if '$and' in criteria:
+            criteria['$and'].append({'$or':concept_criteria})
+        else:
+            criteria['$and'] = [{'$or': concept_criteria}]
     # surface
     if surface:
         if surface == "True":

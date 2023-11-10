@@ -623,7 +623,7 @@ const Home = () => {
                           />
                           {item.kitCost}x {localize('customization kit')}
                           {Object.keys(item.variations_info).length > 1 &&
-                            !item.bodyCustomize &&
+                            (item.bodyCustomize === null) &&
                             ' - ' + localize('patterns only')}
                         </>
                       )}
