@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
+import Head from 'next/head';
 
 import {
   heights,
@@ -184,6 +185,7 @@ const Home = () => {
         // other stuff
       });
       const apiUrl = `http://localhost:8000?${newParams}`;
+      //const apiUrl = `/api?${newParams}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       return json;
@@ -623,7 +625,7 @@ const Home = () => {
                           />
                           {item.kitCost}x {localize('customization kit')}
                           {Object.keys(item.variations_info).length > 1 &&
-                            (item.bodyCustomize === null) &&
+                            item.bodyCustomize === null &&
                             ' - ' + localize('patterns only')}
                         </>
                       )}
@@ -835,785 +837,798 @@ const Home = () => {
   };
 
   return (
-    <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
-      <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
-        ACNH Item Search
-      </div>
-      <div className="absolute top-0 right-0 p-3 m-3">
-        <div className="flex">
-          <button
-            onClick={() => setLan('en')}
-            className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'en' && 'bg-amber-200')}
-          >
-            ENG
-          </button>
-          |
-          <button
-            onClick={() => setLan('cn')}
-            className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'cn' && 'bg-amber-200')}
-          >
-            中文
-          </button>
+    <>
+      <Head>
+        <link rel="icon" href="/recreation-branch-modified.png" />
+      </Head>
+      <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
+        <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
+          ACNH Item Search
         </div>
-      </div>
-      <div className="flex flex-col w-full relative">
-        {' '}
-        {/* parent container for categories, toggle filters, text search*/}
-        <div className="flex w-full my-3 gap-2 items-center">
-          <button
-            onClick={() => {
-              setSearchBar(''); // clear out search bar value
-              setShowFilters(false);
-              router.push({}, undefined, { shallow: true });
-            }}
-            className="w-20 px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
-          >
-            {localize('Reset All')}
-          </button>
-          <div className="relative flex-grow">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const updatedQuery = {
-                  ...Object.fromEntries(searchParams.entries()), // current query params
-                  textSearch: searchBar, // updated search value
-                  page: 1,
-                };
-                console.log(`onSubmit: ${JSON.stringify(updatedQuery)}`);
-                router.push({ query: updatedQuery }, undefined, { shallow: true });
-              }}
-            >
-              <input
-                className="rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500 w-full"
-                type="text"
-                name="searchBar"
-                placeholder={localize('Search for items...')}
-                autoComplete="off"
-                value={searchBar}
-                onChange={(e) => {
-                  setSearchBar(e.target.value);
-                }}
-              />
-            </form>
+        <div className="absolute top-0 right-0 p-3 m-3">
+          <div className="flex">
             <button
-              className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
-              onClick={() => {
-                setSearchBar('');
-                const updatedQuery = {
-                  ...Object.fromEntries(searchParams.entries()), // current query params
-                  textSearch: '', // updated search value
-                  page: 1,
-                };
-                router.push({ query: updatedQuery }, undefined, { shallow: true });
-              }}
+              onClick={() => setLan('en')}
+              className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'en' && 'bg-amber-200')}
             >
-              &times; {/* This is the "×" character which looks like a cross */}
+              ENG
+            </button>
+            |
+            <button
+              onClick={() => setLan('cn')}
+              className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'cn' && 'bg-amber-200')}
+            >
+              中文
             </button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 mb-5">
+        <div className="flex flex-col w-full relative">
           {' '}
-          {/* category buttons*/}
-          {Object.keys(categories).map((category) => (
+          {/* parent container for categories, toggle filters, text search*/}
+          <div className="flex w-full my-3 gap-2 items-center">
             <button
-              key={category}
-              onClick={(e) => {
-                e.preventDefault();
-                const updatedQuery = {
-                  ...Object.fromEntries(searchParams.entries()), // current query params
-                  category: category === 'All Categories' ? '' : category, // updated category
-                  page: 1,
-                };
-                router.push({ query: updatedQuery }, undefined, { shallow: true });
+              onClick={() => {
+                setSearchBar(''); // clear out search bar value
+                setShowFilters(false);
+                router.push({}, undefined, { shallow: true });
               }}
-              className={classNames(
-                `px-4 py-2 `,
-                category === (searchParams.get('category') || 'All Categories')
-                  ? 'bg-amber-300 text-slate-500'
-                  : 'bg-white text-slate-500 hover:bg-amber-300',
-                lan === 'en' ? 'rounded' : 'rounded-lg',
-                category === 'All Categories' ? 'font-extrabold' : '',
-              )}
+              className="w-20 px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
             >
-              {localize(category)}
+              {localize('Reset All')}
             </button>
-          ))}
-        </div>
-        {/* toggle filters */}
-        <div className="mt-2">
-          <button
-            className={classNames(
-              'flex items-center mb-2 px-2 py-1 border border-2 text-amber-500 border-amber-500 rounded hover:bg-amber-200',
-              showFilters && 'bg-amber-200',
-            )}
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
-            <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
-            {localize('More Filters')}
-          </button>
-          {showFilters && (
-            <div className="px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
-              {' '}
-              {/* tag start */}
-              <div className="mt-3 mb-4">
-                <div className="flex items-center cursor-pointer mb-5">
-                  {/* surface checkbox */}
-                  <span className="mr-1">{localize('Has surface') + ':'} </span>
-                  <div
-                    onClick={() => {
-                      var surface = searchParams.get('surface');
-                      surface = surface === 'True' ? 'False' : surface === 'False' ? '' : 'True';
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        surface: surface,
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
-                    }}
-                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                  >
-                    {searchParams.get('surface') === 'True' ? '✓' : searchParams.get('surface') === 'False' ? '✗' : ''}
-                  </div>
-                  {/* body variants checkbox */}
-                  <span className="mr-1">{localize('Base variants') + ':'} </span>
-                  <div
-                    onClick={() => {
-                      var body = searchParams.get('body');
-                      body = body === 'True' ? 'False' : body === 'False' ? '' : 'True';
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        body: body,
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
-                    }}
-                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                  >
-                    {searchParams.get('body') === 'True' ? '✓' : searchParams.get('body') === 'False' ? '✗' : ''}
-                  </div>
-                  {/* pattern checkbox */}
-                  <span className="mr-1">{localize('Pattern variants') + ':'} </span>
-                  <div
-                    onClick={() => {
-                      var pattern = searchParams.get('pattern');
-                      pattern = pattern === 'True' ? 'False' : pattern === 'False' ? '' : 'True';
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        pattern: pattern,
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
-                    }}
-                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                  >
-                    {searchParams.get('pattern') === 'True' ? '✓' : searchParams.get('pattern') === 'False' ? '✗' : ''}
-                  </div>
-                  {/* custom pattern checkbox */}
-                  <span className="mr-1">{localize('Custom patterns') + ':'} </span>
-                  <div
-                    onClick={() => {
-                      var custom = searchParams.get('custom');
-                      custom = custom === 'True' ? 'False' : custom === 'False' ? '' : 'True';
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        custom: custom,
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
-                    }}
-                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                  >
-                    {searchParams.get('custom') === 'True' ? '✓' : searchParams.get('custom') === 'False' ? '✗' : ''}
-                  </div>
-                  {/* sable pattern checkbox */}
-                  <span className="mr-1">{localize('Sable patterns') + ':'} </span>
-                  <div
-                    onClick={() => {
-                      var sable = searchParams.get('sable');
-                      sable = sable === 'True' ? 'False' : sable === 'False' ? '' : 'True';
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()), // current query params
-                        sable: sable,
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
-                    }}
-                    className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                  >
-                    {searchParams.get('sable') === 'True' ? '✓' : searchParams.get('sable') === 'False' ? '✗' : ''}
-                  </div>
-                </div>
-                <div className="mb-1 text-base">{localize('Function/Theme') + ':'}</div>
-                <button
-                  onClick={() => {
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      tag: '', // empty tag
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+            <div className="relative flex-grow">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    textSearch: searchBar, // updated search value
+                    page: 1,
+                  };
+                  console.log(`onSubmit: ${JSON.stringify(updatedQuery)}`);
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+              >
+                <input
+                  className="rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500 w-full"
+                  type="text"
+                  name="searchBar"
+                  placeholder={localize('Search for items...')}
+                  autoComplete="off"
+                  value={searchBar}
+                  onChange={(e) => {
+                    setSearchBar(e.target.value);
                   }}
-                  className={classNames(
-                    'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('tag') ?? '')
-                      ? 'bg-amber-300 text-slate-500'
-                      : 'bg-white text-slate-500 hover:bg-amber-300',
-                  )}
-                >
-                  X
-                </button>
-                {Object.keys(tags).map((tag) => (
-                  <TagFilters tagName={tag} key={tag} />
-                ))}
-              </div>
-              {/* tag end */}
-              {/* size start */}
-              <div className="mb-4">
-                <div className="mb-1 text-base">{localize('Size') + ':'}</div>
-                <button
-                  onClick={() => {
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      size: '', // updated size
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={classNames(
-                    'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('size') ?? '')
-                      ? 'bg-amber-300 text-slate-500'
-                      : 'bg-white text-slate-500 hover:bg-amber-300',
-                  )}
-                >
-                  X
-                </button>
-                {sizes.map((size) => (
-                  <SizeFilters size={size} key={size} />
-                ))}
-              </div>
-              {/* size end */}
-              {/* height start */}
-              <div className="mb-1 text-base">{localize('Height') + ':'}</div>
-              <div className="mb-4 flex">
-                <button
-                  onClick={() => {
-                    const updatedQuery = {
-                      ...Object.fromEntries(
-                        Array.from(searchParams.entries()).filter(([k, v]) => k !== 'minHeight' && k !== 'maxHeight'),
-                      ),
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={classNames(
-                    'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('minHeight') ?? ('' || (searchParams.get('maxHeight') ?? '')))
-                      ? 'bg-amber-300 text-slate-500'
-                      : 'bg-white text-slate-500 hover:bg-amber-300',
-                  )}
-                >
-                  X
-                </button>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      minHeight: minHeight, // updated minHeight
-                      maxHeight: maxHeight, // updated maxHeight
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                >
-                  <label className="text-base">{localize('Min Height') + ':'} </label>
-                  <input
-                    className="mr-2 w-16 h-7 rounded text-sm"
-                    name="minHeight"
-                    type="number"
-                    value={minHeight}
-                    onChange={(e) => {
-                      setMinHeight(e.target.value);
-                    }}
-                  />
-                </form>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      minHeight: minHeight, // updated minHeight
-                      maxHeight: maxHeight, // updated maxHeight
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                >
-                  <label className="text-base">{localize('Max Height') + ':'}</label>
-                  <input
-                    className="mr-2 w-16 h-7 rounded text-sm"
-                    name="maxHeight"
-                    type="number"
-                    value={maxHeight}
-                    onChange={(e) => {
-                      setMaxHeight(e.target.value);
-                    }}
-                  />
-                </form>
-                <span>{localize("* The player's height in the game is 15.")}</span>
-              </div>{' '}
-              {/* height end */}
-              {/* color start */}
-              <div className="mb-4">
-                {' '}
-                <div className="mb-1 text-base">{localize('Color') + ':'}</div>
-                <button
-                  onClick={() => {
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      colors: '', // empty colors
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={classNames(
-                    'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('colors') ?? '')
-                      ? 'bg-amber-300 text-slate-500'
-                      : 'bg-white text-slate-500 hover:bg-amber-300',
-                  )}
-                >
-                  X
-                </button>
-                {Object.keys(colors_object).map((color) => (
-                  <ColorFilters color={color} key={color} />
-                ))}
-              </div>{' '}
-              {/* color end */}
-              {/* interact start */}
-              <div className="mb-4">
-                {' '}
-                <div className="mb-1 text-base">{localize('Interaction Type') + ':'}</div>{' '}
-                <button
-                  onClick={() => {
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      interact: '', // empty interact
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={classNames(
-                    'px-3 py-1 mr-2 mb-1 rounded',
-                    '' === (searchParams?.get('interact') ?? '')
-                      ? 'bg-amber-300 text-slate-500'
-                      : 'bg-white text-slate-500 hover:bg-amber-300',
-                  )}
-                >
-                  X
-                </button>
-                {Object.keys(interactTypes).map((interact) => (
-                  <InteractFilters interact={interact} key={interact} />
-                ))}
-              </div>{' '}
-              {/* interact end */}
-              <div>
-                {/* sources drop-down */}
-                <div className="mb-1 text-base">{localize('Other Filters') + ':'}</div>{' '}
-                <div className="flex flex-wrap">
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['source']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          source: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
-                        searchParams.get('source') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Source') + ':'}</option>
-                      {Object.keys(sources).map((s) => {
-                        if (sources[s] === 'divider') {
-                          return (
-                            <option key={s} disabled>
-                              ──────────
-                            </option>
-                          );
-                        }
-                        return (
-                          <option key={s} value={s}>
-                            {localize('Source') + ':'} {UpFirstLetter(localize(s))}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {searchParams.get('source') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            source: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                  {/* seasonal drop-down */}
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['season']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          season: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
-                        searchParams.get('season') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Seasonal') + ':'}</option>
-                      {Object.keys(seasonals).map((s) => {
-                        if (seasonals[s] === 'divider') {
-                          return (
-                            <option key={s} disabled>
-                              ──────────
-                            </option>
-                          );
-                        }
-                        return (
-                          <option key={s} value={s}>
-                            {localize('Seasonal') + ':'} {UpFirstLetter(localize(s))}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {searchParams.get('season') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            season: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                  {/* series drop-down */}
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['series']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          series: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
-                        searchParams.get('series') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Series') + ':'}</option>
-                      {Object.keys(series_list).map((series) => {
-                        if (series_list[series] === 'divider') {
-                          return (
-                            <option key={series} disabled>
-                              ──────────
-                            </option>
-                          );
-                        }
-                        return (
-                          <option key={series} value={series}>
-                            {localize('Series') + ':'} {UpFirstLetter(localize(series))}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {searchParams.get('series') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            series: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                  {/* concept drop-down */}
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['concept']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          concept: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
-                        searchParams.get('concept') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Concept') + ':'}</option>
-                      {Object.keys(concepts).map((s) => {
-                        if (concepts[s] === 'divider') {
-                          return (
-                            <option key={s} disabled>
-                              ──────────
-                            </option>
-                          );
-                        }
-                        return (
-                          <option key={s} value={s}>
-                            {localize('Concept') + ':'} {UpFirstLetter(localize(s))}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {searchParams.get('concept') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            concept: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div>
-                {/* lighting type drop-down */}
-                <div className="flex flex-wrap">
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['lightingType']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          lightingType: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
-                        searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Lighting Type') + ':'}</option>
-                      {Object.keys(lightings).map((l) => (
-                        <option key={l} value={l}>
-                          {localize('Lighting') + ': ' + localize(l)}
-                        </option>
-                      ))}
-                    </select>
-                    {searchParams.get('lightingType') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            lightingType: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                  {/* speaker type drop-down */}
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['speakerType']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          speakerType: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
-                        searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Album Player Type') + ':'}</option>
-                      {Object.keys(album_players).map((player) => (
-                        <option key={player} value={player}>
-                          {localize('Album Player') + ': ' + localize(player)}
-                        </option>
-                      ))}
-                    </select>
-                    {searchParams.get('speakerType') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            speakerType: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                  {/* rugs drop-down */}
-                  <div className="relative mr-2 mb-2 ">
-                    <select
-                      value={moreFilters['rug']}
-                      onChange={(e) => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          rug: e.target.value,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
-                        searchParams.get('rug') && 'text-slate-500 bg-amber-200',
-                      )}
-                    >
-                      <option value="">{localize('Rug Filter') + ':'}</option>
-                      {Object.keys(rugs).map((s) => {
-                        if (rugs[s] === 'divider') {
-                          return (
-                            <option key={s} disabled>
-                              ──────────
-                            </option>
-                          );
-                        }
-                        return (
-                          <option key={s} value={s}>
-                            {localize('Rug') + ':'} {UpFirstLetter(localize(s))}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {searchParams.get('rug') && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updatedQuery = {
-                            ...Object.fromEntries(searchParams.entries()),
-                            rug: '',
-                            page: 1,
-                          };
-                          router.push({ query: updatedQuery }, undefined, { shallow: true });
-                        }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+                />
+              </form>
+              <button
+                className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
+                onClick={() => {
+                  setSearchBar('');
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    textSearch: '', // updated search value
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+              >
+                &times; {/* This is the "×" character which looks like a cross */}
+              </button>
             </div>
-          )}{' '}
-          {/* end of showFilters div*/}
-        </div>
-      </div>{' '}
-      {/* end of the first half of the page */}
-      <div className="flex flex-col w-full items-start">
-        {' '}
-        {/* item cards */}
-        <div className="flex w-full items-center justify-between mb-2">
-          <div className="flex-grow pl-1">
-            {isLoading ? (
-              '...'
-            ) : data?.page_info?.total_count ? (
-              <>
-                {40 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
-                {Math.min(40 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
-                {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
-                {data.page_info.total_count}
-                {lan === 'en' ? ' Items' : '项'}
-              </>
-            ) : (
-              'No result ... :('
-            )}
           </div>
-          <PaginationControls
-            currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-            totalPages={data?.page_info.max_page ?? 1}
-            onPageChange={(page) =>
-              router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                shallow: true,
-              })
-            }
-          />
+          <div className="flex flex-wrap gap-2 mb-5">
+            {' '}
+            {/* category buttons*/}
+            {Object.keys(categories).map((category) => (
+              <button
+                key={category}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()), // current query params
+                    category: category === 'All Categories' ? '' : category, // updated category
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className={classNames(
+                  `px-4 py-2 `,
+                  category === (searchParams.get('category') || 'All Categories')
+                    ? 'bg-amber-300 text-slate-500'
+                    : 'bg-white text-slate-500 hover:bg-amber-300',
+                  lan === 'en' ? 'rounded' : 'rounded-lg',
+                  category === 'All Categories' ? 'font-extrabold' : '',
+                )}
+              >
+                {localize(category)}
+              </button>
+            ))}
+          </div>
+          {/* toggle filters */}
+          <div className="mt-2">
+            <button
+              className={classNames(
+                'flex items-center mb-2 px-2 py-1 border border-2 text-amber-500 border-amber-500 rounded hover:bg-amber-200',
+                showFilters && 'bg-amber-200',
+              )}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
+              <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
+              {localize('More Filters')}
+            </button>
+            {showFilters && (
+              <div className="px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
+                {' '}
+                {/* tag start */}
+                <div className="mt-3 mb-4">
+                  <div className="flex items-center cursor-pointer mb-5">
+                    {/* surface checkbox */}
+                    <span className="mr-1">{localize('Has surface') + ':'} </span>
+                    <div
+                      onClick={() => {
+                        var surface = searchParams.get('surface');
+                        surface = surface === 'True' ? 'False' : surface === 'False' ? '' : 'True';
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          surface: surface,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                    >
+                      {searchParams.get('surface') === 'True'
+                        ? '✓'
+                        : searchParams.get('surface') === 'False'
+                        ? '✗'
+                        : ''}
+                    </div>
+                    {/* body variants checkbox */}
+                    <span className="mr-1">{localize('Base variants') + ':'} </span>
+                    <div
+                      onClick={() => {
+                        var body = searchParams.get('body');
+                        body = body === 'True' ? 'False' : body === 'False' ? '' : 'True';
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          body: body,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                    >
+                      {searchParams.get('body') === 'True' ? '✓' : searchParams.get('body') === 'False' ? '✗' : ''}
+                    </div>
+                    {/* pattern checkbox */}
+                    <span className="mr-1">{localize('Pattern variants') + ':'} </span>
+                    <div
+                      onClick={() => {
+                        var pattern = searchParams.get('pattern');
+                        pattern = pattern === 'True' ? 'False' : pattern === 'False' ? '' : 'True';
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          pattern: pattern,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                    >
+                      {searchParams.get('pattern') === 'True'
+                        ? '✓'
+                        : searchParams.get('pattern') === 'False'
+                        ? '✗'
+                        : ''}
+                    </div>
+                    {/* custom pattern checkbox */}
+                    <span className="mr-1">{localize('Custom patterns') + ':'} </span>
+                    <div
+                      onClick={() => {
+                        var custom = searchParams.get('custom');
+                        custom = custom === 'True' ? 'False' : custom === 'False' ? '' : 'True';
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          custom: custom,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                    >
+                      {searchParams.get('custom') === 'True' ? '✓' : searchParams.get('custom') === 'False' ? '✗' : ''}
+                    </div>
+                    {/* sable pattern checkbox */}
+                    <span className="mr-1">{localize('Sable patterns') + ':'} </span>
+                    <div
+                      onClick={() => {
+                        var sable = searchParams.get('sable');
+                        sable = sable === 'True' ? 'False' : sable === 'False' ? '' : 'True';
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          sable: sable,
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                    >
+                      {searchParams.get('sable') === 'True' ? '✓' : searchParams.get('sable') === 'False' ? '✗' : ''}
+                    </div>
+                  </div>
+                  <div className="mb-1 text-base">{localize('Function/Theme') + ':'}</div>
+                  <button
+                    onClick={() => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        tag: '', // empty tag
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      'px-3 py-1 mr-2 mb-1 rounded',
+                      '' === (searchParams?.get('tag') ?? '')
+                        ? 'bg-amber-300 text-slate-500'
+                        : 'bg-white text-slate-500 hover:bg-amber-300',
+                    )}
+                  >
+                    X
+                  </button>
+                  {Object.keys(tags).map((tag) => (
+                    <TagFilters tagName={tag} key={tag} />
+                  ))}
+                </div>
+                {/* tag end */}
+                {/* size start */}
+                <div className="mb-4">
+                  <div className="mb-1 text-base">{localize('Size') + ':'}</div>
+                  <button
+                    onClick={() => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        size: '', // updated size
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      'px-3 py-1 mr-2 mb-1 rounded',
+                      '' === (searchParams?.get('size') ?? '')
+                        ? 'bg-amber-300 text-slate-500'
+                        : 'bg-white text-slate-500 hover:bg-amber-300',
+                    )}
+                  >
+                    X
+                  </button>
+                  {sizes.map((size) => (
+                    <SizeFilters size={size} key={size} />
+                  ))}
+                </div>
+                {/* size end */}
+                {/* height start */}
+                <div className="mb-1 text-base">{localize('Height') + ':'}</div>
+                <div className="mb-4 flex">
+                  <button
+                    onClick={() => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(
+                          Array.from(searchParams.entries()).filter(([k, v]) => k !== 'minHeight' && k !== 'maxHeight'),
+                        ),
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      'px-3 py-1 mr-2 mb-1 rounded',
+                      '' === (searchParams?.get('minHeight') ?? ('' || (searchParams.get('maxHeight') ?? '')))
+                        ? 'bg-amber-300 text-slate-500'
+                        : 'bg-white text-slate-500 hover:bg-amber-300',
+                    )}
+                  >
+                    X
+                  </button>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        minHeight: minHeight, // updated minHeight
+                        maxHeight: maxHeight, // updated maxHeight
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                  >
+                    <label className="text-base">{localize('Min Height') + ':'} </label>
+                    <input
+                      className="mr-2 w-16 h-7 rounded text-sm"
+                      name="minHeight"
+                      type="number"
+                      value={minHeight}
+                      onChange={(e) => {
+                        setMinHeight(e.target.value);
+                      }}
+                    />
+                  </form>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        minHeight: minHeight, // updated minHeight
+                        maxHeight: maxHeight, // updated maxHeight
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                  >
+                    <label className="text-base">{localize('Max Height') + ':'}</label>
+                    <input
+                      className="mr-2 w-16 h-7 rounded text-sm"
+                      name="maxHeight"
+                      type="number"
+                      value={maxHeight}
+                      onChange={(e) => {
+                        setMaxHeight(e.target.value);
+                      }}
+                    />
+                  </form>
+                  <span>{localize("* The player's height in the game is 15.")}</span>
+                </div>{' '}
+                {/* height end */}
+                {/* color start */}
+                <div className="mb-4">
+                  {' '}
+                  <div className="mb-1 text-base">{localize('Color') + ':'}</div>
+                  <button
+                    onClick={() => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        colors: '', // empty colors
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      'px-3 py-1 mr-2 mb-1 rounded',
+                      '' === (searchParams?.get('colors') ?? '')
+                        ? 'bg-amber-300 text-slate-500'
+                        : 'bg-white text-slate-500 hover:bg-amber-300',
+                    )}
+                  >
+                    X
+                  </button>
+                  {Object.keys(colors_object).map((color) => (
+                    <ColorFilters color={color} key={color} />
+                  ))}
+                </div>{' '}
+                {/* color end */}
+                {/* interact start */}
+                <div className="mb-4">
+                  {' '}
+                  <div className="mb-1 text-base">{localize('Interaction Type') + ':'}</div>{' '}
+                  <button
+                    onClick={() => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        interact: '', // empty interact
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      'px-3 py-1 mr-2 mb-1 rounded',
+                      '' === (searchParams?.get('interact') ?? '')
+                        ? 'bg-amber-300 text-slate-500'
+                        : 'bg-white text-slate-500 hover:bg-amber-300',
+                    )}
+                  >
+                    X
+                  </button>
+                  {Object.keys(interactTypes).map((interact) => (
+                    <InteractFilters interact={interact} key={interact} />
+                  ))}
+                </div>{' '}
+                {/* interact end */}
+                <div>
+                  {/* sources drop-down */}
+                  <div className="mb-1 text-base">{localize('Other Filters') + ':'}</div>{' '}
+                  <div className="flex flex-wrap">
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['source']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            source: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                          searchParams.get('source') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Source') + ':'}</option>
+                        {Object.keys(sources).map((s) => {
+                          if (sources[s] === 'divider') {
+                            return (
+                              <option key={s} disabled>
+                                ──────────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={s} value={s}>
+                              {localize('Source') + ':'} {UpFirstLetter(localize(s))}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('source') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              source: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* seasonal drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['season']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            season: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                          searchParams.get('season') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Seasonal') + ':'}</option>
+                        {Object.keys(seasonals).map((s) => {
+                          if (seasonals[s] === 'divider') {
+                            return (
+                              <option key={s} disabled>
+                                ──────────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={s} value={s}>
+                              {localize('Seasonal') + ':'} {UpFirstLetter(localize(s))}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('season') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              season: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* series drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['series']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            series: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                          searchParams.get('series') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Series') + ':'}</option>
+                        {Object.keys(series_list).map((series) => {
+                          if (series_list[series] === 'divider') {
+                            return (
+                              <option key={series} disabled>
+                                ──────────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={series} value={series}>
+                              {localize('Series') + ':'} {UpFirstLetter(localize(series))}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('series') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              series: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* concept drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['concept']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            concept: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                          searchParams.get('concept') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Concept') + ':'}</option>
+                        {Object.keys(concepts).map((s) => {
+                          if (concepts[s] === 'divider') {
+                            return (
+                              <option key={s} disabled>
+                                ──────────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={s} value={s}>
+                              {localize('Concept') + ':'} {UpFirstLetter(localize(s))}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('concept') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              concept: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  {/* lighting type drop-down */}
+                  <div className="flex flex-wrap">
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['lightingType']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            lightingType: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                          searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Lighting Type') + ':'}</option>
+                        {Object.keys(lightings).map((l) => (
+                          <option key={l} value={l}>
+                            {localize('Lighting') + ': ' + localize(l)}
+                          </option>
+                        ))}
+                      </select>
+                      {searchParams.get('lightingType') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              lightingType: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* speaker type drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['speakerType']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            speakerType: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                          searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Album Player Type') + ':'}</option>
+                        {Object.keys(album_players).map((player) => (
+                          <option key={player} value={player}>
+                            {localize('Album Player') + ': ' + localize(player)}
+                          </option>
+                        ))}
+                      </select>
+                      {searchParams.get('speakerType') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              speakerType: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* rugs drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['rug']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            rug: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                          searchParams.get('rug') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Rug Filter') + ':'}</option>
+                        {Object.keys(rugs).map((s) => {
+                          if (rugs[s] === 'divider') {
+                            return (
+                              <option key={s} disabled>
+                                ──────────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={s} value={s}>
+                              {localize('Rug') + ':'} {UpFirstLetter(localize(s))}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('rug') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              rug: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}{' '}
+            {/* end of showFilters div*/}
+          </div>
+        </div>{' '}
+        {/* end of the first half of the page */}
+        <div className="flex flex-col w-full items-start">
+          {' '}
+          {/* item cards */}
+          <div className="flex w-full items-center justify-between mb-2">
+            <div className="flex-grow pl-1">
+              {isLoading ? (
+                '...'
+              ) : data?.page_info?.total_count ? (
+                <>
+                  {40 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
+                  {Math.min(40 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
+                  {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
+                  {data.page_info.total_count}
+                  {lan === 'en' ? ' Items' : '项'}
+                </>
+              ) : (
+                'No result ... :('
+              )}
+            </div>
+            <PaginationControls
+              currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
+              totalPages={data?.page_info.max_page ?? 1}
+              onPageChange={(page) =>
+                router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                  shallow: true,
+                })
+              }
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 justify-center items-start">
+            {(data?.result ?? []).map((item, i) => (
+              <ItemCard key={item.name} item={item} />
+            ))}
+          </div>
+          {isModalOpen && selectedItem && <Modal item={selectedItem} onClose={closeModal} />}
+          <div className="flex w-full items-center justify-center mt-5">
+            <PaginationControls
+              currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
+              totalPages={data?.page_info.max_page ?? 1}
+              onPageChange={(page) =>
+                router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                  shallow: true,
+                })
+              }
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 justify-center items-start">
-          {(data?.result ?? []).map((item, i) => (
-            <ItemCard key={item.name} item={item} />
-          ))}
-        </div>
-        {isModalOpen && selectedItem && <Modal item={selectedItem} onClose={closeModal} />}
-        <div className="flex w-full items-center justify-center mt-5">
-          <PaginationControls
-            currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-            totalPages={data?.page_info.max_page ?? 1}
-            onPageChange={(page) =>
-              router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                shallow: true,
-              })
-            }
-          />
-        </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 };
 
