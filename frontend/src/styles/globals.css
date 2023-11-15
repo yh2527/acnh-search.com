@@ -4,8 +4,8 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 202, 232, 172;
-  --background-end-rgb: 202, 232, 172;
+  --background-start-rgb: 254, 249, 195;
+  --background-end-rgb: 254, 249, 195;
 }
 
 body {
@@ -46,4 +46,21 @@ body {
   border-right: 5px solid transparent;
   border-bottom: 5px solid currentColor; /* The color of the triangle */
   display: inline-block;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin; /* For Firefox */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px; /* For WebKit browsers */
+  height: 5px
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  @apply bg-gray-100; /* Tailwind utility class */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 hover:bg-gray-400; /* Tailwind utility classes */
 }

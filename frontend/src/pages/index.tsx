@@ -346,24 +346,24 @@ const Home = () => {
     );
     return (
       <div
-        className="p-5 flex flex-col items-center w-64 h-84 overflow-hidden bg-slate-50 rounded-lg shadow-md"
+        className="px-5 pt-5 pb-3 flex flex-col items-center w-64 h-84 overflow-hidden bg-slate-50 rounded-lg shadow-md"
         onClick={() => openModal({ item })}
       >
         <h3 className="text-center text-lg font-semibold h-10">{lan === 'en' ? item.name : item.translations.cNzh}</h3>
         <div className="flex items-center justify-center w-50 h-40">
           <img
-            className="w-auto h-auto max-w-full max-h-full"
+            className="w-auto h-auto max-w-full h-auto"
             src={hoveredImage}
             alt={lan === 'en' ? item.name : item.translations.cNzh}
           />
         </div>
-        <div className="flex flex-row overflow-x-auto items-center h-11">
+        <div className="flex flex-row overflow-x-auto items-center h-14 scrollbar-thin">
           {
             !!item.variations ? (
               item.variations.map((v, index) => (
                 <img
                   key={index}
-                  className="object-contain w-9 h-auto mb-3"
+                  className="object-contain w-9 h-9"
                   src={v.image}
                   alt={`${item.name} variation ${index}`}
                   onMouseEnter={() => {
@@ -434,7 +434,10 @@ const Home = () => {
         onClick={onClose}
         style={{ backdropFilter: 'blur(5px)' }}
       >
-        <div className="bg-white rounded-lg w-3/5 min-h-[300px] pb-2" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="bg-white rounded-lg w-full sm:w-4/5 md:w-3/5 pb-2 min-h-[300px] max-h-[90vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
             <div className="text-xl text-center">{lan === 'en' ? item.name : item.translations.cNzh}</div>
             <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
@@ -500,7 +503,7 @@ const Home = () => {
               {/* Variation */}
               {
                 !!item.variations_info ? (
-                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col overflow-x-auto">
+                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col">
                     <div>
                       <strong>{localize('Variation') + ':'}</strong>{' '}
                       {hoveredVariation === 'null'
@@ -509,7 +512,7 @@ const Home = () => {
                         ? hoveredVariation
                         : hoveredVarTranslation}{' '}
                     </div>
-                    <div className="flex flex-row items-center">
+                    <div className="flex flex-row items-center overflow-x-auto">
                       {Object.entries(item.variations_info).map(([key, value], index) => (
                         <img
                           key={index}
@@ -536,7 +539,7 @@ const Home = () => {
               {/* Pattern */}
               {
                 !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
-                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3 flex flex-col overflow-x-auto">
+                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3 flex flex-col">
                     <div>
                       <strong>{localize('Pattern') + ':'}</strong>{' '}
                       {hoveredPattern === 'null'
@@ -545,7 +548,7 @@ const Home = () => {
                         ? hoveredPattern
                         : hoveredPaTranslation}{' '}
                     </div>
-                    <div className="flex flex-row items-center">
+                    <div className="flex flex-row items-center overflow-x-auto">
                       {Object.entries(item.variations_info[hoveredVariation]).map(([key, value], index) => {
                         return (
                           <img
@@ -839,40 +842,42 @@ const Home = () => {
   return (
     <>
       <Head>
-        <link rel="icon" href="/recreation-branch-modified.png" />
+        <link rel="icon" href="/tree1-modified.png" />
       </Head>
-      <main className={`flex min-h-screen flex-col items-center p-24 gap-6 bg-yellow-100 font-nunito text-slate-500`}>
-        <div className="text-4xl absolute top-0 left-0 p-3 m-3 font-black font-finkheavy image-filled-text">
-          ACNH Item Search
-        </div>
-        <div className="absolute top-0 right-0 p-3 m-3">
-          <div className="flex">
-            <button
-              onClick={() => setLan('en')}
-              className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'en' && 'bg-amber-200')}
-            >
-              ENG
-            </button>
-            |
-            <button
-              onClick={() => setLan('cn')}
-              className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'cn' && 'bg-amber-200')}
-            >
-              中文
-            </button>
+      <main className={`flex min-h-screen flex-col items-center py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 bg-yellow-100 font-nunito text-slate-500`}>
+        <div className="flex flex-row flex-wrap">
+          <div className="text-3xl md:text-4xl absolute top-0 left-0 p-3 mt-1 md:m-3 font-black font-finkheavy image-filled-text">
+            ACNH Item Search
+          </div>
+          <div className="absolute top-0 right-0 p-3 m-3">
+            <div className="flex">
+              <button
+                onClick={() => setLan('en')}
+                className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'en' && 'bg-amber-200')}
+              >
+                ENG
+              </button>
+              |
+              <button
+                onClick={() => setLan('cn')}
+                className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'cn' && 'bg-amber-200')}
+              >
+                中文
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex flex-col w-full relative">
           {' '}
           {/* parent container for categories, toggle filters, text search*/}
-          <div className="flex w-full my-3 gap-2 items-center">
+          <div className="flex w-full mb-3 md:my-3 gap-2 items-center">
             <button
               onClick={() => {
                 setSearchBar(''); // clear out search bar value
                 setShowFilters(false);
                 router.push({}, undefined, { shallow: true });
               }}
-              className="w-20 px-1 py-2 hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
+              className="w-24 h-8 md:h-11 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
             >
               {localize('Reset All')}
             </button>
@@ -890,7 +895,7 @@ const Home = () => {
                 }}
               >
                 <input
-                  className="rounded-lg border bg-white px-4 py-3 placeholder:text-neutral-500 w-full"
+                  className="rounded-lg h-9 md:h-11 border bg-white px-4 py-3 placeholder:text-neutral-500 w-full pr-14"
                   type="text"
                   name="searchBar"
                   placeholder={localize('Search for items...')}
@@ -933,7 +938,7 @@ const Home = () => {
                   router.push({ query: updatedQuery }, undefined, { shallow: true });
                 }}
                 className={classNames(
-                  `px-4 py-2 `,
+                  `px-2 md:px-4 py-1 md:py-2 text-sm md:text-base`,
                   category === (searchParams.get('category') || 'All Categories')
                     ? 'bg-amber-300 text-slate-500'
                     : 'bg-white text-slate-500 hover:bg-amber-300',
