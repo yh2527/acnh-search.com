@@ -844,7 +844,9 @@ const Home = () => {
       <Head>
         <link rel="icon" href="/tree1-modified.png" />
       </Head>
-      <main className={`flex min-h-screen flex-col items-center py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 bg-yellow-100 font-nunito text-slate-500`}>
+      <main
+        className={`flex min-h-screen flex-col items-center py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 bg-yellow-100 font-nunito text-slate-500`}
+      >
         <div className="flex flex-row flex-wrap">
           <div className="text-3xl md:text-4xl absolute top-0 left-0 p-3 mt-1 md:m-3 font-black font-finkheavy image-filled-text">
             ACNH Item Search
@@ -877,7 +879,7 @@ const Home = () => {
                 setShowFilters(false);
                 router.push({}, undefined, { shallow: true });
               }}
-              className="w-24 h-8 md:h-11 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
+              className="px-1 md:w-24 h-8 md:h-10 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
             >
               {localize('Reset All')}
             </button>
@@ -907,7 +909,7 @@ const Home = () => {
                 />
               </form>
               <button
-                className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
+                className="absolute inset-y-0 right-2 md:right-5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none rounded-full w-7 h-7 bg-slate-100"
                 onClick={() => {
                   setSearchBar('');
                   const updatedQuery = {
@@ -922,9 +924,9 @@ const Home = () => {
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 mb-5">
+          {/* category buttons*/}
+          <div className="flex flex-wrap gap-2 mb-5 hidden md:flex">
             {' '}
-            {/* category buttons*/}
             {Object.keys(categories).map((category) => (
               <button
                 key={category}
@@ -938,7 +940,7 @@ const Home = () => {
                   router.push({ query: updatedQuery }, undefined, { shallow: true });
                 }}
                 className={classNames(
-                  `px-2 md:px-4 py-1 md:py-2 text-sm md:text-base`,
+                  `px-2 md:px-4 py-1 lg:py-2 text-sm md:text-base`,
                   category === (searchParams.get('category') || 'All Categories')
                     ? 'bg-amber-300 text-slate-500'
                     : 'bg-white text-slate-500 hover:bg-amber-300',
@@ -950,11 +952,53 @@ const Home = () => {
               </button>
             ))}
           </div>
+          {/* Categories Dropdown for smaller screens */}
+          <div className="relative mb-2 md:hidden">
+            <select
+              value={searchParams.get('category') ?? ''}
+              onChange={(e) => {
+                const updatedQuery = {
+                  ...Object.fromEntries(searchParams.entries()), // current query params
+                  category: e.target.value === 'All Categories' ? '' : e.target.value, // updated category
+                  page: 1,
+                };
+                router.push({ query: updatedQuery }, undefined, { shallow: true });
+              }}
+              className={classNames(
+                `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                searchParams.get('category') && 'text-slate-500 bg-amber-200',
+              )}
+            >
+              {Object.keys(categories).map((s) => {
+                return (
+                  <option key={s} value={s}>
+                    {localize('Category') + ':'} {UpFirstLetter(localize(s))}
+                  </option>
+                );
+              })}
+            </select>
+            {searchParams.get('category') && (
+              <button
+                type="button"
+                onClick={() => {
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()),
+                    category: '',
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+              >
+                -
+              </button>
+            )}
+          </div>
           {/* toggle filters */}
           <div className="mt-2">
             <button
               className={classNames(
-                'flex items-center mb-2 px-2 py-1 border border-2 text-amber-500 border-amber-500 rounded hover:bg-amber-200',
+                'h-8 md:h-9 flex items-center mb-2 px-2 py-1 border md:border-2 text-amber-500 border-amber-500 rounded lg:hover:bg-amber-200',
                 showFilters && 'bg-amber-200',
               )}
               onClick={() => setShowFilters(!showFilters)}
@@ -964,105 +1008,123 @@ const Home = () => {
               {localize('More Filters')}
             </button>
             {showFilters && (
-              <div className="px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
+              <div className="mb-3 px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
                 {' '}
                 {/* tag start */}
                 <div className="mt-3 mb-4">
-                  <div className="flex items-center cursor-pointer mb-5">
+                  <div className="text-sm sm:text-base grid grid-cols-2 md:grid-cols-3 justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
                     {/* surface checkbox */}
-                    <span className="mr-1">{localize('Has surface') + ':'} </span>
-                    <div
-                      onClick={() => {
-                        var surface = searchParams.get('surface');
-                        surface = surface === 'True' ? 'False' : surface === 'False' ? '' : 'True';
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          surface: surface,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                    >
-                      {searchParams.get('surface') === 'True'
-                        ? '✓'
-                        : searchParams.get('surface') === 'False'
-                        ? '✗'
-                        : ''}
+                    <div className="flex mb-1">
+                      <span className="mr-1">{localize('Has surface') + ':'} </span>
+                      <div
+                        onClick={() => {
+                          var surface = searchParams.get('surface');
+                          surface = surface === 'True' ? 'False' : surface === 'False' ? '' : 'True';
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            surface: surface,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                      >
+                        {searchParams.get('surface') === 'True'
+                          ? '✓'
+                          : searchParams.get('surface') === 'False'
+                          ? '✗'
+                          : ''}
+                      </div>
                     </div>
                     {/* body variants checkbox */}
-                    <span className="mr-1">{localize('Base variants') + ':'} </span>
-                    <div
-                      onClick={() => {
-                        var body = searchParams.get('body');
-                        body = body === 'True' ? 'False' : body === 'False' ? '' : 'True';
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          body: body,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                    >
-                      {searchParams.get('body') === 'True' ? '✓' : searchParams.get('body') === 'False' ? '✗' : ''}
+                    <div className="flex mb-1">
+                      <span className="mr-1">{localize('Base variants') + ':'} </span>
+                      <div
+                        onClick={() => {
+                          var body = searchParams.get('body');
+                          body = body === 'True' ? 'False' : body === 'False' ? '' : 'True';
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            body: body,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                      >
+                        {searchParams.get('body') === 'True' ? '✓' : searchParams.get('body') === 'False' ? '✗' : ''}
+                      </div>
                     </div>
                     {/* pattern checkbox */}
-                    <span className="mr-1">{localize('Pattern variants') + ':'} </span>
-                    <div
-                      onClick={() => {
-                        var pattern = searchParams.get('pattern');
-                        pattern = pattern === 'True' ? 'False' : pattern === 'False' ? '' : 'True';
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          pattern: pattern,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                    >
-                      {searchParams.get('pattern') === 'True'
-                        ? '✓'
-                        : searchParams.get('pattern') === 'False'
-                        ? '✗'
-                        : ''}
+                    <div className="flex mb-1">
+                      <span className="mr-1">{localize('Pattern variants') + ':'} </span>
+                      <div
+                        onClick={() => {
+                          var pattern = searchParams.get('pattern');
+                          pattern = pattern === 'True' ? 'False' : pattern === 'False' ? '' : 'True';
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            pattern: pattern,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                      >
+                        {searchParams.get('pattern') === 'True'
+                          ? '✓'
+                          : searchParams.get('pattern') === 'False'
+                          ? '✗'
+                          : ''}
+                      </div>
                     </div>
                     {/* custom pattern checkbox */}
-                    <span className="mr-1">{localize('Custom patterns') + ':'} </span>
-                    <div
-                      onClick={() => {
-                        var custom = searchParams.get('custom');
-                        custom = custom === 'True' ? 'False' : custom === 'False' ? '' : 'True';
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          custom: custom,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                    >
-                      {searchParams.get('custom') === 'True' ? '✓' : searchParams.get('custom') === 'False' ? '✗' : ''}
+                    <div className="flex mb-1">
+                      <span className="mr-1">{localize('Custom patterns') + ':'} </span>
+                      <div
+                        onClick={() => {
+                          var custom = searchParams.get('custom');
+                          custom = custom === 'True' ? 'False' : custom === 'False' ? '' : 'True';
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            custom: custom,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                      >
+                        {searchParams.get('custom') === 'True'
+                          ? '✓'
+                          : searchParams.get('custom') === 'False'
+                          ? '✗'
+                          : ''}
+                      </div>
                     </div>
                     {/* sable pattern checkbox */}
-                    <span className="mr-1">{localize('Sable patterns') + ':'} </span>
-                    <div
-                      onClick={() => {
-                        var sable = searchParams.get('sable');
-                        sable = sable === 'True' ? 'False' : sable === 'False' ? '' : 'True';
-                        const updatedQuery = {
-                          ...Object.fromEntries(searchParams.entries()), // current query params
-                          sable: sable,
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={`mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                    >
-                      {searchParams.get('sable') === 'True' ? '✓' : searchParams.get('sable') === 'False' ? '✗' : ''}
+                    <div className="flex">
+                      <span className="mr-1">{localize('Sable patterns') + ':'} </span>
+                      <div
+                        onClick={() => {
+                          var sable = searchParams.get('sable');
+                          sable = sable === 'True' ? 'False' : sable === 'False' ? '' : 'True';
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            sable: sable,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                      >
+                        {searchParams.get('sable') === 'True' ? '✓' : searchParams.get('sable') === 'False' ? '✗' : ''}
+                      </div>
                     </div>
                   </div>
+                </div>
+                {/*** Function/Theme Selections ***/}
+                {/* Medium and larger screens: buttons */}
+                <div className="mb-4 hidden md:block">
                   <div className="mb-1 text-base">{localize('Function/Theme') + ':'}</div>
                   <button
                     onClick={() => {
@@ -1086,9 +1148,53 @@ const Home = () => {
                     <TagFilters tagName={tag} key={tag} />
                   ))}
                 </div>
-                {/* tag end */}
-                {/* size start */}
-                <div className="mb-4">
+                {/* Small screens: drop-down */}
+                <div className="relative mb-2 md:hidden">
+                  <select
+                    value={moreFilters['tag']}
+                    onChange={(e) => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        tag: e.target.value,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                      searchParams.get('tag') && 'text-slate-500 bg-amber-200',
+                    )}
+                  >
+                    <option value="">{localize('Function/Theme') + ':'}</option>
+                    {Object.keys(tags).map((s) => {
+                      return (
+                        <option key={s} value={s}>
+                          {localize('Function/Theme') + ':'} {UpFirstLetter(localize(s))}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {searchParams.get('tag') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()),
+                          tag: '',
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                    >
+                      -
+                    </button>
+                  )}
+                </div>
+                {/* tag/function/theme end */}
+                {/*** Size Selections ***/}
+                {/* Medium and larger screens: buttons */}
+                <div className="mb-4 hidden md:block">
                   <div className="mb-1 text-base">{localize('Size') + ':'}</div>
                   <button
                     onClick={() => {
@@ -1112,10 +1218,54 @@ const Home = () => {
                     <SizeFilters size={size} key={size} />
                   ))}
                 </div>
+                {/* Small screens: drop-down */}
+                <div className="relative mb-2 md:hidden">
+                  <select
+                    value={moreFilters['size']}
+                    onChange={(e) => {
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()), // current query params
+                        size: e.target.value,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                      searchParams.get('size') && 'text-slate-500 bg-amber-200',
+                    )}
+                  >
+                    <option value="">{localize('Size') + ':'}</option>
+                    {sizes.map((s) => {
+                      return (
+                        <option key={s} value={s}>
+                          {localize('Size') + ':'} {UpFirstLetter(localize(s))}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {searchParams.get('size') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()),
+                          size: '',
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                    >
+                      -
+                    </button>
+                  )}
+                </div>
                 {/* size end */}
-                {/* height start */}
+                {/*** Height Selections ***/}
+                {/* Medium and larger screens: buttons */}
                 <div className="mb-1 text-base">{localize('Height') + ':'}</div>
-                <div className="mb-4 flex">
+                <div className="lg:mb-4 flex">
                   <button
                     onClick={() => {
                       const updatedQuery = {
@@ -1146,8 +1296,10 @@ const Home = () => {
                       };
                       router.push({ query: updatedQuery }, undefined, { shallow: true });
                     }}
+                    className="flex"
                   >
-                    <label className="text-base">{localize('Min Height') + ':'} </label>
+                    <label className="hidden md:block text-base">{localize('Min Height') + ': '}</label>
+                    <label className="md:hidden text-base">{localize('Min') + ': '}</label>
                     <input
                       className="mr-2 w-16 h-7 rounded text-sm"
                       name="minHeight"
@@ -1169,8 +1321,10 @@ const Home = () => {
                       };
                       router.push({ query: updatedQuery }, undefined, { shallow: true });
                     }}
+                    className="flex"
                   >
-                    <label className="text-base">{localize('Max Height') + ':'}</label>
+                    <label className="hidden md:block text-base">{localize('Max Height') + ': '}</label>
+                    <label className="md:hidden text-base">{localize('Max') + ': '}</label>
                     <input
                       className="mr-2 w-16 h-7 rounded text-sm"
                       name="maxHeight"
@@ -1181,8 +1335,9 @@ const Home = () => {
                       }}
                     />
                   </form>
-                  <span>{localize("* The player's height in the game is 15.")}</span>
+                  <span className="hidden lg:block italic">{localize("* Player's height in the game is 15.")}</span>
                 </div>{' '}
+                  <div className="lg:hidden mb-4 italic text-sm">{localize("* Player's height in the game is 15.")}</div>
                 {/* height end */}
                 {/* color start */}
                 <div className="mb-4">
