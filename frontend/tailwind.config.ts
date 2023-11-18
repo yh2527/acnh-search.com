@@ -10,6 +10,7 @@ const config: Config = {
     extend: {
       gridTemplateColumns: {
         autofit: 'repeat(auto-fit, minmax(224px, 1fr))',
+        checkboxfit: 'repeat(auto-fit, minmax(165px, 1fr))',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

@@ -357,7 +357,7 @@ const Home = () => {
     );
     return (
       <div
-        className="px-2 pt-4 flex flex-col items-center w-full md:w-56 h-auto md:h-64 overflow-hidden bg-slate-50 rounded-lg shadow-md"
+        className="px-2 pt-4 flex flex-col items-center h-auto sm:h-64 overflow-hidden bg-slate-50 rounded-lg shadow-md"
         onClick={() => openModal({ item })}
       >
         <h3 className="text-center text-lg font-semibold h-auto md:h-10">
@@ -443,7 +443,7 @@ const Home = () => {
         style={{ backdropFilter: 'blur(5px)' }}
       >
         <div
-          className="bg-white rounded-lg w-full sm:w-4/5 lg:w-3/5 2xl:w-[768px] pb-2 min-h-[300px] max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-lg w-full sm:w-4/5 md:w-auto pb-2 min-h-[300px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
@@ -452,53 +452,101 @@ const Home = () => {
               &times;
             </button>
           </div>
-          {/* Image and Description */}
+          {/* Image(left) and Description(right) */}
           <div className="flex items-start">
-            <div className="w-[25%] h-36 px-5 mt-2">
-              <div className="flex items-center justify-center w-full h-full">
-                <img src={hoveredImage} alt={item.name} className="" />
+            {/* Image, size, height, colors */}
+            <div className="w-[25%] h-36 px-1 md:px-5 mt-5">
+              <div className="flex items-center justify-center w-full h-auto mb-2">
+                <img src={hoveredImage} alt={item.name} />
               </div>
-              <div className="rounded-lg">
-                <div className="text-sm pl-1">
-                  {item.size ? (
-                    <>
-                      <strong>{localize('Size') + ':'}</strong> {item.size}
-                    </>
-                  ) : null}
-                </div>
-                <div className="text-sm pl-1">
-                  {item.height ? (
-                    <>
-                      <strong>{localize('Height') + ':'}</strong> {item.height}
-                    </>
-                  ) : null}
-                </div>
-                <div className="text-sm pl-1">
-                  {item.variations_info ? (
-                    Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
-                      <>
-                        <strong>{localize('Color') + ':'}</strong>{' '}
-                        {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
-                          .map((color) => localize(color))
-                          .join(', ')}
-                      </>
-                    ) : (
-                      ''
-                    )
-                  ) : item.colors?.length ? (
-                    <>
-                      <strong>{localize('Color') + ':'}</strong>{' '}
-                      {Array.from(new Set(item?.colors ?? []))
-                        .map((color) => localize(color))
-                        .join(', ')}
-                    </>
-                  ) : (
-                    ''
-                  )}
-                </div>
-              </div>
+              {(!!item.variations_info || !!item.diy_info) && (
+                <>
+                  <div className="text-xs md:text-sm text-left md:text-left pl-2">
+                    <div>
+                      {item.size ? (
+                        <>
+                          <strong>{localize('Size') + ':'}</strong> {item.size}
+                        </>
+                      ) : null}
+                    </div>
+                    <div>
+                      {item.height ? (
+                        <>
+                          <strong>{localize('Height') + ':'}</strong> {item.height}
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="md:w-36">
+                      {item.variations_info ? (
+                        Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
+                          <>
+                            <strong className="">{localize('Color') + ': '}</strong>
+                            {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
+                              .map((color) => localize(color))
+                              .join(', ')}
+                          </>
+                        ) : (
+                          ''
+                        )
+                      ) : item.colors?.length ? (
+                        <>
+                          <strong className="">{localize('Color') + ': '}</strong>
+                          {Array.from(new Set(item?.colors ?? []))
+                            .map((color) => localize(color))
+                            .join(', ')}
+                        </>
+                      ) : (
+                        ''
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="w-[75%] pr-10 mt-5">
+            <div className="w-[75%] pr-3  md:pr-10 mt-5">
+              {!item.variations_info && !item.diy_info && (
+                <>
+                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+                    <div className="pl-1">
+                      {item.size ? (
+                        <>
+                          <strong>{localize('Size') + ':'}</strong> {item.size}
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="pl-1">
+                      {item.height ? (
+                        <>
+                          <strong>{localize('Height') + ':'}</strong> {item.height}
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="pl-1">
+                      {item.variations_info ? (
+                        Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
+                          <>
+                            <strong className="">{localize('Color') + ': '}</strong>
+                            {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
+                              .map((color) => localize(color))
+                              .join(', ')}
+                          </>
+                        ) : (
+                          ''
+                        )
+                      ) : item.colors?.length ? (
+                        <>
+                          <strong className="">{localize('Color') + ': '}</strong>
+                          {Array.from(new Set(item?.colors ?? []))
+                            .map((color) => localize(color))
+                            .join(', ')}
+                        </>
+                      ) : (
+                        ''
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
               {/* category and source */}
               <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                 <div>
@@ -511,7 +559,7 @@ const Home = () => {
               {/* Variation */}
               {
                 !!item.variations_info ? (
-                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col">
+                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col w-full">
                     <div>
                       <strong>{localize('Variation') + ':'}</strong>{' '}
                       {hoveredVariation === 'null'
@@ -524,7 +572,7 @@ const Home = () => {
                       {Object.entries(item.variations_info).map(([key, value], index) => (
                         <img
                           key={index}
-                          className={`object-contain h-14 mx-1 rounded ${
+                          className={`object-contain h-14 mx-0.5 rounded ${
                             hoveredVariation === key ? 'bg-slate-200' : ''
                           }`}
                           src={Object.values(value)[0].image}
@@ -593,7 +641,7 @@ const Home = () => {
                   <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-1 shadow-sm mb-3">
                     <div>
                       <strong>{localize('DIY Materials') + ': '}</strong>
-                      <span>
+                      <span className="text-sm md:text-base">
                         {'(' +
                           localize('Recipe source') +
                           ' - ' +
@@ -881,7 +929,7 @@ const Home = () => {
           <div className="flex flex-col w-full relative">
             {' '}
             {/* parent container for categories, toggle filters, text search*/}
-            <div className="flex w-full mb-3 md:my-3 gap-2 items-center">
+            <div className="flex w-full mb-3 md:my-3 gap-2 items-center md:w-2/3">
               <button
                 onClick={() => {
                   setSearchBar(''); // clear out search bar value
@@ -892,7 +940,7 @@ const Home = () => {
               >
                 {localize('Reset All')}
               </button>
-              <div className="relative flex-grow xl:grow-0 xl:w-1/3">
+              <div className="relative flex-grow">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -1021,7 +1069,7 @@ const Home = () => {
                   {' '}
                   {/* tag start */}
                   <div className="mt-3 mb-4">
-                    <div className="text-sm xxs:text-base grid grid-cols-2 md:grid-cols-3 justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
+                    <div className="text-sm xxs:text-base grid grid-cols-checkboxfit justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
                       {/* surface checkbox */}
                       <div className="flex mb-1">
                         <span className="mr-1">{localize('Has surface') + ':'} </span>
@@ -1830,7 +1878,7 @@ const Home = () => {
                 }
               />
             </div>
-            <div className="w-full grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-autofit gap-5 justify-center items-start">
+            <div className="w-full grid grid-cols-autofit gap-5 justify-center items-start">
               {(data?.result ?? []).map((item, i) => (
                 <ItemCard key={item.name} item={item} />
               ))}
