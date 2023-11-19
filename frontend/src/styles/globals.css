@@ -62,5 +62,5 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 hover:bg-gray-400; /* Tailwind utility classes */
+  @apply bg-gray-200 hover:bg-gray-400; /* Tailwind utility classes */
 }

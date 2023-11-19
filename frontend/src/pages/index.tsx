@@ -357,7 +357,7 @@ const Home = () => {
     );
     return (
       <div
-        className="px-2 pt-4 flex flex-col items-center h-auto sm:h-64 overflow-hidden bg-slate-50 rounded-lg shadow-md"
+        className="px-2 pt-4 flex flex-col items-center overflow-x-hidden bg-slate-50 rounded-lg shadow-md"
         onClick={() => openModal({ item })}
       >
         <h3 className="text-center text-lg font-semibold h-auto md:h-10">
@@ -370,7 +370,7 @@ const Home = () => {
             alt={lan === 'en' ? item.name : item.translations.cNzh}
           />
         </div>
-        <div className="flex flex-row overflow-x-auto items-center h-auto md:h-14 scrollbar-thin mx-4">
+        <div className="flex flex-row overflow-x-auto items-center h-auto scrollbar-thin mx-4">
           {item.variations &&
             item.variations.map((v, index) => (
               <img
@@ -443,7 +443,7 @@ const Home = () => {
         style={{ backdropFilter: 'blur(5px)' }}
       >
         <div
-          className="bg-white rounded-lg w-full sm:w-4/5 md:w-auto pb-2 min-h-[300px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto"
+          className="bg-white rounded-lg w-full sm:w-4/5 md:w-auto pb-2 min-h-[300px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
@@ -522,18 +522,7 @@ const Home = () => {
                       ) : null}
                     </div>
                     <div className="pl-1">
-                      {item.variations_info ? (
-                        Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
-                          <>
-                            <strong className="">{localize('Color') + ': '}</strong>
-                            {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
-                              .map((color) => localize(color))
-                              .join(', ')}
-                          </>
-                        ) : (
-                          ''
-                        )
-                      ) : item.colors?.length ? (
+                      {item.colors?.length ? (
                         <>
                           <strong className="">{localize('Color') + ': '}</strong>
                           {Array.from(new Set(item?.colors ?? []))
@@ -568,7 +557,7 @@ const Home = () => {
                         ? hoveredVariation
                         : hoveredVarTranslation}{' '}
                     </div>
-                    <div className="flex flex-row items-center overflow-x-auto">
+                    <div className="flex flex-row items-center overflow-x-auto scrollbar-thin">
                       {Object.entries(item.variations_info).map(([key, value], index) => (
                         <img
                           key={index}
@@ -604,7 +593,7 @@ const Home = () => {
                         ? hoveredPattern
                         : hoveredPaTranslation}{' '}
                     </div>
-                    <div className="flex flex-row items-center overflow-x-auto">
+                    <div className="flex flex-row items-center overflow-x-auto scrollbar-thin">
                       {Object.entries(item.variations_info[hoveredVariation]).map(([key, value], index) => {
                         return (
                           <img
@@ -1065,7 +1054,7 @@ const Home = () => {
                 {localize('More Filters')}
               </button>
               {showFilters && (
-                <div className="mb-3 px-5 h-72 overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
+                <div className="mb-3 px-5 h-72 scrollbar-thin overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
                   {' '}
                   {/* tag start */}
                   <div className="mt-3 mb-4">
@@ -1353,7 +1342,7 @@ const Home = () => {
                   {/* Small screens: drop-down */}
                   <div className="relative mb-4 md:hidden">
                     <select
-                      value={moreFilters['interact']}
+                      value={moreFilters['interactions']}
                       onChange={(e) => {
                         const updatedQuery = {
                           ...Object.fromEntries(searchParams.entries()), // current query params
@@ -1878,7 +1867,7 @@ const Home = () => {
                 }
               />
             </div>
-            <div className="w-full grid grid-cols-autofit gap-5 justify-center items-start">
+            <div className="w-full grid grid-cols-autofit gap-5 justify-center auto-rows-max">
               {(data?.result ?? []).map((item, i) => (
                 <ItemCard key={item.name} item={item} />
               ))}
