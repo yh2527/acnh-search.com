@@ -360,9 +360,10 @@ export const kit = {
 
 export const translation: Record<string, string> = {
   //website display
-  'Search for items...': '输入搜索...',
+  'Search for items...': '支持中英搜索...',
   'Reset All': '重置',
   Page: '页数',
+  Submit: '确定',
   'More Filters': '更多筛选',
   'Has surface': '有台面',
   'Base variants': '有多种款式',
@@ -525,7 +526,7 @@ export const translation: Record<string, string> = {
   Insects: '虫',
   'Sea Creatures': '海洋生物',
   //seasonals
-  Celeste: '星座/星星',
+  Constellation: '星座/星星',
   'Fishing Tourney': '钓鱼大会',
   'Bug-Off': '捕虫大会',
   'Fireworks Show': '烟花大会',

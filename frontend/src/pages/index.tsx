@@ -323,7 +323,7 @@ const Home = () => {
         &lt;
       </button>
       {/* Dropdown for page selection */}
-      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded">
+      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded select-custom">
         {[...Array(totalPages).keys()].map((_, index) => (
           <option key={index} value={index + 1}>
             {localize('Page')} {index + 1}
@@ -1011,7 +1011,7 @@ const Home = () => {
                   router.push({ query: updatedQuery }, undefined, { shallow: true });
                 }}
                 className={classNames(
-                  `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                  `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
                   searchParams.get('category') && 'text-slate-500 bg-amber-200',
                 )}
               >
@@ -1054,11 +1054,11 @@ const Home = () => {
                 {localize('More Filters')}
               </button>
               {showFilters && (
-                <div className="mb-3 px-5 h-72 scrollbar-thin overflow-y-auto bg-amber-200 bg-opacity-60 rounded-lg">
+                <div className="mb-3 px-5 h-72 scrollbar-thin overflow-y-auto overflow-x-hidden bg-amber-200 bg-opacity-60 rounded-lg">
                   {' '}
                   {/* tag start */}
                   <div className="mt-3 mb-4">
-                    <div className="text-sm xxs:text-base grid grid-cols-checkboxfit justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
+                    <div className="text-sm md:text-base grid grid-cols-checkboxfit justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
                       {/* surface checkbox */}
                       <div className="flex mb-1">
                         <span className="mr-1">{localize('Has surface') + ':'} </span>
@@ -1211,7 +1211,7 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
                         searchParams.get('tag') && 'text-slate-500 bg-amber-200',
                       )}
                     >
@@ -1281,7 +1281,7 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
                         searchParams.get('size') && 'text-slate-500 bg-amber-200',
                       )}
                     >
@@ -1352,15 +1352,16 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-full`,
+                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
                         searchParams.get('interact') && 'text-slate-500 bg-amber-200',
                       )}
                     >
                       <option value="">{localize('Interaction Type') + ':'}</option>
+                      <option>─────</option>
                       {Object.keys(interactTypes).map((s) => {
                         return (
                           <option key={s} value={s}>
-                            {localize('Interaction Type') + ':'} {UpFirstLetter(localize(s))}
+                            {UpFirstLetter(localize(s))}
                           </option>
                         );
                       })}
@@ -1385,7 +1386,8 @@ const Home = () => {
                   {/* interact end */}
                   {/*** Height Selections ***/}
                   <div className="mb-1 text-base">{localize('Height') + ':'}</div>
-                  <div className="lg:mb-4 flex">
+                  <div className="mb-1 lg:mb-4 flex">
+                  <div className="flex items-center justify-center">
                     <button
                       onClick={() => {
                         const updatedQuery = {
@@ -1399,7 +1401,7 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        'px-3 py-1 mr-2 mb-1 rounded',
+                        'h-7 px-3 mr-2 rounded text-sm md:text-base',
                         '' === (searchParams?.get('minHeight') ?? ('' || (searchParams.get('maxHeight') ?? '')))
                           ? 'bg-amber-300 text-slate-500'
                           : 'bg-white text-slate-500 hover:bg-amber-300',
@@ -1407,6 +1409,7 @@ const Home = () => {
                     >
                       X
                     </button>
+                    </div>
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
@@ -1423,7 +1426,7 @@ const Home = () => {
                       <label className="hidden md:block text-base">{localize('Min Height') + ': '}</label>
                       <label className="md:hidden text-base">{localize('Min') + ': '}</label>
                       <input
-                        className="mr-2 w-16 h-7 rounded text-sm"
+                        className="ml-1 mr-2 w-16 h-7 rounded text-sm"
                         name="minHeight"
                         type="number"
                         value={minHeight}
@@ -1445,10 +1448,10 @@ const Home = () => {
                       }}
                       className="flex"
                     >
-                      <label className="hidden md:block text-base">{localize('Max Height') + ': '}</label>
-                      <label className="md:hidden text-base">{localize('Max') + ': '}</label>
+                      <label className="hidden md:block text-base">{localize('Max Height') + ':'}</label>
+                      <label className="md:hidden text-base">{localize('Max') + ':'}</label>
                       <input
-                        className="mr-2 w-16 h-7 rounded text-sm"
+                        className="ml-1 mr-2 w-16 h-7 rounded text-sm"
                         name="maxHeight"
                         type="number"
                         value={maxHeight}
@@ -1457,6 +1460,22 @@ const Home = () => {
                         }}
                       />
                     </form>
+                    <button
+                      onClick={() => {
+                        const updatedQuery = {
+                          ...Object.fromEntries(searchParams.entries()), // current query params
+                          minHeight: minHeight, // updated minHeight
+                          maxHeight: maxHeight, // updated maxHeight
+                          page: 1,
+                        };
+                        router.push({ query: updatedQuery }, undefined, { shallow: true });
+                      }}
+                      className={classNames(
+                        'h-7 px-1 mx-2 rounded text-sm bg-amber-50 text-slate-500 border border-amber-300',
+                      )}
+                    >
+                      {localize('Submit')}
+                    </button>
                     <span className="hidden lg:block italic">{localize("* Player's height in the game is 15.")}</span>
                   </div>{' '}
                   <div className="lg:hidden mb-4 italic text-sm">
@@ -1492,10 +1511,10 @@ const Home = () => {
                   </div>{' '}
                   {/* color end */}
                   <div>
-                    {/* sources drop-down */}
                     <div className="mb-1 text-base">{localize('Other Filters') + ':'}</div>{' '}
                     <div className="flex flex-wrap">
-                      <div className="relative mr-2 mb-2 ">
+                    {/* sources drop-down */}
+                    <div className="relative mr-2 mb-2 ">
                         <select
                           value={moreFilters['source']}
                           onChange={(e) => {
@@ -1507,7 +1526,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
                             searchParams.get('source') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1557,7 +1576,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
                             searchParams.get('season') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1566,7 +1585,7 @@ const Home = () => {
                             if (seasonals[s] === 'divider') {
                               return (
                                 <option key={s} disabled>
-                                  ──────────
+                                  ─────
                                 </option>
                               );
                             }
@@ -1607,7 +1626,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
                             searchParams.get('series') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1616,7 +1635,7 @@ const Home = () => {
                             if (series_list[series] === 'divider') {
                               return (
                                 <option key={series} disabled>
-                                  ──────────
+                                  ─────
                                 </option>
                               );
                             }
@@ -1657,7 +1676,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
                             searchParams.get('concept') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1666,7 +1685,7 @@ const Home = () => {
                             if (concepts[s] === 'divider') {
                               return (
                                 <option key={s} disabled>
-                                  ──────────
+                                  ─────
                                 </option>
                               );
                             }
@@ -1711,7 +1730,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem]`,
                             searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1752,7 +1771,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem]`,
                             searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1793,7 +1812,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `form-select p-1 pl-7 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem]`,
                             searchParams.get('rug') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1802,7 +1821,7 @@ const Home = () => {
                             if (rugs[s] === 'divider') {
                               return (
                                 <option key={s} disabled>
-                                  ──────────
+                                  ─────
                                 </option>
                               );
                             }

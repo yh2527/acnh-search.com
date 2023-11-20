@@ -64,3 +64,12 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   @apply bg-gray-200 hover:bg-gray-400; /* Tailwind utility classes */
 }
+
+
+.select-custom {
+  -webkit-appearance: none; /* For Safari and other WebKit-based browsers */
+  -moz-appearance: none;    /* For Firefox */
+  appearance: none;         /* Standard syntax */
+
+}
+
