@@ -323,7 +323,7 @@ const Home = () => {
         &lt;
       </button>
       {/* Dropdown for page selection */}
-      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded select-custom">
+      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded select-custom bg-white">
         {[...Array(totalPages).keys()].map((_, index) => (
           <option key={index} value={index + 1}>
             {localize('Page')} {index + 1}
@@ -461,7 +461,7 @@ const Home = () => {
               </div>
               {(!!item.variations_info || !!item.diy_info) && (
                 <>
-                  <div className="text-xs md:text-sm text-left md:text-left pl-2">
+                  <div className="text-xs md:text-sm text-left md:text-left pl-1">
                     <div>
                       {item.size ? (
                         <>
@@ -476,7 +476,7 @@ const Home = () => {
                         </>
                       ) : null}
                     </div>
-                    <div className="md:w-36">
+                    <div className="">
                       {item.variations_info ? (
                         Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
                           <>
@@ -1011,11 +1011,18 @@ const Home = () => {
                   router.push({ query: updatedQuery }, undefined, { shallow: true });
                 }}
                 className={classNames(
-                  `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
+                  `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full bg-white`,
                   searchParams.get('category') && 'text-slate-500 bg-amber-200',
                 )}
               >
                 {Object.keys(categories).map((s) => {
+                            if (sources[s] === 'divider') {
+                              return (
+                                <option key={s} disabled>
+                                  ─────
+                                </option>
+                              );
+                            }
                   return (
                     <option key={s} value={s}>
                       {localize('Category') + ':'} {UpFirstLetter(localize(s))}
@@ -1034,7 +1041,7 @@ const Home = () => {
                     };
                     router.push({ query: updatedQuery }, undefined, { shallow: true });
                   }}
-                  className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                  className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                 >
                   -
                 </button>
@@ -1211,15 +1218,16 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
+                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full bg-white`,
                         searchParams.get('tag') && 'text-slate-500 bg-amber-200',
                       )}
                     >
                       <option value="">{localize('Function/Theme') + ':'}</option>
+                      <option> ─────</option>
                       {Object.keys(tags).map((s) => {
                         return (
                           <option key={s} value={s}>
-                            {localize('Function/Theme') + ':'} {UpFirstLetter(localize(s))}
+                            {UpFirstLetter(localize(s))}
                           </option>
                         );
                       })}
@@ -1235,7 +1243,7 @@ const Home = () => {
                           };
                           router.push({ query: updatedQuery }, undefined, { shallow: true });
                         }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                       >
                         -
                       </button>
@@ -1281,15 +1289,16 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
+                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full bg-white`,
                         searchParams.get('size') && 'text-slate-500 bg-amber-200',
                       )}
                     >
                       <option value="">{localize('Size') + ':'}</option>
+                      <option> ─────</option>
                       {sizes.map((s) => {
                         return (
                           <option key={s} value={s}>
-                            {localize('Size') + ':'} {UpFirstLetter(localize(s))}
+                            {localize('Size') + ':'} {s}
                           </option>
                         );
                       })}
@@ -1305,7 +1314,7 @@ const Home = () => {
                           };
                           router.push({ query: updatedQuery }, undefined, { shallow: true });
                         }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                       >
                         -
                       </button>
@@ -1352,7 +1361,7 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full`,
+                        `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-full bg-white`,
                         searchParams.get('interact') && 'text-slate-500 bg-amber-200',
                       )}
                     >
@@ -1377,7 +1386,7 @@ const Home = () => {
                           };
                           router.push({ query: updatedQuery }, undefined, { shallow: true });
                         }}
-                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                        className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                       >
                         -
                       </button>
@@ -1476,10 +1485,10 @@ const Home = () => {
                     >
                       {localize('Submit')}
                     </button>
-                    <span className="hidden lg:block italic">{localize("* Player's height in the game is 15.")}</span>
+                    <span className="hidden lg:block italic">{'* ' + localize("Player's height in the game is 15.")}</span>
                   </div>{' '}
                   <div className="lg:hidden mb-4 italic text-sm">
-                    {localize("* Player's height in the game is 15.")}
+                    {'* ' + localize("Player's height in the game is 15.")}
                   </div>
                   {/* height end */}
                   {/*** Color Selections ***/}
@@ -1526,7 +1535,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem] bg-white`,
                             searchParams.get('source') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1535,7 +1544,7 @@ const Home = () => {
                             if (sources[s] === 'divider') {
                               return (
                                 <option key={s} disabled>
-                                  ──────────
+                                  ─────
                                 </option>
                               );
                             }
@@ -1557,7 +1566,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
@@ -1576,7 +1585,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem] bg-white`,
                             searchParams.get('season') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1607,7 +1616,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
@@ -1626,7 +1635,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem] bg-white`,
                             searchParams.get('series') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1657,7 +1666,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
@@ -1676,7 +1685,7 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[21rem] bg-white`,
                             searchParams.get('concept') && 'text-slate-500 bg-amber-200',
                           )}
                         >
@@ -1707,7 +1716,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
@@ -1730,11 +1739,12 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
                             searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
                           )}
                         >
                           <option value="">{localize('Lighting Type') + ':'}</option>
+                          <option>─────</option>
                           {Object.keys(lightings).map((l) => (
                             <option key={l} value={l}>
                               {localize('Lighting') + ': ' + localize(l)}
@@ -1752,7 +1762,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
@@ -1771,11 +1781,12 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
                             searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
                           )}
                         >
                           <option value="">{localize('Album Player Type') + ':'}</option>
+                          <option>─────</option>
                           {Object.keys(album_players).map((player) => (
                             <option key={player} value={player}>
                               {localize('Album Player') + ': ' + localize(player)}
@@ -1793,7 +1804,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
@@ -1812,11 +1823,12 @@ const Home = () => {
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
                           className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem]`,
+                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
                             searchParams.get('rug') && 'text-slate-500 bg-amber-200',
                           )}
                         >
                           <option value="">{localize('Rug Filter') + ':'}</option>
+                          <option>─────</option>
                           {Object.keys(rugs).map((s) => {
                             if (rugs[s] === 'divider') {
                               return (
@@ -1843,7 +1855,7 @@ const Home = () => {
                               };
                               router.push({ query: updatedQuery }, undefined, { shallow: true });
                             }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-50 rounded-full w-6 h-6 flex items-center justify-center"
+                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                           >
                             -
                           </button>
