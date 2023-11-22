@@ -119,6 +119,7 @@ const Home = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
+    setLan(searchParams?.get('lan') ?? 'en')
     setSearchBar(searchParams?.get('textSearch') ?? '');
     setMinHeight(searchParams?.get('minHeight') ?? '');
     setMaxHeight(searchParams?.get('maxHeight') ?? '');
@@ -160,6 +161,7 @@ const Home = () => {
     queryKey: ['searchCache', Array.from(searchParams.entries())],
     queryFn: async (): Promise<ApiResponse> => {
       const newParams = new URLSearchParams({
+        lan: searchParams.get('lan') ?? 'en',
         category: searchParams.get('category') ?? '',
         search: searchParams.get('textSearch') ?? '',
         page: searchParams.get('page') ?? '1',
@@ -266,7 +268,7 @@ const Home = () => {
           router.push({ query: updatedQuery }, undefined, { shallow: true });
         }}
         className={classNames(
-          `px-2 py-1 mr-1 w-16 md:w-auto md:mr-2 mb-1 rounded text-sm md:text-base`,
+          `px-2 py-1 mr-1 m-w-[64px] sm:w-16 md:w-auto md:mr-2 mb-1 rounded text-sm md:text-base`,
           (searchParams?.get('colors') ?? '').split(',').includes(color)
             ? 'bg-amber-300 text-slate-500'
             : 'bg-white text-slate-500',
@@ -323,9 +325,9 @@ const Home = () => {
         &lt;
       </button>
       {/* Dropdown for page selection */}
-      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded select-custom bg-white">
+      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded select-custom bg-white text-sm xs:text-base">
         {[...Array(totalPages).keys()].map((_, index) => (
-          <option key={index} value={index + 1}>
+          <option key={index} value={index + 1} >
             {localize('Page')} {index + 1}
           </option>
         ))}
@@ -894,20 +896,32 @@ const Home = () => {
           className={`flex min-h-screen flex-col items-center py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 bg-yellow-100 font-nunito text-slate-500`}
         >
           <div className="flex flex-row flex-wrap">
-            <div className="text-3xl md:text-4xl absolute top-0 left-0 p-3 mt-1 md:m-3 font-black font-finkheavy image-filled-text">
+            <div className="text-3xl md:text-4xl absolute top-0 left-0 xs:p-3 mt-1 md:m-3 font-black font-finkheavy image-filled-text">
               ACNH Item Search
             </div>
-            <div className="absolute top-0 right-0 p-3 m-3">
+            <div className="text-xs xs:text-base xs:absolute xs:top-0 xs:right-0 mb-2 xs:mb-0 xs:p-3 xs:m-3 text-left">
               <div className="flex">
                 <button
-                  onClick={() => setLan('en')}
+                  onClick={() => {
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      lan: 'en', // updated search value
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
                   className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'en' && 'bg-amber-200')}
                 >
                   ENG
                 </button>
                 |
                 <button
-                  onClick={() => setLan('cn')}
+                  onClick={() => {
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      lan: 'cn', // updated search value
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
                   className={classNames('w-9 h-6 mx-1 rounded hover:bg-amber-200', lan === 'cn' && 'bg-amber-200')}
                 >
                   中文
@@ -923,9 +937,9 @@ const Home = () => {
                 onClick={() => {
                   setSearchBar(''); // clear out search bar value
                   setShowFilters(false);
-                  router.push({}, undefined, { shallow: true });
+                  router.push({ query: {lan} }, undefined, { shallow: true });
                 }}
-                className="px-1 md:w-24 h-8 md:h-10 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
+                className="overflow-hidden px-1 md:w-24 h-8 md:h-10 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
               >
                 {localize('Reset All')}
               </button>
@@ -1492,7 +1506,7 @@ const Home = () => {
                   </div>
                   {/* height end */}
                   {/*** Color Selections ***/}
-                  {/* Medium and larger screens: buttons */}
+                  {/* All screen sizes: buttons */}
                   <div className="mb-4">
                     {' '}
                     <div className="mb-1 text-base">{localize('Color') + ':'}</div>
@@ -1873,7 +1887,7 @@ const Home = () => {
             {' '}
             {/* item cards */}
             <div className="flex w-full items-center justify-between mb-2">
-              <div className="flex-grow pl-1">
+              <div className="flex-grow pl-1 text-sm xs:text-base">
                 {isLoading ? (
                   '...'
                 ) : data?.page_info?.total_count ? (
@@ -1888,7 +1902,7 @@ const Home = () => {
                   'No result ... :('
                 )}
               </div>
-              <PaginationControls
+              {data?.page_info?.total_count ? <PaginationControls
                 currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
                 totalPages={data?.page_info.max_page ?? 1}
                 onPageChange={(page) =>
@@ -1896,7 +1910,7 @@ const Home = () => {
                     shallow: true,
                   })
                 }
-              />
+              /> : ''}
             </div>
             <div className="w-full grid grid-cols-autofit gap-5 justify-center auto-rows-max">
               {(data?.result ?? []).map((item, i) => (
@@ -1905,7 +1919,7 @@ const Home = () => {
             </div>
             {isModalOpen && selectedItem && <Modal item={selectedItem} onClose={closeModal} />}
             <div className="flex w-full items-center justify-center mt-5">
-              <PaginationControls
+              {data?.page_info?.total_count ? <PaginationControls
                 currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
                 totalPages={data?.page_info.max_page ?? 1}
                 onPageChange={(page) =>
@@ -1913,7 +1927,7 @@ const Home = () => {
                     shallow: true,
                   })
                 }
-              />
+              /> : '' }
             </div>
           </div>
         </main>
