@@ -16,6 +16,9 @@ export interface Concepts {
 export interface Rugs {
   [key: string]: string;
 }
+export interface Kit {
+  [key: string]: string;
+}
 
 export const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
 export const categories: Categories = {
@@ -350,7 +353,7 @@ export const rugs: Rugs = {
   'Wood Rugs': '木质地毯',
 };
 
-export const kit = {
+export const kit: Kit = {
   'Rainbow feather': 'https://acnhcdn.com/latest/MenuIcon/FeatherRainbow.png',
   Normal: 'https://acnhcdn.com/latest/MenuIcon/RemakeKit.png',
   Pumpkin: 'https://acnhcdn.com/latest/MenuIcon/SquashOrange.png',
@@ -409,6 +412,8 @@ export const translation: Record<string, string> = {
   '50,000 Bells': '50,000 铃钱',
   "More details on the item's": '更多信息请访问本物品的',
   'Nookipedia Page': 'Nookipedia 页面',
+  Pumpkin: '南瓜',
+  'Rainbow feather': '彩虹羽毛',
   //categories
   'All Categories': '全部',
   Housewares: '家具',

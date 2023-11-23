@@ -65,11 +65,8 @@ body {
   @apply bg-gray-300 hover:bg-gray-400; /* Tailwind utility classes */
 }
 
-
 .select-custom {
   -webkit-appearance: none; /* For Safari and other WebKit-based browsers */
-  -moz-appearance: none;    /* For Firefox */
-  appearance: none;         /* Standard syntax */
-
+  -moz-appearance: none; /* For Firefox */
+  appearance: none; /* Standard syntax */
 }
-

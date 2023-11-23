@@ -58,6 +58,7 @@ interface Item {
   variations: ({
     variation: string;
     image: string;
+    kitType: string;
     concepts: string[];
   } & Record<string, any>)[];
   variations_info: Record<
@@ -119,7 +120,7 @@ const Home = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
-    setLan(searchParams?.get('lan') ?? 'en')
+    setLan(searchParams?.get('lan') ?? 'en');
     setSearchBar(searchParams?.get('textSearch') ?? '');
     setMinHeight(searchParams?.get('minHeight') ?? '');
     setMaxHeight(searchParams?.get('maxHeight') ?? '');
@@ -325,9 +326,13 @@ const Home = () => {
         &lt;
       </button>
       {/* Dropdown for page selection */}
-      <select value={currentPage} onChange={(e) => onPageChange(Number(e.target.value))} className="mx-1 px-1 rounded select-custom bg-white text-sm xs:text-base">
+      <select
+        value={currentPage}
+        onChange={(e) => onPageChange(Number(e.target.value))}
+        className="mx-1 px-1 rounded select-custom bg-white text-sm xs:text-base"
+      >
         {[...Array(totalPages).keys()].map((_, index) => (
-          <option key={index} value={index + 1} >
+          <option key={index} value={index + 1}>
             {localize('Page')} {index + 1}
           </option>
         ))}
@@ -550,7 +555,8 @@ const Home = () => {
               {/* Variation */}
               {
                 !!item.variations_info ? (
-                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col w-full">
+                  <div className={`rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col
+                    ${Object.keys(item.variations_info).length === 8 ? '' : ''}`}>
                     <div>
                       <strong>{localize('Variation') + ':'}</strong>{' '}
                       {hoveredVariation === 'null'
@@ -559,7 +565,8 @@ const Home = () => {
                         ? hoveredVariation
                         : hoveredVarTranslation}{' '}
                     </div>
-                    <div className="flex flex-row items-center overflow-x-auto scrollbar-thin">
+                    <div
+                      className={`flex flex-row items-center overflow-x-auto scrollbar-thin`}>
                       {Object.entries(item.variations_info).map(([key, value], index) => (
                         <img
                           key={index}
@@ -670,10 +677,13 @@ const Home = () => {
                         <>
                           <img
                             className={`object-contain h-6 mx-1 rounded`}
-                            src={kit['Normal']}
+                            src={kit[item.variations[0].kitType]}
                             alt="image of customization kit"
                           />
-                          {item.kitCost}x {localize('customization kit')}
+                          {item.kitCost}x{' '}
+                          {item.variations[0].kitType === 'Normal'
+                            ? localize('customization kit')
+                            : localize(item.variations[0].kitType)}
                           {Object.keys(item.variations_info).length > 1 &&
                             item.bodyCustomize === null &&
                             ' - ' + localize('patterns only')}
@@ -937,7 +947,7 @@ const Home = () => {
                 onClick={() => {
                   setSearchBar(''); // clear out search bar value
                   setShowFilters(false);
-                  router.push({ query: {lan} }, undefined, { shallow: true });
+                  router.push({ query: { lan } }, undefined, { shallow: true });
                 }}
                 className="overflow-hidden px-1 md:w-24 h-8 md:h-10 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
               >
@@ -1030,13 +1040,13 @@ const Home = () => {
                 )}
               >
                 {Object.keys(categories).map((s) => {
-                            if (sources[s] === 'divider') {
-                              return (
-                                <option key={s} disabled>
-                                  ─────
-                                </option>
-                              );
-                            }
+                  if (sources[s] === 'divider') {
+                    return (
+                      <option key={s} disabled>
+                        ─────
+                      </option>
+                    );
+                  }
                   return (
                     <option key={s} value={s}>
                       {localize('Category') + ':'} {UpFirstLetter(localize(s))}
@@ -1410,28 +1420,28 @@ const Home = () => {
                   {/*** Height Selections ***/}
                   <div className="mb-1 text-base">{localize('Height') + ':'}</div>
                   <div className="mb-1 lg:mb-4 flex">
-                  <div className="flex items-center justify-center">
-                    <button
-                      onClick={() => {
-                        const updatedQuery = {
-                          ...Object.fromEntries(
-                            Array.from(searchParams.entries()).filter(
-                              ([k, v]) => k !== 'minHeight' && k !== 'maxHeight',
+                    <div className="flex items-center justify-center">
+                      <button
+                        onClick={() => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(
+                              Array.from(searchParams.entries()).filter(
+                                ([k, v]) => k !== 'minHeight' && k !== 'maxHeight',
+                              ),
                             ),
-                          ),
-                          page: 1,
-                        };
-                        router.push({ query: updatedQuery }, undefined, { shallow: true });
-                      }}
-                      className={classNames(
-                        'h-7 px-3 mr-2 rounded text-sm md:text-base',
-                        '' === (searchParams?.get('minHeight') ?? ('' || (searchParams.get('maxHeight') ?? '')))
-                          ? 'bg-amber-300 text-slate-500'
-                          : 'bg-white text-slate-500 hover:bg-amber-300',
-                      )}
-                    >
-                      X
-                    </button>
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          'h-7 px-3 mr-2 rounded text-sm md:text-base',
+                          '' === (searchParams?.get('minHeight') ?? ('' || (searchParams.get('maxHeight') ?? '')))
+                            ? 'bg-amber-300 text-slate-500'
+                            : 'bg-white text-slate-500 hover:bg-amber-300',
+                        )}
+                      >
+                        X
+                      </button>
                     </div>
                     <form
                       onSubmit={(e) => {
@@ -1499,7 +1509,9 @@ const Home = () => {
                     >
                       {localize('Submit')}
                     </button>
-                    <span className="hidden lg:block italic">{'* ' + localize("Player's height in the game is 15.")}</span>
+                    <span className="hidden lg:block italic">
+                      {'* ' + localize("Player's height in the game is 15.")}
+                    </span>
                   </div>{' '}
                   <div className="lg:hidden mb-4 italic text-sm">
                     {'* ' + localize("Player's height in the game is 15.")}
@@ -1536,8 +1548,8 @@ const Home = () => {
                   <div>
                     <div className="mb-1 text-base">{localize('Other Filters') + ':'}</div>{' '}
                     <div className="flex flex-wrap">
-                    {/* sources drop-down */}
-                    <div className="relative mr-2 mb-2 ">
+                      {/* sources drop-down */}
+                      <div className="relative mr-2 mb-2 ">
                         <select
                           value={moreFilters['source']}
                           onChange={(e) => {
@@ -1902,32 +1914,41 @@ const Home = () => {
                   'No result ... :('
                 )}
               </div>
-              {data?.page_info?.total_count ? <PaginationControls
-                currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-                totalPages={data?.page_info.max_page ?? 1}
-                onPageChange={(page) =>
-                  router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                    shallow: true,
-                  })
-                }
-              /> : ''}
+              {data?.page_info?.total_count ? (
+                <PaginationControls
+                  currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
+                  totalPages={data?.page_info.max_page ?? 1}
+                  onPageChange={(page) =>
+                    router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                      shallow: true,
+                    })
+                  }
+                />
+              ) : (
+                ''
+              )}
             </div>
-            <div className="w-full grid grid-cols-autofit gap-5 justify-center auto-rows-max">
+            <div className={`w-full grid gap-5 justify-center auto-rows-max 
+                    ${(data?.result.length ?? 0) < 4 ? 'grid-cols-autofit sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4':'grid-cols-autofit' }`}>
               {(data?.result ?? []).map((item, i) => (
                 <ItemCard key={item.name} item={item} />
               ))}
             </div>
             {isModalOpen && selectedItem && <Modal item={selectedItem} onClose={closeModal} />}
             <div className="flex w-full items-center justify-center mt-5">
-              {data?.page_info?.total_count ? <PaginationControls
-                currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-                totalPages={data?.page_info.max_page ?? 1}
-                onPageChange={(page) =>
-                  router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                    shallow: true,
-                  })
-                }
-              /> : '' }
+              {data?.page_info?.total_count ? (
+                <PaginationControls
+                  currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
+                  totalPages={data?.page_info.max_page ?? 1}
+                  onPageChange={(page) =>
+                    router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                      shallow: true,
+                    })
+                  }
+                />
+              ) : (
+                ''
+              )}
             </div>
           </div>
         </main>
