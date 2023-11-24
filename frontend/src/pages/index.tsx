@@ -462,7 +462,7 @@ const Home = () => {
           {/* Image(left) and Description(right) */}
           <div className="flex items-start">
             {/* Image, size, height, colors */}
-            <div className="w-[25%] h-36 px-1 md:px-5 mt-5">
+            <div className="w-[120px] sm:w-[160px] h-36 px-1 sm:px-3 md:px-5 mt-5">
               <div className="flex items-center justify-center w-full h-auto mb-2">
                 <img src={hoveredImage} alt={item.name} />
               </div>
@@ -510,7 +510,7 @@ const Home = () => {
                 </>
               )}
             </div>
-            <div className="w-[75%] pr-3  md:pr-10 mt-5">
+            <div className="pr-3 md:pr-10 mt-5">
               {!item.variations_info && !item.diy_info && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
