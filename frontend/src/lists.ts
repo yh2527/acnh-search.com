@@ -414,6 +414,9 @@ export const translation: Record<string, string> = {
   'Nookipedia Page': 'Nookipedia 页面',
   Pumpkin: '南瓜',
   'Rainbow feather': '彩虹羽毛',
+  '30 turnips': '30颗大头菜',
+  '10 turnips': '10颗大头菜',
+  'Niko': '尼可',
   //categories
   'All Categories': '全部',
   Housewares: '家具',

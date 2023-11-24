@@ -54,7 +54,10 @@ interface Item {
   sablePattern: boolean;
   customPattern: boolean;
   image: string;
-  diy_info: Record<string, any>;
+  diy_info: {
+    source: string[];
+    materials: Record<string, any>;
+  };
   variations: ({
     variation: string;
     image: string;
@@ -462,13 +465,13 @@ const Home = () => {
           {/* Image(left) and Description(right) */}
           <div className="flex items-start">
             {/* Image, size, height, colors */}
-            <div className="w-[120px] sm:w-[160px] h-36 px-1 sm:px-3 md:px-5 mt-5">
-              <div className="flex items-center justify-center w-full h-auto mb-2">
+            <div className="w-[120px] sm:w-[160px] px-1 sm:px-3 md:px-5 mt-3 mb-6">
+              <div className="flex items-center justify-center w-full h-auto mb-3">
                 <img src={hoveredImage} alt={item.name} />
               </div>
               {(!!item.variations_info || !!item.diy_info) && (
                 <>
-                  <div className="text-xs md:text-sm text-left md:text-left pl-1">
+                  <div className="text-xs text-left md:text-left pl-1">
                     <div>
                       {item.size ? (
                         <>
@@ -498,7 +501,7 @@ const Home = () => {
                       ) : item.colors?.length ? (
                         <>
                           <strong className="">{localize('Color') + ': '}</strong>
-                          {Array.from(new Set(item?.colors ?? []))
+                          {(item?.colors ?? [])
                             .map((color) => localize(color))
                             .join(', ')}
                         </>
@@ -511,7 +514,7 @@ const Home = () => {
               )}
             </div>
             <div className="pr-3 md:pr-10 mt-5">
-              {!item.variations_info && !item.diy_info && (
+              {((!item.variations_info && !item.diy_info) ) && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                     <div className="pl-1">
@@ -532,7 +535,7 @@ const Home = () => {
                       {item.colors?.length ? (
                         <>
                           <strong className="">{localize('Color') + ': '}</strong>
-                          {Array.from(new Set(item?.colors ?? []))
+                          {(item?.colors ?? [])
                             .map((color) => localize(color))
                             .join(', ')}
                         </>
@@ -634,7 +637,7 @@ const Home = () => {
                 ) /* Empty div to maintain space */
               }
               {/* diy info */}
-              {Object.keys(item?.recipe ?? {})?.length ? (
+              {Object.keys(item?.diy_info ?? {})?.length ? (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-1 shadow-sm mb-3">
                     <div>
@@ -643,22 +646,21 @@ const Home = () => {
                         {'(' +
                           localize('Recipe source') +
                           ' - ' +
-                          item.recipe.source.map((s) => localize(s)).join(', ') +
+                          item.diy_info.source.map((s) => localize(s)).join(', ') +
                           ')'}
                       </span>
-                      {Object.entries(item.diy_info).map(([key, value]) => (
+                      {Object.entries(item.diy_info.materials).map(([key, value]) => (
                         <div className="flex items-center" key={key}>
                           <img
                             className={`object-contain h-6 mx-1 rounded`}
                             src={value.inventoryImage}
                             alt="image of materials"
                           />
-                          {value.amount}x{' '}
                           {lan === 'en'
-                            ? key
-                            : key === '99,000 Bells' || key === '50,000 Bells'
+                            ? value.amount+'x '+key
+                            : key === '99,000 Bells' ? value.amount+'x '+localize(key): key === '50,000 Bells' || key.includes('turnips')
                             ? localize(key)
-                            : value.translations.cNzh}
+                            : value.amount+'x '+value.translations.cNzh}
                         </div>
                       ))}
                     </div>
@@ -758,6 +760,7 @@ const Home = () => {
                                 setShowFilters(false);
                                 const updatedQuery = {
                                   series: item.series,
+                                  lan:lan,
                                   page: 1,
                                 };
                                 router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -785,6 +788,7 @@ const Home = () => {
                                 setShowFilters(false);
                                 const updatedQuery = {
                                   tag: findKeyByValue(tags, item.tag), // only filter on tag
+                                  lan:lan,
                                   page: 1,
                                 };
                                 router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -811,6 +815,7 @@ const Home = () => {
                                     setShowFilters(false);
                                     const updatedQuery = {
                                       concept: concept, // only filter on concept
+                                      lan:lan,
                                       page: 1,
                                     };
                                     router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -835,6 +840,7 @@ const Home = () => {
                                     setShowFilters(false);
                                     const updatedQuery = {
                                       concept: concept, // only filter on concept
+                                      lan:lan,
                                       page: 1,
                                     };
                                     router.push({ query: updatedQuery }, undefined, { shallow: true });

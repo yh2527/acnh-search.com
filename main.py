@@ -218,6 +218,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     for item in result:
         item["name"] = item["name"].capitalize()
         item["image"] = item.get("image") or item.get("furnitureImage") or item.get("variations")[0]["image"]
+        item["colors"] = list(set(filter(lambda x: x is not None, item.get("colors", []))))
         if "height" in item:
             item["height"] = round(item["height"],1)
         if "variations" in item:
@@ -231,17 +232,30 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                         'variantTranslations': v.get("variantTranslations", None),
                         'patternTranslations': v.get("patternTranslations", None)
                         }
-        if item.get("recipe",None):
-            item["diy_info"] = {}
-            for m in list(item['recipe']['materials'].keys()):
-                if m not in item["diy_info"]:
-                    item["diy_info"][m] = {}
-                item["diy_info"][m]['amount'] = item['recipe']['materials'][m]
-                find_material = "Bell bag" if "Bell" in m else m
+        if item.get("recipe",None) or item.get("category", None) == "Interior Structures":
+            print('name', item["name"])
+            if item["category"] == "Interior Structures":
+                item_materials = db["Recipes"].find_one(filter={'name':{'$regex': item['name'], '$options': 'i'}},projection=
+                                                        {'materials':1,'source':1,"_id":0})
+                print('materials', item_materials)
+            else:
+                item_materials = item['recipe']
+            item["diy_info"] = {'source':item_materials['source'],'materials':{}}
+
+            for m in list(item_materials['materials'].keys()):
+                if m not in item["diy_info"]['materials']:
+                    item["diy_info"]['materials'][m] = {}
+                item["diy_info"]['materials'][m]['amount'] = item_materials['materials'][m]
+                if "Bell" in m:
+                    find_material = "Bell bag" 
+                elif "turnips" in m:
+                    find_material = "turnips" 
+                else:
+                    find_material = m
                 icon = db["Other"].find_one(filter={'name':find_material},projection=
                                             {'inventoryImage':1,'translations':1,"_id":0})
                 if icon:
-                    item["diy_info"][m].update(icon)
+                    item["diy_info"]['materials'][m].update(icon)
                 else:
                     more_icons = collection.find_one(filter={'name':find_material},projection=
                                                      {'image':1,'iconImage':1,'variations':1,'translations':1,"_id":0})
@@ -251,8 +265,10 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                             icon = more_icons['variations'][0]['image']
                         else:
                             icon = more_icons.get('image',more_icons.get('iconImage',None))
-                        item["diy_info"][m].update({'inventoryImage':icon,
+                        item["diy_info"]['materials'][m].update({'inventoryImage':icon,
                                                     'translations':more_icons.get('translations',None)})
+            print('diy_info', item["diy_info"])
+
 
     #print("first result ",result[0])
     return {"result":result,
