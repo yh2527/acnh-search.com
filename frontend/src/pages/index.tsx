@@ -381,25 +381,29 @@ const Home = () => {
           />
         </div>
         <div className="flex flex-row overflow-x-auto items-center h-auto scrollbar-thin mx-4">
-          {item.variations &&
-            item.variations.map((v, index) => (
-              <img
-                key={index}
-                className="object-contain w-9 h-9"
-                src={v.image}
-                alt={`${item.name} variation ${index}`}
-                onMouseEnter={() => {
-                  setHoveredImage(v.image);
-                  setHoveredColor(
-                    lan === 'en'
-                      ? (v.variation ?? '') + (v.variation && v.pattern ? ': ' : '') + (v.pattern ?? '')
-                      : (v.variantTranslations?.cNzh ?? '') +
-                          (v.variantTranslations?.cNzh && v.patternTranslations?.cNzh ? ': ' : '') +
-                          (v.patternTranslations?.cNzh ?? ''),
-                  );
-                }}
-              />
-            ))}
+          {item.variations_info &&
+            Object.entries(item.variations_info).map(([vKey, vValue], index) =>
+              Object.entries(vValue).map(([pKey, pValue], i) => (
+                <img
+                  key={`${index}-${i}`}
+                  className="object-contain w-9 h-9"
+                  src={pValue.image}
+                  alt={`${item.name} variation ${index} pattern ${i}`}
+                  onMouseEnter={() => {
+                    setHoveredImage(pValue.image);
+                    setHoveredColor(
+                      lan === 'en'
+                        ? (vKey === 'null' ? '' : vKey) +
+                            (vKey === 'null' || pKey === 'null' ? '' : ': ') +
+                            (pKey === 'null' ? '' : pKey)
+                        : (pValue.variantTranslations?.cNzh ?? '') +
+                            (pValue.variantTranslations?.cNzh && pValue.patternTranslations?.cNzh ? ': ' : '') +
+                            (pValue.patternTranslations?.cNzh ?? ''),
+                    );
+                  }}
+                />
+              )),
+            )}
         </div>
         <h3 className="text-sm font-semibold mb-4 pt-2 h-5">{hoveredColor}</h3>
       </div>
@@ -453,7 +457,7 @@ const Home = () => {
         style={{ backdropFilter: 'blur(5px)' }}
       >
         <div
-          className="bg-white rounded-lg w-full sm:w-4/5 md:w-auto pb-2 min-h-[300px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin"
+          className="bg-white rounded-lg w-full sm:w-4/5 md:w-auto pb-2 min-h-[270px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
@@ -491,7 +495,7 @@ const Home = () => {
                         Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
                           <>
                             <strong className="">{localize('Color') + ': '}</strong>
-                            {Array.from(new Set(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? []))
+                            {(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])
                               .map((color) => localize(color))
                               .join(', ')}
                           </>
@@ -501,9 +505,7 @@ const Home = () => {
                       ) : item.colors?.length ? (
                         <>
                           <strong className="">{localize('Color') + ': '}</strong>
-                          {(item?.colors ?? [])
-                            .map((color) => localize(color))
-                            .join(', ')}
+                          {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
                         </>
                       ) : (
                         ''
@@ -514,30 +516,28 @@ const Home = () => {
               )}
             </div>
             <div className="pr-3 md:pr-10 mt-5">
-              {((!item.variations_info && !item.diy_info) ) && (
+              {!item.variations_info && !item.diy_info && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
-                    <div className="pl-1">
+                    <div>
                       {item.size ? (
                         <>
                           <strong>{localize('Size') + ':'}</strong> {item.size}
                         </>
                       ) : null}
                     </div>
-                    <div className="pl-1">
+                    <div>
                       {item.height ? (
                         <>
                           <strong>{localize('Height') + ':'}</strong> {item.height}
                         </>
                       ) : null}
                     </div>
-                    <div className="pl-1">
+                    <div>
                       {item.colors?.length ? (
                         <>
                           <strong className="">{localize('Color') + ': '}</strong>
-                          {(item?.colors ?? [])
-                            .map((color) => localize(color))
-                            .join(', ')}
+                          {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
                         </>
                       ) : (
                         ''
@@ -558,8 +558,10 @@ const Home = () => {
               {/* Variation */}
               {
                 !!item.variations_info ? (
-                  <div className={`rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col
-                    ${Object.keys(item.variations_info).length === 8 ? '' : ''}`}>
+                  <div
+                    className={`rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col
+                    ${Object.keys(item.variations_info).length === 8 ? '' : ''}`}
+                  >
                     <div>
                       <strong>{localize('Variation') + ':'}</strong>{' '}
                       {hoveredVariation === 'null'
@@ -568,8 +570,7 @@ const Home = () => {
                         ? hoveredVariation
                         : hoveredVarTranslation}{' '}
                     </div>
-                    <div
-                      className={`flex flex-row items-center overflow-x-auto scrollbar-thin`}>
+                    <div className={`flex flex-row items-center overflow-x-auto scrollbar-thin`}>
                       {Object.entries(item.variations_info).map(([key, value], index) => (
                         <img
                           key={index}
@@ -657,10 +658,12 @@ const Home = () => {
                             alt="image of materials"
                           />
                           {lan === 'en'
-                            ? value.amount+'x '+key
-                            : key === '99,000 Bells' ? value.amount+'x '+localize(key): key === '50,000 Bells' || key.includes('turnips')
+                            ? value.amount + 'x ' + key
+                            : key === '99,000 Bells'
+                            ? value.amount + 'x ' + localize(key)
+                            : key === '50,000 Bells' || key.includes('turnips')
                             ? localize(key)
-                            : value.amount+'x '+value.translations.cNzh}
+                            : value.amount + 'x ' + value.translations.cNzh}
                         </div>
                       ))}
                     </div>
@@ -670,7 +673,7 @@ const Home = () => {
                 ''
               )}
               {/* customization info */}
-              {item.variations ? (
+              {item.variations && item.category !== 'Equipments' ? (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                     <strong>{localize('Customization') + ':'} </strong>
@@ -760,7 +763,7 @@ const Home = () => {
                                 setShowFilters(false);
                                 const updatedQuery = {
                                   series: item.series,
-                                  lan:lan,
+                                  lan: lan,
                                   page: 1,
                                 };
                                 router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -788,7 +791,7 @@ const Home = () => {
                                 setShowFilters(false);
                                 const updatedQuery = {
                                   tag: findKeyByValue(tags, item.tag), // only filter on tag
-                                  lan:lan,
+                                  lan: lan,
                                   page: 1,
                                 };
                                 router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -815,7 +818,7 @@ const Home = () => {
                                     setShowFilters(false);
                                     const updatedQuery = {
                                       concept: concept, // only filter on concept
-                                      lan:lan,
+                                      lan: lan,
                                       page: 1,
                                     };
                                     router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -840,7 +843,7 @@ const Home = () => {
                                     setShowFilters(false);
                                     const updatedQuery = {
                                       concept: concept, // only filter on concept
-                                      lan:lan,
+                                      lan: lan,
                                       page: 1,
                                     };
                                     router.push({ query: updatedQuery }, undefined, { shallow: true });
@@ -858,6 +861,24 @@ const Home = () => {
                     )}
                   </div>
                 </>
+              )}
+              {/* equipment info */}
+              {item.category === 'Equipments' ? (
+                <>
+                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+                    <div>
+                      <strong>{localize('Villager Equippable') + ':'}</strong> {item.villagerEquippable ? localize('True') : localize('False')}{' '}
+                    </div>
+                    {item.themes && <div>
+                      <strong>{localize('Themes') + ':'}</strong> {(item?.themes ?? []).map((s) => UpFirstLetter(localize(s))).join(', ')}{' '}
+                    </div>}
+                    {item.styles && <div>
+                      <strong>{localize('Styles') + ':'}</strong> {(item?.styles ?? []).map((s) => localize(s)).join(', ')}{' '}
+                    </div>}
+                  </div>
+                </>
+              ) : (
+                ''
               )}
               {/* Additional content can be placed here */}
               <div className="pl-1 text-sm text-slate-400 mb-3">
@@ -1934,8 +1955,14 @@ const Home = () => {
                 ''
               )}
             </div>
-            <div className={`w-full grid gap-5 justify-center auto-rows-max 
-                    ${(data?.result.length ?? 0) < 4 ? 'grid-cols-autofit sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4':'grid-cols-autofit' }`}>
+            <div
+              className={`w-full grid gap-5 justify-center auto-rows-max 
+                    ${
+                      (data?.result.length ?? 0) < 4
+                        ? 'grid-cols-autofit sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                        : 'grid-cols-autofit'
+                    }`}
+            >
               {(data?.result ?? []).map((item, i) => (
                 <ItemCard key={item.name} item={item} />
               ))}

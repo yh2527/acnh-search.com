@@ -19,6 +19,12 @@ export interface Rugs {
 export interface Kit {
   [key: string]: string;
 }
+export interface Theme {
+  [key: string]: string;
+}
+export interface Style {
+  [key: string]: string;
+}
 
 export const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
 export const categories: Categories = {
@@ -36,6 +42,7 @@ export const categories: Categories = {
   Cooking: '料理',
   Critters: '生物',
   Models: '模型',
+  Equipments: '装备',
 };
 export const sizes = [
   '0.5x0.5',
@@ -232,9 +239,12 @@ export const series_list: Series = {
 };
 export const sources: Sources = {
   divider0: 'divider',
-  "Nook's Cranny": '商店售卖',
   Crafting: 'DIY制作',
   Cooking: '烹饪',
+  "Nook's Cranny": '商店售卖',
+  'Able Sisters': 'Able Sisters服装店',
+  
+  divider6: 'divider',
   'Nook Miles Redemption': '狸数兑换',
   'Nook Shopping Daily Selection': '狸端机每日购物',
   'Nook Shopping Promotion': '狸端机购物促销',
@@ -253,18 +263,20 @@ export const sources: Sources = {
   'May Day Tour': '劳动节游览',
 
   divider2: 'divider',
-  Celeste: '傅珂',
   Gullivarrr: '海盗',
   Gulliver: '吕游',
   'C.J.': '俞司廷',
   Flick: '龙克斯',
-
-  "Redd's Raffle": '狐利抽奖',
-  "Redd's Co-op Raffle": '狐利摊位抽奖',
+  Wardell: '纳提',
+  
+  divider7: 'divider',
   Saharah: '骆岚',
   "Saharah's Co-op": '骆岚摊位',
+  Kicks:'薛革', 
+  "Kicks' Co-op":'薛革摊位',
+  "Redd's Raffle": '狐利抽奖',
+  "Redd's Co-op Raffle": '狐利摊位抽奖',
   "Katrina's Cleansing Service": '星薇净化服务',
-  Wardell: '纳提',
 
   divider3: 'divider',
   Blathers: '傅达',
@@ -353,6 +365,30 @@ export const rugs: Rugs = {
   'Wood Rugs': '木质地毯',
 };
 
+const clothingThemes : Theme = {
+  'comfy': '舒适',
+  'everyday': '日常',
+  'fairy tale': '童话故事',
+  'formal': '正式',
+  'goth': '哥特风',
+  'outdoorsy': '户外风',
+  'party': '派对',
+  'sporty': '运动',
+  'theatrical': '戏剧性',
+  'vacation': '度假',
+  'work': '工作'
+};
+
+const clothingStyles : Style= {
+  'Active': '活跃',
+  'Cool': '酷感',
+  'Cute': '可爱',
+  'Elegant': '优雅',
+  'Gorgeous': '华丽',
+  'Simple': '简单'
+};
+
+
 export const kit: Kit = {
   'Rainbow feather': 'https://acnhcdn.com/latest/MenuIcon/FeatherRainbow.png',
   Normal: 'https://acnhcdn.com/latest/MenuIcon/RemakeKit.png',
@@ -416,7 +452,7 @@ export const translation: Record<string, string> = {
   'Rainbow feather': '彩虹羽毛',
   '30 turnips': '30颗大头菜',
   '10 turnips': '10颗大头菜',
-  'Niko': '尼可',
+  Niko: '尼可',
   //categories
   'All Categories': '全部',
   Housewares: '家具',
@@ -432,6 +468,7 @@ export const translation: Record<string, string> = {
   Cooking: '料理',
   Critters: '生物',
   Models: '模型',
+  Equipments: '装备',
   //interactions
   Bed: '床',
   Chair: '座椅',
@@ -482,7 +519,8 @@ export const translation: Record<string, string> = {
   'Events & Franchise': '活动/特许',
   'Door Decor': '门饰',
   //sources
-  "Nook's Cranny": '商店售卖',
+  "Nook's Cranny": 'Nook商店售卖',
+  'Able Sisters': 'Able Sisters售卖',
   Crafting: 'DIY制作',
   'Nook Miles Redemption': '狸数兑换',
   'Nook Shopping Daily Selection': '狸端机每日购物',
@@ -506,6 +544,8 @@ export const translation: Record<string, string> = {
   "Redd's Co-op Raffle": '狐利摊位抽奖',
   Saharah: '骆岚',
   "Saharah's Co-op": '骆岚摊位',
+  Kicks:'薛革', 
+  "Kicks' Co-op":'薛革摊位',
   "Katrina's Cleansing Service": '星薇净化服务',
   Wardell: '纳提',
   Blathers: '傅达',
@@ -534,6 +574,7 @@ export const translation: Record<string, string> = {
   Insects: '虫',
   'Sea Creatures': '海洋生物',
   //seasonals
+  Celeste: '傅珂',
   Constellation: '星座/星星',
   'Fishing Tourney': '钓鱼大会',
   'Bug-Off': '捕虫大会',
@@ -722,4 +763,27 @@ export const translation: Record<string, string> = {
   'Slender Pattern Rugs': '细长图案地毯',
   'Slender Rugs': '细长地毯',
   'Wood Rugs': '木质地毯',
+  //Clothing
+  'Themes':'主题',
+  'Styles':'风格',
+  'Villager Equippable':'小动物是否可以穿戴',
+  //Themes
+  'comfy': '舒适',
+  'everyday': '日常',
+  'fairy tale': '童话故事',
+  'formal': '正式',
+  'goth': '哥特风',
+  'outdoorsy': '户外风',
+  'party': '派对',
+  'sporty': '运动',
+  'theatrical': '戏剧性',
+  'vacation': '度假',
+  'work': '工作',
+  //Styles
+  'Active': '活跃',
+  'Cool': '酷感',
+  'Cute': '可爱',
+  'Elegant': '优雅',
+  'Gorgeous': '华丽',
+  'Simple': '简单',
 };

@@ -61,10 +61,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
         criteria['$and'] = [{'$or': color_criteria}]
     # source
     if source:
-        if source == "Celeste":
-            criteria['recipe.source'] = "Celeste"
-        else:
-            criteria['source'] = source 
+        criteria['source'] = source 
     # seasonal
     if season:
         if season == "Constellation":
@@ -171,7 +168,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
                 "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
                 "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1,
-                "concepts":1, "lightingType":1, "speakerType":1,"_id": 0
+                "concepts":1, "lightingType":1,"villagerEquippable":1,
+                "speakerType":1,"storageImage":1,"themes":1,"styles":1,"_id": 0
             }
     if tag:
         criteria['tag'] = {'$in':tag_matches[tag]}
@@ -217,23 +215,49 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     # result transformation #
     for item in result:
         item["name"] = item["name"].capitalize()
-        item["image"] = item.get("image") or item.get("furnitureImage") or item.get("variations")[0]["image"]
+        print('name', item["name"])
+        
+        item_image = None
+        if item.get("image"):
+            item_image = item["image"]
+        elif item.get("furnitureImage"):
+            item_image = item["furnitureImage"]
+        elif item.get("storageImage"):
+            item_image = item["storageImage"]
+        elif item.get("variations") and isinstance(item.get("variations"), list) and len(item.get("variations")) > 0:
+            variations = item.get("variations")
+            if variations[0].get("image"):
+                item_image = variations[0]["image"]
+            elif variations[0].get("storageImage"):
+                item_image = variations[0]["storageImage"]
+        item["image"] = item_image
+        
         item["colors"] = list(set(filter(lambda x: x is not None, item.get("colors", []))))
+        
+        if "themes" in item:
+            item["themes"] = list(set(filter(lambda x: x is not None, item.get("themes", []))))
+        if "styles" in item:
+            item["styles"] = list(set(filter(lambda x: x is not None, item.get("styles", []))))
+
         if "height" in item:
             item["height"] = round(item["height"],1)
+        
         if "variations" in item:
             item["variations_info"] = {}
             for v in item["variations"]:
                 if v["variation"] not in item["variations_info"]:
                     item["variations_info"][v["variation"]] = {}
+                if item["category"] == "Equipments":
+                    v_image = v["storageImage"]
+                else:
+                    v_image = v["image"]
                 item["variations_info"][v["variation"]][v.get("pattern")]={
-                        'image':v["image"],
-                        'colors':v.get("colors",None),
+                        'image':v_image,
+                        'colors':list(set(filter(lambda x: x is not None, v.get("colors", [])))),
                         'variantTranslations': v.get("variantTranslations", None),
                         'patternTranslations': v.get("patternTranslations", None)
                         }
         if item.get("recipe",None) or item.get("category", None) == "Interior Structures":
-            print('name', item["name"])
             if item["category"] == "Interior Structures":
                 item_materials = db["Recipes"].find_one(filter={'name':{'$regex': item['name'], '$options': 'i'}},projection=
                                                         {'materials':1,'source':1,"_id":0})
@@ -259,7 +283,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 else:
                     more_icons = collection.find_one(filter={'name':find_material},projection=
                                                      {'image':1,'iconImage':1,'variations':1,'translations':1,"_id":0})
-                    print("debug", item["name"])
                     if more_icons:
                         if "variations" in more_icons:
                             icon = more_icons['variations'][0]['image']
@@ -267,9 +290,6 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                             icon = more_icons.get('image',more_icons.get('iconImage',None))
                         item["diy_info"]['materials'][m].update({'inventoryImage':icon,
                                                     'translations':more_icons.get('translations',None)})
-            print('diy_info', item["diy_info"])
-
-
     #print("first result ",result[0])
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
