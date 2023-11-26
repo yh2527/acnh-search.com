@@ -1,33 +1,5 @@
-export interface Categories {
-  [key: string]: string;
-}
-export interface Sources {
-  [key: string]: string;
-}
-export interface Seasonals {
-  [key: string]: string;
-}
-export interface Series {
-  [key: string]: string;
-}
-export interface Concepts {
-  [key: string]: string;
-}
-export interface Rugs {
-  [key: string]: string;
-}
-export interface Kit {
-  [key: string]: string;
-}
-export interface Theme {
-  [key: string]: string;
-}
-export interface Style {
-  [key: string]: string;
-}
-
 export const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
-export const categories: Categories = {
+export const categories: Record<string, string> = {
   'All Categories': '全部',
   Housewares: '家具',
   Miscellaneous: '小物件',
@@ -42,7 +14,7 @@ export const categories: Categories = {
   Cooking: '料理',
   Critters: '生物',
   Models: '模型',
-  Equipments: '装备',
+  Equipments: '着装',
 };
 export const sizes = [
   '0.5x0.5',
@@ -63,7 +35,7 @@ export const sizes = [
   '4x4',
   '5x5',
 ];
-export const interactTypes = {
+export const interactTypes: Record<string, string> = {
   Bed: '床',
   Chair: '座椅',
   Kitchenware: '烹饪',
@@ -79,7 +51,7 @@ export const interactTypes = {
   Other: '其他',
 };
 
-export const colors_object = {
+export const colors_object: Record<string, string> = {
   Aqua: '蓝绿色',
   Beige: '米色',
   Black: '黑色',
@@ -129,7 +101,7 @@ export const tags = {
   ],
   'Door Decor': ['House Door Decor'],
 };
-export const concepts: Concepts = {
+export const concepts: Record<string, string> = {
   divider0: 'divider',
   European: '欧式',
   ancient: '古代风',
@@ -180,7 +152,7 @@ export const concepts: Concepts = {
   supermarket: '超市',
   workshop: '车间',
 };
-export const series_list: Series = {
+export const series_list: Record<string, string> = {
   divider0: 'divider',
   Cinnamoroll: 'Cinnamoroll',
   'Hello Kitty': 'Hello Kitty',
@@ -237,13 +209,13 @@ export const series_list: Series = {
   sloppy: '邋遢',
   stars: '星星',
 };
-export const sources: Sources = {
+export const sources: Record<string, string> = {
   divider0: 'divider',
   Crafting: 'DIY制作',
   Cooking: '烹饪',
   "Nook's Cranny": '商店售卖',
   'Able Sisters': 'Able Sisters服装店',
-  
+
   divider6: 'divider',
   'Nook Miles Redemption': '狸数兑换',
   'Nook Shopping Daily Selection': '狸端机每日购物',
@@ -268,12 +240,12 @@ export const sources: Sources = {
   'C.J.': '俞司廷',
   Flick: '龙克斯',
   Wardell: '纳提',
-  
+
   divider7: 'divider',
   Saharah: '骆岚',
   "Saharah's Co-op": '骆岚摊位',
-  Kicks:'薛革', 
-  "Kicks' Co-op":'薛革摊位',
+  Kicks: '薛革',
+  "Kicks' Co-op": '薛革摊位',
   "Redd's Raffle": '狐利抽奖',
   "Redd's Co-op Raffle": '狐利摊位抽奖',
   "Katrina's Cleansing Service": '星薇净化服务',
@@ -307,7 +279,7 @@ export const sources: Sources = {
   'Donating all art': '捐赠所有艺术品',
 };
 
-export const seasonals: Seasonals = {
+export const seasonals: Record<string, string> = {
   divider0: 'divider',
   Constellation: '星座/星星',
   'Fishing Tourney': '钓鱼大会',
@@ -333,7 +305,8 @@ export const seasonals: Seasonals = {
   'Toy Day': '圣诞节',
   // add moss?vine?
 };
-export const lightings = {
+export const lightings: Record<string, string> = {
+  divider0: 'divider',
   Candle: '照明：蜡烛',
   Emission: '照明：发光',
   Fluorescent: '照明：荧光灯',
@@ -341,14 +314,16 @@ export const lightings = {
   Shade: '照明：灯罩',
   Spotlight: '照明：聚光灯',
 };
-export const album_players = {
+export const album_players: Record<string, string> = {
+  divider0: 'divider',
   Cheap: '便宜',
   'Hi-fi': '高保真',
   'Music Box': '音乐盒',
   Phono: '留声机',
   Retro: '复古',
 };
-export const rugs: Rugs = {
+export const rugs: Record<string, string> = {
+  divider0: 'divider',
   'Fruit Rugs': '水果地毯',
   'Heart Rugs': '心形地毯',
   'Icon Rugs': '图标地毯',
@@ -365,31 +340,46 @@ export const rugs: Rugs = {
   'Wood Rugs': '木质地毯',
 };
 
-const clothingThemes : Theme = {
-  'comfy': '舒适',
-  'everyday': '日常',
+export const clothingThemes: Record<string, string> = {
+  divider0: 'divider',
+  comfy: '舒适',
+  everyday: '日常',
   'fairy tale': '童话故事',
-  'formal': '正式',
-  'goth': '哥特风',
-  'outdoorsy': '户外风',
-  'party': '派对',
-  'sporty': '运动',
-  'theatrical': '戏剧性',
-  'vacation': '度假',
-  'work': '工作'
+  formal: '正式',
+  goth: '哥特风',
+  outdoorsy: '户外风',
+  party: '派对',
+  sporty: '运动',
+  theatrical: '戏剧性',
+  vacation: '度假',
+  work: '工作',
 };
 
-const clothingStyles : Style= {
-  'Active': '活跃',
-  'Cool': '酷感',
-  'Cute': '可爱',
-  'Elegant': '优雅',
-  'Gorgeous': '华丽',
-  'Simple': '简单'
+export const clothingStyles: Record<string, string> = {
+  divider0: 'divider',
+  Active: '活跃',
+  Cool: '酷感',
+  Cute: '可爱',
+  Elegant: '优雅',
+  Gorgeous: '华丽',
+  Simple: '简单',
 };
 
+export const clothingTypes: Record<string, string> = {
+  divider0: 'divider',
+  Tops: '上衣',
+  Bottoms: '下装',
+  'Dress-Up': '正装',
+  Headwear: '头饰',
+  Accessories: '配饰',
+  Socks: '袜子',
+  Shoes: '鞋子',
+  Bags: '包',
+  Umbrellas: '伞',
+  'Clothing Other': '潜水服',
+};
 
-export const kit: Kit = {
+export const kit: Record<string, string> = {
   'Rainbow feather': 'https://acnhcdn.com/latest/MenuIcon/FeatherRainbow.png',
   Normal: 'https://acnhcdn.com/latest/MenuIcon/RemakeKit.png',
   Pumpkin: 'https://acnhcdn.com/latest/MenuIcon/SquashOrange.png',
@@ -425,6 +415,7 @@ export const translation: Record<string, string> = {
   Source: '来源',
   'Recipe source': '配方来源',
   Seasonal: '季节',
+  'Furniture Series': '家具系列',
   Series: '系列',
   Variation: '款式',
   None: '无',
@@ -441,9 +432,10 @@ export const translation: Record<string, string> = {
   'Rug Filter': '地毯种类',
   Rug: '地毯',
   'Other Filters': '其它选项',
+  'Furniture Concept': '家具概念',
   Concept: '概念',
-  True: '有',
-  False: '无',
+  True: '是',
+  False: '否',
   '99,000 Bells': '99,000 铃钱',
   '50,000 Bells': '50,000 铃钱',
   "More details on the item's": '更多信息请访问本物品的',
@@ -468,7 +460,7 @@ export const translation: Record<string, string> = {
   Cooking: '料理',
   Critters: '生物',
   Models: '模型',
-  Equipments: '装备',
+  Equipments: '着装',
   //interactions
   Bed: '床',
   Chair: '座椅',
@@ -544,8 +536,8 @@ export const translation: Record<string, string> = {
   "Redd's Co-op Raffle": '狐利摊位抽奖',
   Saharah: '骆岚',
   "Saharah's Co-op": '骆岚摊位',
-  Kicks:'薛革', 
-  "Kicks' Co-op":'薛革摊位',
+  Kicks: '薛革',
+  "Kicks' Co-op": '薛革摊位',
   "Katrina's Cleansing Service": '星薇净化服务',
   Wardell: '纳提',
   Blathers: '傅达',
@@ -764,26 +756,45 @@ export const translation: Record<string, string> = {
   'Slender Rugs': '细长地毯',
   'Wood Rugs': '木质地毯',
   //Clothing
-  'Themes':'主题',
-  'Styles':'风格',
-  'Villager Equippable':'小动物是否可以穿戴',
+  'Equipment Filters': '着装选项',
+  'Clothing Theme': '着装主题',
+  'Clothing Style': '着装风格',
+  'Clothing Type': '着装种类',
+  'Clothing Themes': '着装主题',
+  'Clothing Styles': '着装风格',
+  'Clothing Types': '着装种类',
+  Themes: '主题',
+  Theme: '主题',
+  Styles: '风格',
+  Style: '风格',
+  'Villager Equippable': '小动物是否可以穿戴',
   //Themes
-  'comfy': '舒适',
-  'everyday': '日常',
+  comfy: '舒适',
+  everyday: '日常',
   'fairy tale': '童话故事',
-  'formal': '正式',
-  'goth': '哥特风',
-  'outdoorsy': '户外风',
-  'party': '派对',
-  'sporty': '运动',
-  'theatrical': '戏剧性',
-  'vacation': '度假',
-  'work': '工作',
+  formal: '正式',
+  goth: '哥特风',
+  outdoorsy: '户外风',
+  sporty: '运动',
+  theatrical: '戏剧性',
+  vacation: '度假',
+  work: '工作',
   //Styles
-  'Active': '活跃',
-  'Cool': '酷感',
-  'Cute': '可爱',
-  'Elegant': '优雅',
-  'Gorgeous': '华丽',
-  'Simple': '简单',
+  Active: '活跃',
+  Cool: '酷感',
+  Cute: '可爱',
+  Elegant: '优雅',
+  Gorgeous: '华丽',
+  Simple: '简单',
+  //Types
+  Accessories: '配饰',
+  Tops: '上衣',
+  Shoes: '鞋子',
+  Bottoms: '下装',
+  Socks: '袜子',
+  Umbrellas: '伞',
+  Bags: '包',
+  'Clothing Other': '潜水服',
+  'Dress-Up': '正装',
+  Headwear: '头饰',
 };

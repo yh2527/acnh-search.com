@@ -25,7 +25,8 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
-         concept: str = '', rug: str = ''):
+         concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '',
+         equippable: str = ''):
     
     offset = (page - 1) * limit
     
@@ -107,9 +108,22 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 criteria['$and'].append({'$and':surface_criteria})
             else:
                 criteria['$and'] = [{'$and': surface_criteria}]
-    # body            
+    # body
     if body:
-        criteria["bodyTitle"] = {'$ne': None} if body == "True" else None
+        if body == "True":
+            #criteria["bodyTitle"] = {'$ne': None} if body == "True" else None
+            body_criteria = [{'bodyTitle':{'$ne':None}},
+                             {'$and':[{'category':'Equipments'},{'variations':{'$ne':None}}]}]
+        else:
+            body_criteria = [{'$and':[{'category':{'$ne':'Equipments'}},{'bodyTitle':None}]},
+                             {'$and':[{'category':'Equipments'},{'variations':None}]}]
+        if '$and' in criteria:
+            criteria['$and'].append({'$or':body_criteria})
+        else:
+            criteria['$and'] = [{'$or': body_criteria}]
+    # equippable            
+    if equippable:
+        criteria["villagerEquippable"] = True if equippable == "True" else False
     # pattern            
     if pattern:
         criteria["patternCustomize"] = True if pattern == "True" else {'$ne': True}
@@ -138,6 +152,19 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     if rug:
         criteria["tag"] = rug
         criteria["category"] = "Rugs"
+    # clothing Theme
+    if theme:
+        criteria["themes"] = theme
+    # clothing Style
+    if style:
+        criteria["styles"] = style
+    # clothing Type
+    if type:
+        type_criteria = {'$and':[{'category':'Equipments'},{'sourceSheet':type}]}
+        if '$and' in criteria:
+            criteria['$and'].append(type_criteria)
+        else:
+            criteria['$and'] = [type_criteria]
     # tag
     tag_matches = {
             'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],
@@ -169,7 +196,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
                 "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
                 "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1,
                 "concepts":1, "lightingType":1,"villagerEquippable":1,
-                "speakerType":1,"storageImage":1,"themes":1,"styles":1,"_id": 0
+                "speakerType":1,"storageImage":1,"themes":1,"styles":1,'sourceSheet':1,"_id": 0
             }
     if tag:
         criteria['tag'] = {'$in':tag_matches[tag]}

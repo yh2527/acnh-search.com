@@ -21,6 +21,9 @@ import {
   lightings,
   album_players,
   rugs,
+  clothingThemes,
+  clothingStyles,
+  clothingTypes,
   kit,
   translation,
 } from '../lists';
@@ -50,6 +53,7 @@ interface Item {
     source: string[];
   } & Record<string, any>;
   category: string;
+  sourceSheet: string;
   url: string;
   sablePattern: boolean;
   customPattern: boolean;
@@ -76,6 +80,9 @@ interface Item {
       }
     >
   >;
+  villagerEquippable: boolean;
+  themes: string[];
+  styles: string[];
 }
 
 interface ApiResponse {
@@ -108,6 +115,7 @@ const Home = () => {
     interactions: '',
     surface: '',
     body: '',
+    equippable: '',
     pattern: '',
     custom: '',
     sable: '',
@@ -118,6 +126,9 @@ const Home = () => {
     speakerType: '',
     rug: '',
     concept: '',
+    clothingType: '',
+    clothingTheme: '',
+    clothingStyle: '',
     // ... any other filters you have
   });
   const router = useRouter();
@@ -136,6 +147,7 @@ const Home = () => {
       interactions: searchParams?.get('interact') ?? '',
       surface: searchParams?.get('surface') ?? '',
       body: searchParams?.get('body') ?? '',
+      equippable: searchParams?.get('equippable') ?? '',
       pattern: searchParams?.get('pattern') ?? '',
       custom: searchParams?.get('custom') ?? '',
       sable: searchParams?.get('sable') ?? '',
@@ -146,6 +158,9 @@ const Home = () => {
       speakerType: searchParams?.get('speakerType') ?? '',
       concept: searchParams?.get('concept') ?? '',
       rug: searchParams?.get('rug') ?? '',
+      clothingType: searchParams?.get('type') ?? '',
+      clothingTheme: searchParams?.get('theme') ?? '',
+      clothingStyle: searchParams?.get('style') ?? '',
       // ... any other filters you have
     });
   }, [searchParams]);
@@ -175,6 +190,7 @@ const Home = () => {
         colors: searchParams.get('colors') ?? '',
         surface: searchParams.get('surface') ?? '',
         body: searchParams.get('body') ?? '',
+        equippable: searchParams?.get('equippable') ?? '',
         pattern: searchParams.get('pattern') ?? '',
         custom: searchParams.get('custom') ?? '',
         sable: searchParams.get('sable') ?? '',
@@ -186,6 +202,9 @@ const Home = () => {
         speakerType: searchParams.get('speakerType') ?? '',
         concept: searchParams.get('concept') ?? '',
         rug: searchParams.get('rug') ?? '',
+        type: searchParams?.get('type') ?? '',
+        theme: searchParams?.get('theme') ?? '',
+        style: searchParams?.get('style') ?? '',
         ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') ?? '' } : {}),
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
         // other stuff
@@ -867,14 +886,72 @@ const Home = () => {
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                     <div>
-                      <strong>{localize('Villager Equippable') + ':'}</strong> {item.villagerEquippable ? localize('True') : localize('False')}{' '}
+                      <strong>{localize('Clothing Type') + ':'}</strong> {localize(item.sourceSheet)}{' '}
                     </div>
-                    {item.themes && <div>
-                      <strong>{localize('Themes') + ':'}</strong> {(item?.themes ?? []).map((s) => UpFirstLetter(localize(s))).join(', ')}{' '}
-                    </div>}
-                    {item.styles && <div>
-                      <strong>{localize('Styles') + ':'}</strong> {(item?.styles ?? []).map((s) => localize(s)).join(', ')}{' '}
-                    </div>}
+                    <div>
+                      <strong>{localize('Villager Equippable') + ':'}</strong>{' '}
+                      {item.villagerEquippable ? localize('True') : localize('False')}{' '}
+                    </div>
+                    {item.themes && (
+                      <div>
+                        <strong>{localize('Clothing Themes') + ':'}</strong>{' '}
+                        {(item.themes?.length ?? 0) > 0 &&
+                          item.themes.map((theme, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && ', '}
+                              <span
+                                className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                                onClick={() => {
+                                  //theme
+                                  setSearchBar(''); // clear out search bar value
+                                  setShowFilters(false);
+                                  const updatedQuery = {
+                                    theme: theme, // only filter on theme
+                                    lan: lan,
+                                    page: 1,
+                                  };
+                                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                  closeModal();
+                                }}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                #{UpFirstLetter(localize(theme))}
+                              </span>
+                            </React.Fragment>
+                          ))}
+                      </div>
+                    )}
+                    {item.styles && (
+                      <div>
+                        <strong>{localize('Clothing Styles') + ':'}</strong>{' '}
+                        {(item.styles?.length ?? 0) > 0 &&
+                          item.styles.map((style, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && ', '}
+                              <span
+                                className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                                onClick={() => {
+                                  //style
+                                  setSearchBar(''); // clear out search bar value
+                                  setShowFilters(false);
+                                  const updatedQuery = {
+                                    style: style, // only filter on style
+                                    lan: lan,
+                                    page: 1,
+                                  };
+                                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                                  closeModal();
+                                }}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                #{UpFirstLetter(localize(style))}
+                              </span>
+                            </React.Fragment>
+                          ))}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -1067,13 +1144,6 @@ const Home = () => {
                 )}
               >
                 {Object.keys(categories).map((s) => {
-                  if (sources[s] === 'divider') {
-                    return (
-                      <option key={s} disabled>
-                        ─────
-                      </option>
-                    );
-                  }
                   return (
                     <option key={s} value={s}>
                       {localize('Category') + ':'} {UpFirstLetter(localize(s))}
@@ -1274,7 +1344,6 @@ const Home = () => {
                       )}
                     >
                       <option value="">{localize('Function/Theme') + ':'}</option>
-                      <option> ─────</option>
                       {Object.keys(tags).map((s) => {
                         return (
                           <option key={s} value={s}>
@@ -1345,7 +1414,6 @@ const Home = () => {
                       )}
                     >
                       <option value="">{localize('Size') + ':'}</option>
-                      <option> ─────</option>
                       {sizes.map((s) => {
                         return (
                           <option key={s} value={s}>
@@ -1417,7 +1485,6 @@ const Home = () => {
                       )}
                     >
                       <option value="">{localize('Interaction Type') + ':'}</option>
-                      <option>─────</option>
                       {Object.keys(interactTypes).map((s) => {
                         return (
                           <option key={s} value={s}>
@@ -1692,7 +1759,7 @@ const Home = () => {
                             searchParams.get('series') && 'text-slate-500 bg-amber-200',
                           )}
                         >
-                          <option value="">{localize('Series') + ':'}</option>
+                          <option value="">{localize('Furniture Series') + ':'}</option>
                           {Object.keys(series_list).map((series) => {
                             if (series_list[series] === 'divider') {
                               return (
@@ -1742,7 +1809,7 @@ const Home = () => {
                             searchParams.get('concept') && 'text-slate-500 bg-amber-200',
                           )}
                         >
-                          <option value="">{localize('Concept') + ':'}</option>
+                          <option value="">{localize('Furniture Concept') + ':'}</option>
                           {Object.keys(concepts).map((s) => {
                             if (concepts[s] === 'divider') {
                               return (
@@ -1777,142 +1844,333 @@ const Home = () => {
                       </div>
                     </div>
                   </div>
-                  <div>
-                    {/* lighting type drop-down */}
-                    <div className="flex flex-wrap">
-                      <div className="relative mr-2 mb-2 ">
-                        <select
-                          value={moreFilters['lightingType']}
-                          onChange={(e) => {
-                            const updatedQuery = {
-                              ...Object.fromEntries(searchParams.entries()), // current query params
-                              lightingType: e.target.value,
-                              page: 1,
-                            };
-                            router.push({ query: updatedQuery }, undefined, { shallow: true });
-                          }}
-                          className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
-                            searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
-                          )}
-                        >
-                          <option value="">{localize('Lighting Type') + ':'}</option>
-                          <option>─────</option>
-                          {Object.keys(lightings).map((l) => (
+                  {/* lighting type drop-down */}
+                  <div className="flex flex-wrap mb-2">
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['lightingType']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            lightingType: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
+                          searchParams.get('lightingType') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Lighting Type') + ':'}</option>
+                        {Object.keys(lightings).map((l) => {
+                          if (lightings[l] === 'divider') {
+                            return (
+                              <option key={l} disabled>
+                                ─────
+                              </option>
+                            );
+                          }
+                          return (
                             <option key={l} value={l}>
                               {localize('Lighting') + ': ' + localize(l)}
                             </option>
-                          ))}
-                        </select>
-                        {searchParams.get('lightingType') && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updatedQuery = {
-                                ...Object.fromEntries(searchParams.entries()),
-                                lightingType: '',
-                                page: 1,
-                              };
-                              router.push({ query: updatedQuery }, undefined, { shallow: true });
-                            }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
-                          >
-                            -
-                          </button>
-                        )}
-                      </div>
-                      {/* speaker type drop-down */}
-                      <div className="relative mr-2 mb-2 ">
-                        <select
-                          value={moreFilters['speakerType']}
-                          onChange={(e) => {
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('lightingType') && (
+                        <button
+                          type="button"
+                          onClick={() => {
                             const updatedQuery = {
-                              ...Object.fromEntries(searchParams.entries()), // current query params
-                              speakerType: e.target.value,
+                              ...Object.fromEntries(searchParams.entries()),
+                              lightingType: '',
                               page: 1,
                             };
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
-                          className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
-                            searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
-                          )}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                         >
-                          <option value="">{localize('Album Player Type') + ':'}</option>
-                          <option>─────</option>
-                          {Object.keys(album_players).map((player) => (
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* speaker type drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['speakerType']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            speakerType: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
+                          searchParams.get('speakerType') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Album Player Type') + ':'}</option>
+                        {Object.keys(album_players).map((player) => {
+                          if (album_players[player] === 'divider') {
+                            return (
+                              <option key={player} disabled>
+                                ─────
+                              </option>
+                            );
+                          }
+                          return (
                             <option key={player} value={player}>
                               {localize('Album Player') + ': ' + localize(player)}
                             </option>
-                          ))}
-                        </select>
-                        {searchParams.get('speakerType') && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updatedQuery = {
-                                ...Object.fromEntries(searchParams.entries()),
-                                speakerType: '',
-                                page: 1,
-                              };
-                              router.push({ query: updatedQuery }, undefined, { shallow: true });
-                            }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
-                          >
-                            -
-                          </button>
-                        )}
-                      </div>
-                      {/* rugs drop-down */}
-                      <div className="relative mr-2 mb-2 ">
-                        <select
-                          value={moreFilters['rug']}
-                          onChange={(e) => {
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('speakerType') && (
+                        <button
+                          type="button"
+                          onClick={() => {
                             const updatedQuery = {
-                              ...Object.fromEntries(searchParams.entries()), // current query params
-                              rug: e.target.value,
+                              ...Object.fromEntries(searchParams.entries()),
+                              speakerType: '',
                               page: 1,
                             };
                             router.push({ query: updatedQuery }, undefined, { shallow: true });
                           }}
-                          className={classNames(
-                            `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
-                            searchParams.get('rug') && 'text-slate-500 bg-amber-200',
-                          )}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
                         >
-                          <option value="">{localize('Rug Filter') + ':'}</option>
-                          <option>─────</option>
-                          {Object.keys(rugs).map((s) => {
-                            if (rugs[s] === 'divider') {
-                              return (
-                                <option key={s} disabled>
-                                  ─────
-                                </option>
-                              );
-                            }
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* rugs drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['rug']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            rug: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
+                          searchParams.get('rug') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Rug Filter') + ':'}</option>
+                        {Object.keys(rugs).map((s) => {
+                          if (rugs[s] === 'divider') {
                             return (
-                              <option key={s} value={s}>
-                                {localize('Rug') + ':'} {UpFirstLetter(localize(s))}
+                              <option key={s} disabled>
+                                ─────
                               </option>
                             );
-                          })}
-                        </select>
-                        {searchParams.get('rug') && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updatedQuery = {
-                                ...Object.fromEntries(searchParams.entries()),
-                                rug: '',
-                                page: 1,
-                              };
-                              router.push({ query: updatedQuery }, undefined, { shallow: true });
-                            }}
-                            className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
-                          >
-                            -
-                          </button>
+                          }
+                          return (
+                            <option key={s} value={s}>
+                              {localize('Rug') + ':'} {UpFirstLetter(localize(s))}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('rug') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              rug: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {/* Clothing Filters */}
+                  <div className="mb-1 text-base">{localize('Equipment Filters') + ':'}</div> 
+                  {/* Clothing drop-down */}
+                  <div className="flex flex-wrap ">
+                    {/* clothing type drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['clothingType']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            type: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
+                          searchParams.get('type') && 'text-slate-500 bg-amber-200',
                         )}
+                      >
+                        <option value="">{localize('Clothing Type') + ':'}</option>
+                        {Object.keys(clothingTypes).map((l) => {
+                          if (clothingTypes[l] === 'divider') {
+                            return (
+                              <option key={l} disabled>
+                                ─────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={l} value={l}>
+                              {localize(l)}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('type') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              type: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* clothing theme drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['clothingTheme']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            theme: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
+                          searchParams.get('theme') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Clothing Theme') + ':'}</option>
+                        {Object.keys(clothingThemes).map((l) => {
+                          if (clothingThemes[l] === 'divider') {
+                            return (
+                              <option key={l} disabled>
+                                ─────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={l} value={l}>
+                              {localize('Theme') + ': ' + localize(l)}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('theme') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              theme: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* clothing style drop-down */}
+                    <div className="relative mr-2 mb-2 ">
+                      <select
+                        value={moreFilters['clothingStyle']}
+                        onChange={(e) => {
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            style: e.target.value,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={classNames(
+                          `select-custom form-select p-1 pl-8 rounded text-amber-500 border border-amber-500 w-[16rem] bg-white`,
+                          searchParams.get('style') && 'text-slate-500 bg-amber-200',
+                        )}
+                      >
+                        <option value="">{localize('Clothing Style') + ':'}</option>
+                        {Object.keys(clothingStyles).map((l) => {
+                          if (clothingStyles[l] === 'divider') {
+                            return (
+                              <option key={l} disabled>
+                                ─────
+                              </option>
+                            );
+                          }
+                          return (
+                            <option key={l} value={l}>
+                              {localize('Style') + ': ' + localize(l)}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {searchParams.get('style') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedQuery = {
+                              ...Object.fromEntries(searchParams.entries()),
+                              style: '',
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                          }}
+                          className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-amber-100 rounded-full w-6 h-6 flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
+                    {/* villager equippable checkbox */}
+                    <div className="flex pt-1">
+                      <span className="mr-1">{localize('Villager Equippable') + ':'} </span>
+                      <div
+                        onClick={() => {
+                          var equippable = searchParams.get('equippable');
+                          equippable = equippable === 'True' ? 'False' : equippable === 'False' ? '' : 'True';
+                          const updatedQuery = {
+                            ...Object.fromEntries(searchParams.entries()), // current query params
+                            equippable: equippable,
+                            page: 1,
+                          };
+                          router.push({ query: updatedQuery }, undefined, { shallow: true });
+                        }}
+                        className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                      >
+                        {searchParams.get('equippable') === 'True'
+                          ? '✓'
+                          : searchParams.get('equippable') === 'False'
+                          ? '✗'
+                          : ''}
                       </div>
                     </div>
                   </div>
