@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import React from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 
 import {
   heights,
@@ -1997,7 +1998,7 @@ const Home = () => {
                     </div>
                   </div>
                   {/* Clothing Filters */}
-                  <div className="mb-1 text-base">{localize('Equipment Filters') + ':'}</div> 
+                  <div className="mb-1 text-base">{localize('Equipment Filters') + ':'}</div>
                   {/* Clothing drop-down */}
                   <div className="flex flex-wrap ">
                     {/* clothing type drop-down */}

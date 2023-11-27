@@ -20,6 +20,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/macode")
+def another_page(color: str = 'Brown', limit: int = 40):
+    criteria = {"colors":color}
+    bson = db["MACode"].find(filter = criteria)
+    total_count = db["MACode"].count_documents(criteria)
+    result = json.loads(dumps(bson))
+    return {"result":result,
+            "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}
+
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '', height: str = '',
