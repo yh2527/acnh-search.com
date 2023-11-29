@@ -204,7 +204,7 @@ def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, t
     projection = {
                 "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "variations": 1,
                 "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
-                "url": 1, "series": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
+                "url": 1, "series": 1, "patchwork": 1, "surface": 1, 'recipe':1, 'kitCost':1, "patternCustomize":1,
                 "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1,
                 "concepts":1, "lightingType":1,"villagerEquippable":1,
                 "speakerType":1,"storageImage":1,"themes":1,"styles":1,'sourceSheet':1,"_id": 0

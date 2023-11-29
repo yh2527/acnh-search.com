@@ -42,17 +42,6 @@ const Home = () => {
   const localize = (eng: string) => {
     return lan === 'en' ? eng : translation[eng];
   };
-  const item = {
-    _id: {
-      $oid: '65642fbb69288c56062452fe',
-    },
-    url: 'https://i.pinimg.com/564x/3a/34/91/3a3491d4bf01b5b541a7cd3a39fb1333.jpg',
-    macode: 'MA-5046-8029-3752',
-    colors: ['Brown', 'Dark Brown', 'Green'],
-    uses: ['Wood Path', 'Path'],
-    material: ['Wood'],
-    creator: 'Twitter @tmsn_01',
-  };
   return (
     <div className="flex justify-center">
       <div className="max-w-[1440px] w-full mx-auto relative">
