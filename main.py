@@ -22,8 +22,9 @@ app.add_middleware(
 
 
 @app.get("/macode")
-def another_page(color: str = 'Brown', limit: int = 40):
-    criteria = {"colors":color}
+def another_page(color: str = '', limit: int = 40):
+    #criteria = {"colors":color}
+    criteria = {}
     bson = db["MACode"].find(filter = criteria)
     total_count = db["MACode"].count_documents(criteria)
     result = json.loads(dumps(bson))
