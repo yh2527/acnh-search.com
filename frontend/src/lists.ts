@@ -302,7 +302,6 @@ export const seasonals: Record<string, string> = {
   Halloween: '万圣节',
   'Turkey Day': '感恩节',
   'Toy Day': '圣诞节',
-  // add moss?vine?
 };
 export const lightings: Record<string, string> = {
   divider0: 'divider',

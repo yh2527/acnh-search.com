@@ -33,6 +33,8 @@ interface Item {
   name: string;
   patternCustomize: string;
   kitCost: number;
+  kitType: string;
+  cyrusCustomizePrice: number;
   size: string[];
   interact: boolean;
   tag: string;
@@ -63,12 +65,6 @@ interface Item {
     source: string[];
     materials: Record<string, any>;
   };
-  variations: ({
-    variation: string;
-    image: string;
-    kitType: string;
-    concepts: string[];
-  } & Record<string, any>)[];
   variations_info: Record<
     string,
     Record<
@@ -375,16 +371,28 @@ const Home = () => {
   const ItemCard = ({ item }: { item: Item }) => {
     const [hoveredImage, setHoveredImage] = React.useState(item.image);
     const [hoveredColor, setHoveredColor] = React.useState(
-      lan === 'en'
-        ? (item.variations?.[0]?.variation ?? '') +
-            (item.variations?.[0]?.variation && item.variations?.[0]?.pattern ? ': ' : '') +
-            (item.variations?.[0]?.pattern ?? '')
-        : (item.variations?.[0]?.variantTranslations?.cNzh ?? '') +
-            (item.variations?.[0]?.variantTranslations?.cNzh && item.variations?.[0]?.patternTranslations?.cNzh
-              ? ': '
-              : '') +
-            (item.variations?.[0]?.patternTranslations?.cNzh ?? ''),
+      item.variations_info &&
+        (lan === 'en'
+          ? (Object.keys(item.variations_info ?? {})[0] === 'null' ? '' : Object.keys(item.variations_info ?? {})[0]) +
+            (Object.keys(item.variations_info ?? {})[0] === 'null' ||
+            Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
+              ? ''
+              : ': ') +
+            (Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
+              ? ''
+              : Object.keys(Object.values(item.variations_info ?? {})[0])[0])
+          : (Object.keys(item.variations_info ?? {})[0] === 'null'
+              ? ''
+              : Object.values(Object.values(item.variations_info ?? {})[0])[0]?.variantTranslations?.cNzh ?? '') +
+            (Object.keys(item.variations_info ?? {})[0] === 'null' ||
+            Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
+              ? ''
+              : ': ') +
+            (Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
+              ? ''
+              : Object.values(Object.values(item.variations_info ?? {})[0])[0]?.patternTranslations?.cNzh ?? '')),
     );
+
     return (
       <div
         className="px-2 pt-4 flex flex-col items-center overflow-x-hidden bg-slate-50 rounded-lg shadow-md"
@@ -450,10 +458,10 @@ const Home = () => {
     useEffect(() => {
       if (
         item.interact ||
-        (item.surface ?? (item.variations ? item.variations[0].surface : false)) ||
+        (item.surface ?? false) ||
         item.series ||
         findKeyByValue(tags, item.tag) ||
-        (item.concepts?.length ?? item.variations?.[0]?.concepts?.length ?? 0) > 0 ||
+        (item.concepts?.length ?? 0) > 0 ||
         item.lightingType ||
         item.speakerType
       ) {
@@ -462,7 +470,7 @@ const Home = () => {
     }, [
       item.interact,
       item.surface,
-      item.variations,
+      item.variations_info,
       item.series,
       item.tag,
       item.concepts,
@@ -693,7 +701,7 @@ const Home = () => {
                 ''
               )}
               {/* customization info */}
-              {item.variations && item.category !== 'Equipments' ? (
+              {item.variations_info && item.category !== 'Equipments' ? (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                     <strong>{localize('Customization') + ':'} </strong>
@@ -702,13 +710,11 @@ const Home = () => {
                         <>
                           <img
                             className={`object-contain h-6 mx-1 rounded`}
-                            src={kit[item.variations[0].kitType]}
+                            src={kit[item.kitType]}
                             alt="image of customization kit"
                           />
                           {item.kitCost}x{' '}
-                          {item.variations[0].kitType === 'Normal'
-                            ? localize('customization kit')
-                            : localize(item.variations[0].kitType)}
+                          {item.kitType === 'Normal' ? localize('customization kit') : localize(item.kitType)}
                           {Object.keys(item.variations_info).length > 1 &&
                             item.bodyCustomize === null &&
                             ' - ' + localize('patterns only')}
@@ -719,7 +725,7 @@ const Home = () => {
                       <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} alt="image of Cyrus" />
                       {localize('Cyrus') + ':'}{' '}
                       <img className={`object-contain h-6 rounded`} src={kit['Bell']} alt="image of bell bag" />
-                      {item.variations[0].cyrusCustomizePrice} {localize('bells')}
+                      {item.cyrusCustomizePrice} {localize('bells')}
                     </div>
                   </div>
                 </>
@@ -730,18 +736,10 @@ const Home = () => {
               {lastDiv && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
-                    {item.surface ? (
+                    {item.surface && (
                       <div>
                         <strong>{localize('Has surface')}</strong>
                       </div>
-                    ) : (
-                      (item.variations ? item.variations[0].surface : false) && (
-                        <div>
-                          {(item?.surface ?? (item.variations ? item.variations[0].surface : false) === true) && (
-                            <strong>{localize('Has surface')}</strong>
-                          )}
-                        </div>
-                      )
                     )}
                     {item.interact && (
                       <div>
@@ -798,8 +796,7 @@ const Home = () => {
                         </div>
                       </>
                     )}
-                    {(findKeyByValue(tags, item.tag) ||
-                      (item.concepts?.length ?? item.variations?.[0]?.concepts?.length ?? 0) > 0) && (
+                    {(findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) && (
                       <>
                         <div>
                           <strong>{localize('Keyword') + ':'}</strong>{' '}
@@ -823,36 +820,9 @@ const Home = () => {
                               #{localize(findKeyByValue(tags, item.tag) ?? '')}
                             </span>
                           )}
-                          {findKeyByValue(tags, item.tag) &&
-                            (item.concepts?.length ?? item.variations?.[0]?.concepts?.length ?? 0) > 0 &&
-                            ', '}
+                          {findKeyByValue(tags, item.tag) && (item.concepts?.length ?? 0) > 0 && ', '}
                           {(item.concepts?.length ?? 0) > 0 &&
                             item.concepts.map((concept, index) => (
-                              <React.Fragment key={index}>
-                                {index > 0 && ', '}
-                                <span
-                                  className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                                  onClick={() => {
-                                    //concept
-                                    setSearchBar(''); // clear out search bar value
-                                    setShowFilters(false);
-                                    const updatedQuery = {
-                                      concept: concept, // only filter on concept
-                                      lan: lan,
-                                      page: 1,
-                                    };
-                                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                    closeModal();
-                                  }}
-                                  role="button"
-                                  tabIndex={0}
-                                >
-                                  #{UpFirstLetter(localize(concept))}
-                                </span>
-                              </React.Fragment>
-                            ))}
-                          {(item.variations?.[0]?.concepts?.length ?? 0) > 0 &&
-                            item.variations[0].concepts.map((concept, index) => (
                               <React.Fragment key={index}>
                                 {index > 0 && ', '}
                                 <span
