@@ -1,11 +1,12 @@
 #python3 -m speed_test.backend_steps
+### transformation step speed improved from 0.13s - 0.16s range to 0.06 - 0.08s range
 import time
 from backend.mongo_query import mongo_query
 from backend.query_transformation import query_transformation
 
 num_requests = 30
 
-category = "Housewares"
+category = "Miscellaneous"
 search = ""
 limit = 40
 page = 1

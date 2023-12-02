@@ -20,6 +20,7 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
     # result transformation #
     for item in result:
         item["name"] = item["name"].capitalize()
+        ''' ### made permanent change to the image field in db
         item_image = None
         if item.get("image"):
             item_image = item["image"]
@@ -34,7 +35,7 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
             elif variations[0].get("storageImage"):
                 item_image = variations[0]["storageImage"]
         item["image"] = item_image
-
+        '''
         item["colors"] = list(set(filter(lambda x: x is not None, item.get("colors", []))))
 
         if "themes" in item:
@@ -43,7 +44,7 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
             item["styles"] = list(set(filter(lambda x: x is not None, item.get("styles", []))))
         if "height" in item:
             item["height"] = round(item["height"],1)
-
+        ''' ### made permanent addition to the variations_info field in db
         if "variations" in item:
             item["variations_info"] = {}
             for v in item["variations"]:
@@ -59,6 +60,8 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
                         'variantTranslations': v.get("variantTranslations", None),
                         'patternTranslations': v.get("patternTranslations", None)
                         }
+        '''
+        ''' ### made permanent addition to the diy_info field in db
         if item.get("recipe",None) or item.get("category", None) == "Interior Structures":
             if item["category"] == "Interior Structures":
                 item_materials = db["Recipes"].find_one(filter={'name':{'$regex': item['name'], '$options': 'i'}},projection=
@@ -92,6 +95,7 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
                             icon = more_icons.get('image',more_icons.get('iconImage',None))
                         item["diy_info"]['materials'][m].update({'inventoryImage':icon,
                                                     'translations':more_icons.get('translations',None)})
+        '''
     #print("first result ",result[0])
     return {"result":result,
             "page_info":{"total_count":total_count,"max_page":-(total_count//-limit)}}

@@ -21,14 +21,15 @@ for p in has_variations:
     if "variations" in p:
         variations_info = {}
         for v in p["variations"]:
-            variation = 'null' if v["variation"] is None else v["variation"]
+            variation = 'null' if v.get("variation", None) is None else str(v["variation"])
             if variation not in variations_info:
                 variations_info[variation] = {}
             if p["category"] == "Equipments":
                 v_image = v["storageImage"]
             else:
                 v_image = v["image"]
-            variations_info[v["variation"]][v.get("pattern")]={
+            pattern = 'null' if v.get("pattern", None) is None else str(v["pattern"])
+            variations_info[variation][pattern]={
                     'image':v_image,
                     'colors':list(set(filter(lambda x: x is not None, v.get("colors", [])))),
                     'variantTranslations': v.get("variantTranslations", None),
@@ -36,9 +37,6 @@ for p in has_variations:
                     }
         collection.update_one({'_id': p['_id']}, {'$set': {'variations_info': variations_info}})
         count += 1
-print(f"{count} records updated") #1214 records updated
+print(f"{count} records updated") #2246 records updated
 
-
-
-# 2246 - 1214 = 1032 all clothings, not customizable 
 client.close()

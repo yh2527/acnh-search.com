@@ -50,11 +50,9 @@ interface Item {
   colors: string[];
   concepts: string[];
   series: string;
+  seasonEvent: string;
   surface: boolean;
   height: number;
-  recipe: {
-    source: string[];
-  } & Record<string, any>;
   category: string;
   sourceSheet: string;
   url: string;
@@ -463,7 +461,8 @@ const Home = () => {
         findKeyByValue(tags, item.tag) ||
         (item.concepts?.length ?? 0) > 0 ||
         item.lightingType ||
-        item.speakerType
+        item.speakerType ||
+        item.seasonEvent
       ) {
         setLastDiv(true);
       }
@@ -476,6 +475,7 @@ const Home = () => {
       item.concepts,
       item.lightingType,
       item.speakerType,
+      item.seasonEvent,
     ]); // dependencies array
 
     return (
@@ -766,6 +766,14 @@ const Home = () => {
                         <div>
                           <strong>{localize('Album Player Type') + ':'}</strong>{' '}
                           {UpFirstLetter(localize(item.speakerType))}
+                        </div>
+                      </>
+                    )}
+                    {item.seasonEvent && (
+                      <>
+                        <div>
+                          <strong>{localize('Season Event') + ':'}</strong>{' '}
+                          {UpFirstLetter(localize(item.seasonEvent))}
                         </div>
                       </>
                     )}
