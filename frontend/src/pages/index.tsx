@@ -26,6 +26,7 @@ import {
   clothingStyles,
   clothingTypes,
   kit,
+  seasonEvent_value,
   translation,
 } from '../lists';
 
@@ -461,8 +462,7 @@ const Home = () => {
         findKeyByValue(tags, item.tag) ||
         (item.concepts?.length ?? 0) > 0 ||
         item.lightingType ||
-        item.speakerType ||
-        item.seasonEvent
+        item.speakerType
       ) {
         setLastDiv(true);
       }
@@ -475,7 +475,6 @@ const Home = () => {
       item.concepts,
       item.lightingType,
       item.speakerType,
-      item.seasonEvent,
     ]); // dependencies array
 
     return (
@@ -501,7 +500,7 @@ const Home = () => {
               <div className="flex items-center justify-center w-full h-auto mb-3">
                 <img src={hoveredImage} alt={item.name} />
               </div>
-              {(!!item.variations_info || !!item.diy_info) && (
+              {(item.category !== "Critters" && item.category !== "Models") && (
                 <>
                   <div className="text-xs text-left md:text-left pl-1">
                     <div>
@@ -544,7 +543,7 @@ const Home = () => {
               )}
             </div>
             <div className="pr-3 md:pr-10 mt-5">
-              {!item.variations_info && !item.diy_info && (
+              {(item.category === "Critters"|| item.category === "Models") && (
                 <>
                   <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
                     <div>
@@ -582,6 +581,31 @@ const Home = () => {
                 <div>
                   <strong>{localize('Source') + ':'}</strong> {item.source.map((s) => localize(s)).join(', ')}{' '}
                 </div>
+                {(item.buy > 0 || item.exchangeCurrency) && <div className="flex items-center">
+                  <strong>{localize('Price') + ':'}</strong> 
+                  {item.buy > 0 && 
+                  <>
+                  <img className={`object-contain h-6 ml-1 rounded`} src={kit['Bell']} alt="image of Bells Bag" />
+                  {item.buy.toLocaleString()+' '+localize("Bells")} 
+                  </>
+                  }
+                  {item.buy > 0 && item.exchangeCurrency && ','}{' '}
+                  {item.exchangeCurrency && 
+                  <>
+                  <img className={`object-contain h-5 mx-1 rounded`} src={kit[item.exchangeCurrency]} alt="image of Bells Bag" />
+                  {item.exchangePrice.toLocaleString()+ ' ' + localize(item.exchangeCurrency)} 
+                  </>
+                  }
+                </div>}
+                {item.seasonEvent && (
+                  <>
+                    <div>
+                      <strong>{localize('Season Event') + ':'}</strong>{' '}
+                      {console.log("debug season 1", seasonEvent_value[item.seasonEvent])}
+                      {UpFirstLetter(localize(seasonEvent_value[item.seasonEvent]))}
+                    </div>
+                  </>
+                )}
               </div>
               {/* Variation */}
               {
@@ -766,14 +790,6 @@ const Home = () => {
                         <div>
                           <strong>{localize('Album Player Type') + ':'}</strong>{' '}
                           {UpFirstLetter(localize(item.speakerType))}
-                        </div>
-                      </>
-                    )}
-                    {item.seasonEvent && (
-                      <>
-                        <div>
-                          <strong>{localize('Season Event') + ':'}</strong>{' '}
-                          {UpFirstLetter(localize(item.seasonEvent))}
                         </div>
                       </>
                     )}
@@ -968,6 +984,7 @@ const Home = () => {
     setIsModalOpen(false);
   };
   const UpFirstLetter = (word: string) => {
+    console.log("word", word)
     return lan === 'en' ? word.charAt(0).toUpperCase() + word.slice(1) : word;
   };
   const findKeyByValue = (tags: Record<string, string[]>, valueToFind: string) => {

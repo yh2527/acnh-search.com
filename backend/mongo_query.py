@@ -179,8 +179,8 @@ def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int
             }
     ### Fields that will be returned fron the mongoDB querry ###
     projection = {
-                "name": 1, "category": 1, "image": 1, "furnitureImage": 1,
-                "variations_info": 1, "diy_info": 1,"seasonEvent": 1,
+            "name": 1, "category": 1, "image": 1, "furnitureImage": 1,"buy":1,
+            "variations_info": 1, "diy_info": 1,"seasonEvent": 1,"exchangePrice":1, "exchangeCurrency":1,
                 "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
                 "url": 1, "series": 1, "surface": 1, 'kitCost':1, 'kitType':1, "patternCustomize":1,
                 "translations": 1, "bodyCustomize":1, "customPattern":1, "sablePattern":1,
