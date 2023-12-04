@@ -9,12 +9,11 @@ client = MongoClient("mongodb://localhost:27017/")
 db = client["acnh-furnitures"]
 collection = db["Furnitures"]
 
-def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
-         str = '', interact: str = '', colors: str = '', surface: str = '',
-         source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
-         maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
-         concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '',
-         equippable: str = ''):
+def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size: str = '', 
+                interact: str = '', colors: str = '', surface: str = '', excludeClothing: str = '',
+                source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', 
+                minHeight: int = -1, maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '', 
+                concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '', equippable: str = ''):
 
     offset = (page - 1) * limit
 
@@ -153,6 +152,12 @@ def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int
             criteria['$and'].append(type_criteria)
         else:
             criteria['$and'] = [type_criteria]
+    if excludeClothing:
+        excludeClothing_criteria = {'category':{'$ne':'Equipments'}}
+        if '$and' in criteria:
+            criteria['$and'].append(excludeClothing_criteria)
+        else:
+            criteria['$and'] = [excludeClothing_criteria]
     # tag
     tag_matches = {
             'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],
