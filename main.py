@@ -17,13 +17,14 @@ app.add_middleware(
 
 @app.get("/")
 def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
-         str = '', interact: str = '', colors: str = '', surface: str = '',
+         str = '', interact: str = '', colors: str = '', surface: str = '',excludeClothing: str='',
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
          concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '',
          equippable: str = ''):
     
-    bson, total_count = mongo_query(category, search, limit, page, tag, size, interact, colors, surface, source, season, series, lightingType, speakerType, minHeight, maxHeight, body, pattern, custom, sable, concept, rug, theme, style, type, equippable)
+    bson, total_count = mongo_query(category, search, limit, page, tag, size, interact, colors,
+                                    surface, excludeClothing, source, season, series, lightingType, speakerType, minHeight, maxHeight, body, pattern, custom, sable, concept, rug, theme, style, type, equippable)
     
     return  query_transformation(bson, total_count, limit)
 

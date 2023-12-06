@@ -54,11 +54,29 @@ def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int
     if season:
         if season == "Constellation":
             criteria['recipe.source'] = "Celeste"
+        elif season == "Children's Day":
+            criteria['seasonEvent'] = "Children's Day"
+        elif season == "Wedding Season":
+            criteria['seasonEvent'] = "Wedding Season"
+        elif season == "Wedding Season Shopping":
+            criteria['seasonEvent'] = {"$in": ["Wedding Season (Able Sisters)", "Wedding Season (Nook Shopping 1)", "Wedding Season (Nook Shopping 2)"]}
+        elif season == "New Year's Eve":
+            criteria['seasonEvent'] = {"$in": ["New Year's Eve", "New Year's Eve (Russia)",
+                                               "Silvester", "Nochevieja"]}
+        elif season == "Toy Day":
+            season_criteria = [{"seasonEvent":"Festive shopping"},
+                               {"seasonEvent":{'$regex':re.escape(season), '$options': 'ix'}}]
+            if '$and' in criteria:
+                criteria['$and'].append({'$or':season_criteria})
+            else:
+                criteria['$and'] = [{'$or': season_criteria}]
         else:
-            regex_pattern = re.compile(season, re.IGNORECASE)
+            season = re.escape(season)
+            regex_pattern = {'$regex': season, '$options': 'ix'}
+            print("debug season", regex_pattern)
+            print("debug season", re.compile(season, re.IGNORECASE))
             season_criteria = [
                 {'seasonEvent': regex_pattern},
-                {"variations": {"$elemMatch": {'seasonEvent': regex_pattern}}},
                 {"recipe.source": season}
             ]
             if '$and' in criteria:

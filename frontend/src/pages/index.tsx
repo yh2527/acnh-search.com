@@ -37,6 +37,9 @@ interface Item {
   kitType: string;
   cyrusCustomizePrice: number;
   size: string[];
+  buy: number;
+  exchangePrice: number;
+  exchangeCurrency: string;
   interact: boolean;
   tag: string;
   speakerType: string;
@@ -169,6 +172,10 @@ const Home = () => {
     return Object.values(moreFilters).some((value) => value !== '');
   };
   const localize = (eng: string) => {
+    const dateRangePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])$/;
+    if (dateRangePattern.test(eng)) {
+      return eng;
+    }
     return lan === 'en' ? eng : translation[eng];
   };
 
@@ -595,9 +602,7 @@ const Home = () => {
                     {item.exchangeCurrency && (
                       <>
                         <img
-                          className={
-                            (`object-contain mx-1 rounded`, item.exchangeCurrency === 'Bells' ? 'h-6' : 'h-5 mx-2')
-                          }
+                          className={classNames('object-contain mx-1 rounded', item.exchangeCurrency === 'Bells' ? 'h-6' : 'h-5 mx-2')}
                           src={kit[item.exchangeCurrency]}
                           alt="image of Bells Bag"
                         />
@@ -610,8 +615,27 @@ const Home = () => {
                   <>
                     <div>
                       <strong>{localize('Season Event') + ':'}</strong>{' '}
-                      {console.log('debug season 1', seasonEvent_value[item.seasonEvent])}
-                      {UpFirstLetter(localize(seasonEvent_value[item.seasonEvent]))}
+                      <React.Fragment>
+                        <span
+                          className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                          onClick={() => {
+                            //season
+                            setSearchBar(''); // clear out search bar value
+                            setShowFilters(false);
+                            const updatedQuery = {
+                              season: seasonEvent_value[item.seasonEvent], // only filter on season
+                              lan: lan,
+                              page: 1,
+                            };
+                            router.push({ query: updatedQuery }, undefined, { shallow: true });
+                            closeModal();
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          #{UpFirstLetter(localize(seasonEvent_value[item.seasonEvent]))}
+                        </span>
+                      </React.Fragment>
                     </div>
                   </>
                 )}
@@ -1212,17 +1236,38 @@ const Home = () => {
             </div>
             {/* toggle filters */}
             <div className="mt-2">
-              <button
-                className={classNames(
-                  'h-8 md:h-9 flex items-center mb-2 px-2 py-1 border md:border-2 text-amber-500 border-amber-500 rounded lg:hover:bg-amber-200',
-                  showFilters && 'bg-amber-200',
-                )}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
-                <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
-                {localize('More Filters')}
-              </button>
+              <div className="flex">
+                <button
+                  className={classNames(
+                    'h-8 md:h-9 flex items-center mb-2 px-2 py-1 border md:border-2 text-amber-500 border-amber-500 rounded lg:hover:bg-amber-200',
+                    showFilters && 'bg-amber-200',
+                  )}
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  {isAnyFilterActive() && <span className="bg-red-500 w-2 h-2 rounded-full mr-2"></span>}
+                  <span className={classNames(showFilters ? 'triangle-down' : 'triangle-up', 'mr-2')}></span>
+                  {localize('More Filters')}
+                </button>
+                <div className="h-8 md:h-9 px-2 py-1">
+                  <button
+                    onClick={() => {
+                      const updatedQuery = {
+                        textSearch: searchBar,
+                        category: searchParams.get('category'),
+                        excludeClothing: searchParams.get('excludeClothing'),
+                        lan: lan,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={classNames(
+                      'items-center h-7 w-7 text-sm bg-white rounded-full lg:hover:bg-amber-200 text-amber-500',
+                    )}
+                  >
+                    x
+                  </button>
+                </div>
+              </div>
               {showFilters && (
                 <div className="mb-3 px-5 h-72 scrollbar-thin overflow-y-auto overflow-x-hidden bg-amber-200 bg-opacity-60 rounded-lg">
                   {' '}
@@ -1762,7 +1807,8 @@ const Home = () => {
                             }
                             return (
                               <option key={s} value={s}>
-                                {localize('Seasonal') + ':'} {UpFirstLetter(localize(s))}
+                                {localize('Seasonal') + ':'} {UpFirstLetter(localize(s))}{' '}
+                                {seasonals[s] && '(' + localize(seasonals[s]) + ')'}
                               </option>
                             );
                           })}
@@ -2238,7 +2284,7 @@ const Home = () => {
                     {lan === 'en' ? ' Items' : '项'}
                   </>
                 ) : (
-                  'No result ... :('
+                  localize('No result') + ' ... :('
                 )}
               </div>
               {data?.page_info?.total_count ? (
