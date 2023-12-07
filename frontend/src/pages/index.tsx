@@ -611,7 +611,7 @@ const Home = () => {
                     )}
                   </div>
                 )}
-                {item.seasonEvent && (
+                {item.seasonEvent && item.seasonEvent !== 'Super Mario Bros.' && (
                   <>
                     <div>
                       <strong>{localize('Season Event') + ':'}</strong>{' '}

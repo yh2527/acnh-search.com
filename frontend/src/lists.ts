@@ -362,10 +362,10 @@ export const seasonEvent_value: Record<string, string> = {
   'Shamrock Day': 'Shamrock Day',
   'Shamrock Day (Able Sisters)': 'Shamrock Day',
   'Shichi-Go-San': 'Shichi-Go-San',
-  'Shōgatsu (1)': 'Shōgatsu',
-  'Shōgatsu (2)': 'Shōgatsu',
-  'Shōgatsu (3)': 'Shōgatsu',
-  'Shōgatsu (4)': 'Shōgatsu',
+  'Shōgatsu (1)':"New Year's Day",
+  'Shōgatsu (2)':"New Year's Day",
+  'Shōgatsu (3)':"New Year's Day",
+  'Shōgatsu (4)':"New Year's Day",
   Silvester: "New Year's Eve",
   Singmogil: 'Singmogil',
   'Spring shopping': 'Spring shopping',
@@ -435,7 +435,6 @@ export const seasonals: Record<string, string> = {
 
   divider3: 'divider',
   "New Year's Day": '12/22-01/05',
-  Shōgatsu: '12/22-01/05',
   'Nanakusa Gayu': '01/05-01/07',
   'Big Game Celebration': '',
   'Lunar New Year': '',
@@ -557,11 +556,14 @@ export const kit: Record<string, string> = {
   Pumpkin: 'https://acnhcdn.com/latest/MenuIcon/SquashOrange.png',
   Bell: 'https://acnhcdn.com/latest/MenuIcon/MoneyBag010.png',
   Bells: 'https://acnhcdn.com/latest/MenuIcon/MoneyBag010.png',
-  Poki: 'https://dodo.ac/np/images/thumb/f/fb/Poki_NH_Inv_Icon_cropped.png/30px-Poki_NH_Inv_Icon_cropped.png',
+  Poki: 'poki_icon.png',
+  //Poki: 'https://dodo.ac/np/images/thumb/f/fb/Poki_NH_Inv_Icon_cropped.png/30px-Poki_NH_Inv_Icon_cropped.png',
   Cyrus: 'https://acnhcdn.com/latest/NpcIcon/alp.png',
-  'Nook Miles':
-    'https://dodo.ac/np/images/thumb/b/b2/Nook_Miles_NH_Icon_Cropped.png/44px-Nook_Miles_NH_Icon_Cropped.png',
-  'Nook Points': 'https://dodo.ac/np/images/4/4f/Nook_Points_NH_Icon.svg',
+  'Nook Miles':'nook_icon.png',
+  //'Nook Miles':
+  //  'https://dodo.ac/np/images/thumb/b/b2/Nook_Miles_NH_Icon_Cropped.png/44px-Nook_Miles_NH_Icon_Cropped.png',
+  'Nook Points': 'nook_point.svg',
+  //'Nook Points': 'https://dodo.ac/np/images/4/4f/Nook_Points_NH_Icon.svg',
   'Heart Crystals': 'https://acnhcdn.com/latest/MenuIcon/Love.png',
 };
 

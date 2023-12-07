@@ -63,6 +63,13 @@ def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int
         elif season == "New Year's Eve":
             criteria['seasonEvent'] = {"$in": ["New Year's Eve", "New Year's Eve (Russia)",
                                                "Silvester", "Nochevieja"]}
+        elif season == "New Year's Day":
+            season_criteria = [{"seasonEvent":{'$regex':re.escape("Shōgatsu"), '$options': 'ix'}},
+                               {"seasonEvent":{'$regex':re.escape(season), '$options': 'ix'}}]
+            if '$and' in criteria:
+                criteria['$and'].append({'$or':season_criteria})
+            else:
+                criteria['$and'] = [{'$or': season_criteria}]
         elif season == "Toy Day":
             season_criteria = [{"seasonEvent":"Festive shopping"},
                                {"seasonEvent":{'$regex':re.escape(season), '$options': 'ix'}}]
