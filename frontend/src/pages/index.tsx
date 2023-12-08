@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import ReactGA from 'react-ga';
 
 import {
   heights,
@@ -133,6 +134,8 @@ const Home = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
+    ReactGA.initialize('G-F4NL1XYTXD');
+    ReactGA.pageview(window.location.pathname + window.location.search);
     setLan(searchParams?.get('lan') ?? 'en');
     setSearchBar(searchParams?.get('textSearch') ?? '');
     setMinHeight(searchParams?.get('minHeight') ?? '');
@@ -171,6 +174,7 @@ const Home = () => {
     //return !(hasSpecialValues && areOthersEmpty);
     return Object.values(moreFilters).some((value) => value !== '');
   };
+
   const localize = (eng: string) => {
     const dateRangePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])$/;
     if (dateRangePattern.test(eng)) {
@@ -1027,6 +1031,7 @@ const Home = () => {
     }
     return null; // or a default value or an empty string if you prefer
   };
+
 
   return (
     <div className="flex justify-center">

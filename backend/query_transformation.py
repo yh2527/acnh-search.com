@@ -16,10 +16,14 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
     #result["_id"] = str(result["_id"])
     result = json.loads(dumps(bson))
     # result is a list of json/dictionaries
+    
 
     # result transformation #
-    for item in result:
-        item["name"] = item["name"].capitalize()
+    #for item in result:
+    for i in range(len(result)):
+        # keep only entries with not empty values
+        result[i] = {k:v for k, v in result[i].items() if v is not None}
+        result[i]["name"] = result[i]["name"].capitalize()
         ''' ### made permanent change to the image field in db
         item_image = None
         if item.get("image"):
@@ -36,14 +40,14 @@ def query_transformation(bson: dict, total_count: int = 0, limit: int = 40):
                 item_image = variations[0]["storageImage"]
         item["image"] = item_image
         '''
-        item["colors"] = list(set(filter(lambda x: x is not None, item.get("colors", []))))
+        result[i]["colors"] = list(set(filter(lambda x: x is not None, result[i].get("colors", []))))
 
-        if "themes" in item:
-            item["themes"] = list(set(filter(lambda x: x is not None, item.get("themes", []))))
-        if "styles" in item:
-            item["styles"] = list(set(filter(lambda x: x is not None, item.get("styles", []))))
-        if "height" in item:
-            item["height"] = round(item["height"],1)
+        if "themes" in result[i]:
+            result[i]["themes"] = list(set(filter(lambda x: x is not None, result[i].get("themes", []))))
+        if "styles" in result[i]:
+            result[i]["styles"] = list(set(filter(lambda x: x is not None, result[i].get("styles", []))))
+        if "height" in result[i]:
+            result[i]["height"] = round(result[i]["height"],1)
         ''' ### made permanent addition to the variations_info field in db
         if "variations" in item:
             item["variations_info"] = {}

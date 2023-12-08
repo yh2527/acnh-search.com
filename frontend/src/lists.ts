@@ -1,4 +1,3 @@
-
 export const heights = ['Low', 'Medium Low', 'Medium', 'Medium High', 'High', 'Very High', 'No Height'];
 export const categories: Record<string, string> = {
   'All Categories': '全部',
@@ -362,10 +361,10 @@ export const seasonEvent_value: Record<string, string> = {
   'Shamrock Day': 'Shamrock Day',
   'Shamrock Day (Able Sisters)': 'Shamrock Day',
   'Shichi-Go-San': 'Shichi-Go-San',
-  'Shōgatsu (1)':"New Year's Day",
-  'Shōgatsu (2)':"New Year's Day",
-  'Shōgatsu (3)':"New Year's Day",
-  'Shōgatsu (4)':"New Year's Day",
+  'Shōgatsu (1)': "New Year's Day",
+  'Shōgatsu (2)': "New Year's Day",
+  'Shōgatsu (3)': "New Year's Day",
+  'Shōgatsu (4)': "New Year's Day",
   Silvester: "New Year's Eve",
   Singmogil: 'Singmogil',
   'Spring shopping': 'Spring shopping',
@@ -559,7 +558,7 @@ export const kit: Record<string, string> = {
   Poki: 'poki_icon.png',
   //Poki: 'https://dodo.ac/np/images/thumb/f/fb/Poki_NH_Inv_Icon_cropped.png/30px-Poki_NH_Inv_Icon_cropped.png',
   Cyrus: 'https://acnhcdn.com/latest/NpcIcon/alp.png',
-  'Nook Miles':'nook_icon.png',
+  'Nook Miles': 'nook_icon.png',
   //'Nook Miles':
   //  'https://dodo.ac/np/images/thumb/b/b2/Nook_Miles_NH_Icon_Cropped.png/44px-Nook_Miles_NH_Icon_Cropped.png',
   'Nook Points': 'nook_point.svg',

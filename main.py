@@ -1,11 +1,13 @@
 import json
 from bson.json_util import dumps
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.mongo_query import mongo_query
 from backend.query_transformation import query_transformation
+from fastapi.middleware.gzip import GZipMiddleware
 
 app = FastAPI()
+app.add_middleware(GZipMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

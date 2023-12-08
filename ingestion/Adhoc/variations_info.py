@@ -32,9 +32,16 @@ for p in has_variations:
             variations_info[variation][pattern]={
                     'image':v_image,
                     'colors':list(set(filter(lambda x: x is not None, v.get("colors", [])))),
-                    'variantTranslations': v.get("variantTranslations", None),
-                    'patternTranslations': v.get("patternTranslations", None)
+                    'variantTranslations': {'cNzh': v.get("variantTranslations", {}).get("cNzh")} if
+                    "cNzh" in v.get("variantTranslations", {}) else None,
+                    'patternTranslations': {'cNzh': v.get("patternTranslations", {}).get("cNzh")} if
+                    "cNzh" in v.get("patternTranslations", {}) else None,
+                    #'variantTranslations': v.get("variantTranslations", None),
+                    #'patternTranslations': v.get("patternTranslations", None)
                     }
+            variations_info[variation][pattern] = {k: v for k,v in
+                                                   variations_info[variation][pattern].items() if v
+                                                   is not None}
         collection.update_one({'_id': p['_id']}, {'$set': {'variations_info': variations_info}})
         count += 1
 print(f"{count} records updated") #2246 records updated
