@@ -496,7 +496,7 @@ const Home = () => {
         style={{ backdropFilter: 'blur(5px)' }}
       >
         <div
-          className="bg-white rounded-lg w-full sm:w-4/5 md:w-auto pb-2 min-h-[270px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin"
+          className="bg-white rounded-lg w-auto pb-2 min-h-[270px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
@@ -506,7 +506,7 @@ const Home = () => {
             </button>
           </div>
           {/* Image(left) and Description(right) */}
-          <div className="flex items-start">
+          <div className="flex items-start justify-center">
             {/* Image, size, height, colors */}
             <div className="w-[120px] sm:w-[160px] px-1 sm:px-3 md:px-5 mt-3 mb-6">
               <div className="flex items-center justify-center w-full h-auto mb-3">
@@ -514,18 +514,18 @@ const Home = () => {
               </div>
               {item.category !== 'Critters' && item.category !== 'Models' && (
                 <>
-                  <div className="text-xs text-left md:text-left pl-1">
+                  <div className="text-xs text-left pl-1">
                     <div>
                       {item.size ? (
                         <>
-                          <strong>{localize('Size') + ':'}</strong> {item.size}
+                          <span className="sm:font-bold">{localize('Size') + ':'}</span> {item.size}
                         </>
                       ) : null}
                     </div>
                     <div>
                       {item.height ? (
                         <>
-                          <strong>{localize('Height') + ':'}</strong> {item.height}
+                          <span className="sm:font-bold">{localize('Height') + ':'}</span> {item.height}
                         </>
                       ) : null}
                     </div>
@@ -543,7 +543,7 @@ const Home = () => {
                         )
                       ) : item.colors?.length ? (
                         <>
-                          <strong className="">{localize('Color') + ': '}</strong>
+                          <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
                           {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
                         </>
                       ) : (
@@ -599,18 +599,28 @@ const Home = () => {
                     {item.buy > 0 && (
                       <>
                         <img className={`object-contain h-6 ml-1 rounded`} src={kit['Bell']} alt="image of Bells Bag" />
-                        {item.buy.toLocaleString() + ' ' + localize('Bells')}
+                        {item.buy.toLocaleString()}
+                        <span className="hidden sm:block sm:ml-1">{localize('Bells')}</span>
                       </>
                     )}
-                    {item.buy > 0 && item.exchangeCurrency && ','}{' '}
                     {item.exchangeCurrency && (
                       <>
                         <img
-                          className={classNames('object-contain mx-1 rounded', item.exchangeCurrency === 'Bells' ? 'h-6' : 'h-5 mx-2')}
+                          className={classNames(
+                            'object-contain mx-1 rounded',
+                            item.exchangeCurrency === 'Bells' ? 'h-6' : 'h-5 mr-1',
+                            item.buy > 0 && 'ml-3',
+                          )}
                           src={kit[item.exchangeCurrency]}
                           alt="image of Bells Bag"
                         />
-                        {item.exchangePrice.toLocaleString() + ' ' + localize(item.exchangeCurrency)}
+                        {item.exchangePrice.toLocaleString()}
+                        {item.exchangeCurrency === 'Heart Crystals' && '* '}
+                        {item.exchangeCurrency !== 'Heart Crystals' && ' '}
+                        {item.exchangeCurrency !== 'Poki' && localize(item.exchangeCurrency)}
+                        <span className="hidden sm:block sm:ml-1">
+                          {item.exchangeCurrency === 'Poki' && localize(item.exchangeCurrency)}
+                        </span>
                       </>
                     )}
                   </div>
@@ -990,7 +1000,7 @@ const Home = () => {
                 ''
               )}
               {/* Additional content can be placed here */}
-              <div className="pl-1 text-sm text-slate-400 mb-3">
+              <div className="pl-1 text-xs text-slate-400 mb-3">
                 {item.url ? (
                   <>
                     <span>{'* ' + localize("More details on the item's")}</span>{' '}
@@ -1031,7 +1041,6 @@ const Home = () => {
     }
     return null; // or a default value or an empty string if you prefer
   };
-
 
   return (
     <div className="flex justify-center">
@@ -1278,7 +1287,7 @@ const Home = () => {
                   {' '}
                   {/* tag start */}
                   <div className="mt-3 mb-4">
-                    <div className="text-sm md:text-base grid grid-cols-checkboxfit justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
+                    <div className="text-sm md:text-base grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-checkboxfit justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
                       {/* surface checkbox */}
                       <div className="flex mb-1">
                         <span className="mr-1">{localize('Has surface') + ':'} </span>
@@ -1606,7 +1615,7 @@ const Home = () => {
                   {/*** Height Selections ***/}
                   <div className="mb-1 text-base">{localize('Height') + ':'}</div>
                   <div className="mb-1 lg:mb-4 flex">
-                    <div className="flex items-center justify-center">
+                    <div className="mb-1 flex items-center justify-center">
                       <button
                         onClick={() => {
                           const updatedQuery = {
@@ -1690,7 +1699,7 @@ const Home = () => {
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
                       }}
                       className={classNames(
-                        'h-7 px-1 mx-2 rounded text-sm bg-amber-50 text-slate-500 border border-amber-300',
+                        'h-7 px-1 ml-1 sm:ml-2 rounded text-sm bg-amber-50 text-slate-500 border border-amber-300',
                       )}
                     >
                       {localize('Submit')}
@@ -2282,8 +2291,8 @@ const Home = () => {
                   '...'
                 ) : data?.page_info?.total_count ? (
                   <>
-                    {40 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
-                    {Math.min(40 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
+                    {60 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
+                    {Math.min(60 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
                     {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
                     {data.page_info.total_count}
                     {lan === 'en' ? ' Items' : '项'}

@@ -18,7 +18,7 @@ app.add_middleware(
 
 
 @app.get("/")
-def root(category: str = "", search: str = "", limit: int = 40, page: int = 1, tag: str = '', size:
+def root(category: str = "", search: str = "", limit: int = 60, page: int = 1, tag: str = '', size:
          str = '', interact: str = '', colors: str = '', surface: str = '',excludeClothing: str='',
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
