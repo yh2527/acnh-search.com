@@ -533,7 +533,7 @@ const Home = () => {
                       {item.variations_info ? (
                         Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
                           <>
-                            <strong className="">{localize('Color') + ': '}</strong>
+                            <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
                             {(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])
                               .map((color) => localize(color))
                               .join(', ')}
