@@ -530,7 +530,9 @@ const Home = () => {
                       ) : null}
                     </div>
                     <div className="">
-                      {item.variations_info ? (
+                      {item.category === 'Fencing' ? (
+                        ''
+                      ) : item.variations_info ? (
                         Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
                           <>
                             <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
