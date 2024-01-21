@@ -1,4 +1,4 @@
-![ACNH Search Image](title-image.png)
+<img src="title-image.png" alt="ACNH Search Image" width="450"/>
 
 # [acnh-search.com](https://acnh-search.com/)
 
