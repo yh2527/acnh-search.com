@@ -6,7 +6,7 @@ The ACNH Search Site is designed to assist Animal Crossing: New Horizons players
 
 
 
-### Additional Figures in the Future
+### Additional Features in the Future
  - Add filters for wallpapers and floors that have moving visual effects.
 
 ### Credit/Thanks
