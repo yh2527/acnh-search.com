@@ -10,5 +10,5 @@ The ACNH Search Site is designed to assist Animal Crossing: New Horizons players
  - Add filters for wallpapers and floors that have moving visual effects.
 
 ### Credit/Thanks
-Game data JSON conversion by [Norviah](https://github.com/Norviah). See their repository: [animal-crossing](https://github.com/Norviah/animal-crossing).
+ - Game data JSON conversion by [Norviah](https://github.com/Norviah). See their repository: [animal-crossing](https://github.com/Norviah/animal-crossing).
 
