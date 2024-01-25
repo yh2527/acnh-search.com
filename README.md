@@ -16,4 +16,4 @@ The ACNH Search Site is designed to assist Animal Crossing: New Horizons players
 
 ---
 ## Thank you for reading my repo! 
-<img src="acnh.JPG" alt="ACNH Game Image" width="450"/>
+<img src="acnh.JPG" alt="ACNH Game Image" width="675"/>
