@@ -10,6 +10,7 @@ Effortlessly browse an extensive array of items by specifying your preferences i
 
 Discover the ideal pieces to bring your island vision to life with ease, functionality, and a touch of creativity!
 
+---
 
 ### Additional Features in the Future
  - Add filters for wallpapers and floors that have moving visual effects.
