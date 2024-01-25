@@ -4,8 +4,11 @@
 
 # [acnh-search.com](https://acnh-search.com/)
 
-The ACNH Search Site is designed to assist Animal Crossing: New Horizons players in their quest for the perfect furniture selections. Whether you're in the process of designing or decorating your island, my site offers a comprehensive range of dropdown and button selections. These tools enable you to filter items in numerous ways, ensuring you find exactly what you need for your unique island vision. Discover the ideal pieces to bring your island vision to life with ease and creativity.
+The ACNH Search Site is specifically designed to help 'Animal Crossing: New Horizons' players find the perfect furniture selections for their islands. Whether you're in the midst of designing or decorating, our site offers a comprehensive range of dropdowns and buttons for easy navigation.
 
+Effortlessly browse an extensive array of items by specifying your preferences in categories, colors, sizes, styles, and more. Searching for something specific? Our detailed search options let you find items based on unique features, such as lighting or speaker types, and allow you to exclude items or adjust for height or theme. This ensures a tailored search experience, helping you find exactly what you need to fulfill your unique island vision.
+
+Discover the ideal pieces to bring your island vision to life with ease, functionality, and a touch of creativity!
 
 
 ### Additional Features in the Future
