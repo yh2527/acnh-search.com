@@ -12,5 +12,5 @@ The ACNH Search Site is designed to assist Animal Crossing: New Horizons players
 ### Credit/Thanks
  - Game data JSON conversion by [Norviah](https://github.com/Norviah). See their repository: [animal-crossing](https://github.com/Norviah/animal-crossing).
 
-## THank you! 
+# Thank you! 
 <img src="acnh.JPG" alt="ACNH Game Image" width="450"/>
