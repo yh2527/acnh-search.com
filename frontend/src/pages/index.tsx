@@ -1577,7 +1577,7 @@ const Home = () => {
                       onChange={(e) => {
                         const updatedQuery = {
                           ...Object.fromEntries(searchParams.entries()), // current query params
-                          interact: e.target.value,
+                          interact: e.target.value === 'Other' ? 'True' : e.target.value,
                           page: 1,
                         };
                         router.push({ query: updatedQuery }, undefined, { shallow: true });
