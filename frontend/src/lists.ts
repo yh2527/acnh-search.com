@@ -87,6 +87,7 @@ export const tags = {
   'Recreation & Play': ['Animal', 'Playground', 'Special Fish', 'Special Insect', 'Sports', 'Toy'],
   'Outdoor & Natural': ['Garden', 'Ranch'],
   'Cultural & Decor': ['Folk Craft Decor', 'Japanese Style'],
+  Clock: ['Clock'],
   'Events & Franchise': [
     'Cinnamoroll',
     'Compass',
@@ -94,10 +95,20 @@ export const tags = {
     'Hello Kitty',
     'Kerokerokeroppi',
     'Kiki & Lala',
+    'LEGO',
+    'LEGO Floors',
+    'LEGO Walls',
     'Mario',
     'My Melody',
     'Pompompurin',
+    'RugLEGO',
     'Seasonal Decor',
+    'Splatoon',
+    'Splatoon Floors',
+    'Splatoon Walls',
+    'Zelda',
+    'Zelda Floors',
+    'Zelda Walls',
   ],
   'Door Decor': ['House Door Decor'],
 };
@@ -564,6 +575,8 @@ export const kit: Record<string, string> = {
   'Nook Points': 'nook_point.svg',
   //'Nook Points': 'https://dodo.ac/np/images/4/4f/Nook_Points_NH_Icon.svg',
   'Heart Crystals': 'https://acnhcdn.com/latest/MenuIcon/Love.png',
+  'Hotel Tickets':
+    'https://dodo.ac/np/images/thumb/c/c5/Hotel_Tickets_NH_Inv_Icon.png/36px-Hotel_Tickets_NH_Inv_Icon.png',
 };
 
 export const translation: Record<string, string> = {
@@ -609,6 +622,7 @@ export const translation: Record<string, string> = {
   Bells: '铃钱',
   Poki: 'Poki',
   'Heart Crystals': '爱的结晶',
+  'Hotel Tickets': '酒店券',
   'DIY Materials': 'DIY材料',
   'Lighting Type': '照明种类',
   Lighting: '照明',
@@ -631,6 +645,7 @@ export const translation: Record<string, string> = {
   '10 turnips': '10颗大头菜',
   Niko: '尼可',
   'Exclude clothing': '排除所有着装',
+  'v3.0.0 items only': '仅v3.0.0新品',
   'Nook Miles': '狸数',
   'Nook Points': '狸端机入口站点数',
   //categories
@@ -703,6 +718,7 @@ export const translation: Record<string, string> = {
   'Recreation & Play': '娱乐/玩耍',
   'Outdoor & Natural': '户外/自然',
   'Cultural & Decor': '文化/装饰',
+  Clock: '时钟',
   'Events & Franchise': '活动/特许',
   'Door Decor': '门饰',
   //sources

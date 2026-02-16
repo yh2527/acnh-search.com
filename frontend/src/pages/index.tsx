@@ -190,6 +190,7 @@ const Home = () => {
         lan: searchParams.get('lan') ?? 'en',
         category: searchParams.get('category') ?? '',
         excludeClothing: searchParams.get('excludeClothing') ?? '',
+        v3Only: searchParams.get('v3Only') ?? '',
         search: searchParams.get('textSearch') ?? '',
         page: searchParams.get('page') ?? '1',
         size: searchParams.get('size') ?? '',
@@ -217,8 +218,8 @@ const Home = () => {
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
         // other stuff
       });
-      const apiUrl = `http://localhost:8000?${newParams}`;
-      //const apiUrl = `/api?${newParams}`;
+      //const apiUrl = `http://localhost:8000?${newParams}`;
+      const apiUrl = `/api?${newParams}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       return json;
@@ -1169,23 +1170,43 @@ const Home = () => {
                   {localize(category)}
                 </button>
               ))}
-              {/* exclude clothing checkbox */}
-              <div className="flex my-2 ml-2 text-sm">
-                <span className="mr-1">{'*' + localize('Exclude clothing') + ':'} </span>
-                <div
-                  onClick={() => {
-                    var excludeClothing = searchParams.get('excludeClothing');
-                    excludeClothing = excludeClothing === 'True' ? '' : 'True';
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      excludeClothing: excludeClothing,
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={`mr-3 md:mr-7 p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                >
-                  {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
+              {/* exclude clothing & v3.0.0 checkboxes */}
+              <div className="flex items-center my-2 ml-2 text-sm gap-5">
+                <div className="flex items-center">
+                  <span className="mr-1">{'*' + localize('Exclude clothing') + ':'} </span>
+                  <div
+                    onClick={() => {
+                      var excludeClothing = searchParams.get('excludeClothing');
+                      excludeClothing = excludeClothing === 'True' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()),
+                        excludeClothing: excludeClothing,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <span className="mr-1">{'*' + localize('v3.0.0 items only') + ':'} </span>
+                  <div
+                    onClick={() => {
+                      var v3Only = searchParams.get('v3Only');
+                      v3Only = v3Only === 'True' ? '' : 'True';
+                      const updatedQuery = {
+                        ...Object.fromEntries(searchParams.entries()),
+                        v3Only: v3Only,
+                        page: 1,
+                      };
+                      router.push({ query: updatedQuery }, undefined, { shallow: true });
+                    }}
+                    className={`p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                  >
+                    {searchParams.get('v3Only') === 'True' ? '✗' : ''}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1250,6 +1271,25 @@ const Home = () => {
                 {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
               </div>
             </div>
+            {/* v3.0.0 only checkbox for smaller screens */}
+            <div className="flex mb-3 text-sm md:hidden">
+              <span className="mr-1">{'*' + localize('v3.0.0 items only') + ':'} </span>
+              <div
+                onClick={() => {
+                  var v3Only = searchParams.get('v3Only');
+                  v3Only = v3Only === 'True' ? '' : 'True';
+                  const updatedQuery = {
+                    ...Object.fromEntries(searchParams.entries()),
+                    v3Only: v3Only,
+                    page: 1,
+                  };
+                  router.push({ query: updatedQuery }, undefined, { shallow: true });
+                }}
+                className={`mr-3 md:mr-7 p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+              >
+                {searchParams.get('v3Only') === 'True' ? '✗' : ''}
+              </div>
+            </div>
             {/* toggle filters */}
             <div className="mt-2">
               <div className="flex">
@@ -1271,6 +1311,7 @@ const Home = () => {
                         textSearch: searchBar,
                         category: searchParams.get('category'),
                         excludeClothing: searchParams.get('excludeClothing'),
+                        v3Only: searchParams.get('v3Only'),
                         lan: lan,
                         page: 1,
                       };

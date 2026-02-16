@@ -13,7 +13,7 @@ def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int
                 interact: str = '', colors: str = '', surface: str = '', excludeClothing: str = '',
                 source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', 
                 minHeight: int = -1, maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '', 
-                concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '', equippable: str = ''):
+                concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '', equippable: str = '', v3Only: str = ''):
 
     offset = (page - 1) * limit
 
@@ -183,6 +183,12 @@ def mongo_query(category: str = "", search: str = "", limit: int = 40, page: int
             criteria['$and'].append(excludeClothing_criteria)
         else:
             criteria['$and'] = [excludeClothing_criteria]
+    if v3Only:
+        v3_criteria = {'versionAdded': '3.0.0'}
+        if '$and' in criteria:
+            criteria['$and'].append(v3_criteria)
+        else:
+            criteria['$and'] = [v3_criteria]
     # tag
     tag_matches = {
             'Appliances':['Air Conditioning','Fan','Fireplace','Heating','Home Appliances','TV'],

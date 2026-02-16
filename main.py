@@ -23,10 +23,10 @@ def root(category: str = "", search: str = "", limit: int = 60, page: int = 1, t
          source: str = '', season: str = '', series: str = '', lightingType: str = '', speakerType: str = '', minHeight: int = -1,
          maxHeight: int =-1, body: str = '', pattern: str = '', custom: str = '', sable: str = '',
          concept: str = '', rug: str = '', theme: str = '', style: str = '', type: str = '',
-         equippable: str = ''):
+         equippable: str = '', v3Only: str = ''):
     
     bson, total_count = mongo_query(category, search, limit, page, tag, size, interact, colors,
-                                    surface, excludeClothing, source, season, series, lightingType, speakerType, minHeight, maxHeight, body, pattern, custom, sable, concept, rug, theme, style, type, equippable)
+                                    surface, excludeClothing, source, season, series, lightingType, speakerType, minHeight, maxHeight, body, pattern, custom, sable, concept, rug, theme, style, type, equippable, v3Only)
     
     return  query_transformation(bson, total_count, limit)
 
