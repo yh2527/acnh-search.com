@@ -93,10 +93,726 @@ interface ApiResponse {
   };
 }
 
+interface ItemCardProps {
+  item: Item;
+  lan: string;
+  hasVariations: (item: Item) => boolean;
+  isVariationCollected: (item: Item, vKey: string, pKey: string) => boolean;
+  isCollected: (item: Item) => boolean;
+  toggleInventory: (item: Item, varKey?: string, patKey?: string) => void;
+  openModal: (params: { item: Item }) => void;
+}
+
 interface ModalProps {
   item: Item;
   onClose: () => void;
+  lan: string;
+  localize: (eng: string) => string;
+  UpFirstLetter: (word: string) => string;
+  findKeyByValue: (tags: Record<string, string[]>, valueToFind: string) => string | null;
+  isCollected: (item: Item) => boolean;
+  isPartiallyCollected: (item: Item) => boolean;
+  isVariationCollected: (item: Item, vKey: string, pKey: string) => boolean;
+  hasVariations: (item: Item) => boolean;
+  toggleInventory: (item: Item, varKey?: string, patKey?: string) => void;
+  toggleAllVariations: (item: Item) => void;
+  collectedVariationCount: (item: Item) => number;
+  totalVariationCount: (item: Item) => number;
+  onFilterNavigate: (query: Record<string, any>) => void;
 }
+
+const ItemCard = ({ item, lan, hasVariations, isVariationCollected, isCollected, toggleInventory, openModal }: ItemCardProps) => {
+  const defaultVKey = item.variations_info ? Object.keys(item.variations_info)[0] : '';
+  const defaultPKey = item.variations_info ? Object.keys(Object.values(item.variations_info)[0])[0] : '';
+  const defaultColorLabel = item.variations_info
+    ? (lan === 'en'
+        ? (defaultVKey === 'null' ? '' : defaultVKey) +
+          (defaultVKey === 'null' || defaultPKey === 'null' ? '' : ': ') +
+          (defaultPKey === 'null' ? '' : defaultPKey)
+        : (Object.values(Object.values(item.variations_info)[0])[0]?.variantTranslations?.cNzh ?? '') +
+          (Object.values(Object.values(item.variations_info)[0])[0]?.variantTranslations?.cNzh &&
+           Object.values(Object.values(item.variations_info)[0])[0]?.patternTranslations?.cNzh ? ': ' : '') +
+          (Object.values(Object.values(item.variations_info)[0])[0]?.patternTranslations?.cNzh ?? ''))
+    : '';
+
+  // "Selected" = last clicked thumbnail (persistent)
+  const [selectedImage, setSelectedImage] = React.useState(item.image);
+  const [selectedVKey, setSelectedVKey] = React.useState(defaultVKey);
+  const [selectedPKey, setSelectedPKey] = React.useState(defaultPKey);
+  const [selectedColor, setSelectedColor] = React.useState(defaultColorLabel);
+
+  // "Display" = what's currently shown (hover overrides, reverts to selected on mouse leave)
+  const [displayImage, setDisplayImage] = React.useState(item.image);
+  const [displayVKey, setDisplayVKey] = React.useState(defaultVKey);
+  const [displayPKey, setDisplayPKey] = React.useState(defaultPKey);
+  const [displayColor, setDisplayColor] = React.useState(defaultColorLabel);
+
+  const getColorLabel = (vKey: string, pKey: string, pValue: any) =>
+    lan === 'en'
+      ? (vKey === 'null' ? '' : vKey) +
+          (vKey === 'null' || pKey === 'null' ? '' : ': ') +
+          (pKey === 'null' ? '' : pKey)
+      : (pValue.variantTranslations?.cNzh ?? '') +
+          (pValue.variantTranslations?.cNzh && pValue.patternTranslations?.cNzh ? ': ' : '') +
+          (pValue.patternTranslations?.cNzh ?? '');
+
+  const currentVarCollected = hasVariations(item) && displayVKey && displayPKey
+    ? isVariationCollected(item, displayVKey, displayPKey)
+    : isCollected(item);
+  return (
+    <div
+      className={classNames(
+        'relative px-2 pt-4 flex flex-col items-center overflow-x-hidden rounded-lg',
+        isCollected(item) ? 'bg-amber-200 border-2 border-amber-400' : 'bg-slate-50 border-2 border-transparent shadow-md',
+      )}
+      onClick={() => openModal({ item })}
+    >
+      <div
+        className={classNames(
+          'absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer text-sm',
+          currentVarCollected
+            ? 'bg-green-500 text-white'
+            : 'bg-white border border-slate-200 text-slate-200 hover:border-green-300 hover:text-green-300',
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (hasVariations(item) && displayVKey && displayPKey) {
+            toggleInventory(item, displayVKey, displayPKey);
+          } else {
+            toggleInventory(item);
+          }
+        }}
+        title={currentVarCollected ? 'Remove from catalog' : 'Add to catalog'}
+      >
+        {currentVarCollected ? '✓' : ''}
+      </div>
+      <h3 className="text-center text-lg font-semibold h-auto md:h-10">
+        {lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
+      </h3>
+      <div className="flex items-center justify-center w-50 h-40">
+        <img
+          className="w-auto h-auto max-w-full h-auto"
+          src={displayImage}
+          alt={lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
+        />
+      </div>
+      <div
+        className="flex flex-row overflow-x-auto items-center h-auto scrollbar-thin mx-4"
+        onMouseLeave={() => {
+          setDisplayImage(selectedImage);
+          setDisplayVKey(selectedVKey);
+          setDisplayPKey(selectedPKey);
+          setDisplayColor(selectedColor);
+        }}
+      >
+        {item.variations_info &&
+          Object.entries(item.variations_info).map(([vKey, vValue], index) =>
+            Object.entries(vValue).map(([pKey, pValue], i) => (
+              <div
+                key={`${index}-${i}`}
+                className="relative flex-shrink-0 cursor-pointer"
+                onMouseEnter={() => {
+                  const label = getColorLabel(vKey, pKey, pValue);
+                  setDisplayImage(pValue.image);
+                  setDisplayVKey(vKey);
+                  setDisplayPKey(pKey);
+                  setDisplayColor(label);
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const label = getColorLabel(vKey, pKey, pValue);
+                  setSelectedImage(pValue.image);
+                  setSelectedVKey(vKey);
+                  setSelectedPKey(pKey);
+                  setSelectedColor(label);
+                  setDisplayImage(pValue.image);
+                  setDisplayVKey(vKey);
+                  setDisplayPKey(pKey);
+                  setDisplayColor(label);
+                }}
+              >
+                <img
+                  className={classNames(
+                    'object-contain w-9 h-9 rounded',
+                    selectedVKey === vKey && selectedPKey === pKey
+                      ? isVariationCollected(item, vKey, pKey) ? 'bg-amber-300' : 'bg-slate-200'
+                      : isVariationCollected(item, vKey, pKey)
+                      ? 'bg-amber-200'
+                      : '',
+                  )}
+                  src={pValue.image}
+                  alt={`${item.name} variation ${index} pattern ${i}`}
+                />
+              </div>
+            )),
+          )}
+      </div>
+      <h3 className="text-sm font-semibold mb-4 pt-2 h-5">{displayColor}</h3>
+    </div>
+  );
+};
+
+const Modal: React.FC<ModalProps> = ({ item, onClose, lan, localize, UpFirstLetter, findKeyByValue, isCollected, isPartiallyCollected, isVariationCollected, hasVariations, toggleInventory, toggleAllVariations, collectedVariationCount, totalVariationCount, onFilterNavigate }) => {
+  const [hoveredImage, setHoveredImage] = React.useState(item.image);
+  let defaultVariation = '';
+  let defaultPattern = '';
+  let defaultVarTranslation = '';
+  let defaultPaTranslation = '';
+  if (item.variations_info) {
+    defaultVariation = Object.keys(item.variations_info)[0];
+    defaultPattern = Object.keys(Object.values(item.variations_info)[0])[0];
+    defaultVarTranslation = Object.values(Object.values(item.variations_info)[0])[0].variantTranslations?.cNzh;
+    defaultPaTranslation = Object.values(Object.values(item.variations_info)[0])[0].patternTranslations?.cNzh;
+  }
+  const [hoveredVariation, setHoveredVariation] = React.useState(defaultVariation);
+  const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
+  const [hoveredVarTranslation, setHoveredVarTranslation] = React.useState(defaultVarTranslation);
+  const [hoveredPaTranslation, setHoveredPaTranslation] = React.useState(defaultPaTranslation);
+  const [lastDiv, setLastDiv] = useState(false);
+  useEffect(() => {
+    if (
+      item.interact ||
+      (item.surface ?? false) ||
+      item.series ||
+      findKeyByValue(tags, item.tag) ||
+      (item.concepts?.length ?? 0) > 0 ||
+      item.lightingType ||
+      item.speakerType
+    ) {
+      setLastDiv(true);
+    }
+  }, [
+    item.interact,
+    item.surface,
+    item.variations_info,
+    item.series,
+    item.tag,
+    item.concepts,
+    item.lightingType,
+    item.speakerType,
+  ]);
+
+  return (
+    <div
+      className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50"
+      onClick={onClose}
+      style={{ backdropFilter: 'blur(5px)' }}
+    >
+      <div
+        className={classNames(
+          'rounded-lg w-auto pb-2 min-h-[270px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin',
+          isCollected(item) ? 'bg-white border-2 border-amber-400' : 'bg-white',
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
+          {hasVariations(item) ? (
+            <div
+              className={classNames(
+                'absolute left-3 top-1/2 transform -translate-y-1/2 rounded-full flex items-center justify-center cursor-pointer text-xs font-bold',
+                isCollected(item)
+                  ? 'bg-green-500 text-white px-2 py-1'
+                  : isPartiallyCollected(item)
+                  ? 'bg-amber-500 text-white px-2 py-1'
+                  : 'w-7 h-7 bg-white border-2 border-slate-400 text-slate-400 hover:border-green-500 hover:text-green-500',
+              )}
+              onClick={() => toggleAllVariations(item)}
+              title={isCollected(item) ? 'Uncollect all variations' : 'Collect all variations'}
+            >
+              {isCollected(item) ? '✓ All' : isPartiallyCollected(item) ? `${collectedVariationCount(item)}/${totalVariationCount(item)}` : ''}
+            </div>
+          ) : (
+            <div
+              className={classNames(
+                'absolute left-3 top-1/2 transform -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer text-sm',
+                isCollected(item)
+                  ? 'bg-green-500 text-white'
+                  : 'bg-white border-2 border-slate-400 text-slate-400 hover:border-green-500 hover:text-green-500',
+              )}
+              onClick={() => toggleInventory(item)}
+              title={isCollected(item) ? 'Remove from catalog' : 'Add to catalog'}
+            >
+              {isCollected(item) ? '✓' : ''}
+            </div>
+          )}
+          <div className="text-xl text-center px-10">{lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}</div>
+          <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
+            &times;
+          </button>
+        </div>
+        {/* Image(left) and Description(right) */}
+        <div className="flex items-start justify-center">
+          {/* Image, size, height, colors */}
+          <div className="w-[120px] sm:w-[160px] px-1 sm:px-3 md:px-5 mt-3 mb-6">
+            <div className="flex items-center justify-center w-full h-auto mb-3">
+              <img src={hoveredImage} alt={item.name} />
+            </div>
+            {item.category !== 'Critters' && item.category !== 'Models' && (
+              <>
+                <div className="text-xs text-left pl-1">
+                  <div>
+                    {item.size ? (
+                      <>
+                        <span className="sm:font-bold">{localize('Size') + ':'}</span> {item.size}
+                      </>
+                    ) : null}
+                  </div>
+                  <div>
+                    {item.height ? (
+                      <>
+                        <span className="sm:font-bold">{localize('Height') + ':'}</span> {item.height}
+                      </>
+                    ) : null}
+                  </div>
+                  <div className="">
+                    {item.category === 'Fencing' ? (
+                      ''
+                    ) : item.variations_info ? (
+                      Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
+                        <>
+                          <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
+                          {(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])
+                            .map((color) => localize(color))
+                            .join(', ')}
+                        </>
+                      ) : (
+                        ''
+                      )
+                    ) : item.colors?.length ? (
+                      <>
+                        <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
+                        {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
+                      </>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="pr-3 md:pr-10 mt-5">
+            {(item.category === 'Critters' || item.category === 'Models') && (
+              <>
+                <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+                  <div>
+                    {item.size ? (
+                      <>
+                        <strong>{localize('Size') + ':'}</strong> {item.size}
+                      </>
+                    ) : null}
+                  </div>
+                  <div>
+                    {item.height ? (
+                      <>
+                        <strong>{localize('Height') + ':'}</strong> {item.height}
+                      </>
+                    ) : null}
+                  </div>
+                  <div>
+                    {item.colors?.length ? (
+                      <>
+                        <strong className="">{localize('Color') + ': '}</strong>
+                        {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
+                      </>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+            {/* category and source */}
+            <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+              <div>
+                <strong>{localize('Category') + ':'}</strong> {localize(item.category)}{' '}
+              </div>
+              <div>
+                <strong>{localize('Source') + ':'}</strong> {item.source.map((s) => localize(s)).join(', ')}{' '}
+              </div>
+              {(item.buy > 0 || item.exchangeCurrency) && (
+                <div className="flex items-center">
+                  <strong>{localize('Price') + ':'}</strong>
+                  {item.buy > 0 && (
+                    <>
+                      <img className={`object-contain h-6 ml-1 rounded`} src={kit['Bell']} alt="image of Bells Bag" />
+                      {item.buy.toLocaleString()}
+                      <span className="hidden sm:block sm:ml-1">{localize('Bells')}</span>
+                    </>
+                  )}
+                  {item.exchangeCurrency && (
+                    <>
+                      <img
+                        className={classNames(
+                          'object-contain mx-1 rounded',
+                          item.exchangeCurrency === 'Bells' ? 'h-6' : 'h-5 mr-1',
+                          item.buy > 0 && 'ml-3',
+                        )}
+                        src={kit[item.exchangeCurrency]}
+                        alt="image of Bells Bag"
+                      />
+                      {item.exchangePrice.toLocaleString()}
+                      {item.exchangeCurrency === 'Heart Crystals' && '* '}
+                      {item.exchangeCurrency !== 'Heart Crystals' && ' '}
+                      {item.exchangeCurrency !== 'Poki' && localize(item.exchangeCurrency)}
+                      <span className="hidden sm:block sm:ml-1">
+                        {item.exchangeCurrency === 'Poki' && localize(item.exchangeCurrency)}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+              {item.seasonEvent && item.seasonEvent !== 'Super Mario Bros.' && (
+                <>
+                  <div>
+                    <strong>{localize('Season Event') + ':'}</strong>{' '}
+                    <React.Fragment>
+                      <span
+                        className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                        onClick={() => onFilterNavigate({ season: seasonEvent_value[item.seasonEvent], lan, page: 1 })}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        #{UpFirstLetter(localize(seasonEvent_value[item.seasonEvent]))}
+                      </span>
+                    </React.Fragment>
+                  </div>
+                </>
+              )}
+            </div>
+            {/* Variation */}
+            {
+              !!item.variations_info ? (
+                <div
+                  className={`rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col
+                  ${Object.keys(item.variations_info).length === 8 ? '' : ''}`}
+                >
+                  <div>
+                    <strong>{localize('Variation') + ':'}</strong>{' '}
+                    {hoveredVariation === 'null'
+                      ? localize('None')
+                      : lan === 'en'
+                      ? hoveredVariation
+                      : hoveredVarTranslation}{' '}
+                  </div>
+                  <div className={`flex flex-row items-center overflow-x-auto scrollbar-thin`}>
+                    {Object.entries(item.variations_info).map(([key, value], index) => {
+                      const hasPatterns = Object.keys(value).length > 1;
+                      const varCollected = hasPatterns
+                        ? Object.keys(value).some(pKey => isVariationCollected(item, key, pKey))
+                        : isVariationCollected(item, key, Object.keys(value)[0]);
+                      const allPatternsCollected = hasPatterns
+                        && Object.keys(value).every(pKey => isVariationCollected(item, key, pKey));
+                      return (
+                        <img
+                          key={index}
+                          className={classNames(
+                            'object-contain h-14 mx-0.5 rounded',
+                            hasPatterns ? '' : 'cursor-pointer',
+                            hoveredVariation === key
+                              ? varCollected ? 'bg-amber-300' : 'bg-slate-200'
+                              : varCollected ? 'bg-amber-200' : '',
+                            allPatternsCollected ? 'border border-amber-400' : '',
+                          )}
+                          src={Object.values(value)[0].image}
+                          alt={`${item.name} variation ${index}`}
+                          onMouseEnter={() => {
+                            setHoveredImage(
+                              hoveredPattern ? value[hoveredPattern]?.image : Object.values(value)[0].image,
+                            );
+                            setHoveredVariation(key);
+                            setHoveredVarTranslation(Object.values(value)[0].variantTranslations?.cNzh);
+                          }}
+                          onClick={hasPatterns ? undefined : () => toggleInventory(item, key, Object.keys(value)[0])}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-grow"></div>
+              )
+            }
+            {/* Pattern */}
+            {
+              !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
+                <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3 flex flex-col">
+                  <div>
+                    <strong>{localize('Pattern') + ':'}</strong>{' '}
+                    {hoveredPattern === 'null'
+                      ? localize('None')
+                      : lan === 'en'
+                      ? hoveredPattern
+                      : hoveredPaTranslation}{' '}
+                  </div>
+                  <div className="flex flex-row items-center overflow-x-auto scrollbar-thin">
+                    {Object.entries(item.variations_info[hoveredVariation]).map(([key, value], index) => {
+                      const patCollected = isVariationCollected(item, hoveredVariation, key);
+                      return (
+                        <img
+                          key={index}
+                          className={classNames(
+                            'object-contain h-14 mx-1 rounded cursor-pointer',
+                            hoveredPattern === key
+                              ? patCollected ? 'bg-amber-300' : 'bg-slate-200'
+                              : patCollected ? 'bg-amber-200' : '',
+                          )}
+                          src={value.image}
+                          alt={`${item.name} pattern ${index}`}
+                          onMouseEnter={() => {
+                            setHoveredImage(value.image);
+                            setHoveredPattern(key);
+                            setHoveredPaTranslation(value.patternTranslations?.cNzh);
+                          }}
+                          onClick={() => toggleInventory(item, hoveredVariation, key)}
+                        />
+                      );
+                    })}
+                  </div>
+                  {item.sablePattern || item.customPattern ? (
+                    <span className="ml-1 mt-1 flex text-sm md:text-base">
+                      {item.sablePattern && <span>✓{localize('Sable patterns')}</span>}
+                      {item.sablePattern && item.customPattern && <span className="ml-5"></span>}
+                      {item.customPattern && <span>✓{localize('Custom patterns')}</span>}
+                    </span>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="flex-grow"></div>
+              )
+            }
+            {/* diy info */}
+            {Object.keys(item?.diy_info ?? {})?.length ? (
+              <>
+                <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-1 shadow-sm mb-3">
+                  <div>
+                    <strong>{localize('DIY Materials') + ': '}</strong>
+                    <span className="text-sm md:text-base">
+                      {'(' +
+                        localize('Recipe source') +
+                        ' - ' +
+                        item.diy_info.source.map((s) => localize(s)).join(', ') +
+                        ')'}
+                    </span>
+                    {Object.entries(item.diy_info.materials).map(([key, value]) => (
+                      <div className="flex items-center" key={key}>
+                        <img
+                          className={`object-contain h-6 mx-1 rounded`}
+                          src={value.inventoryImage}
+                          alt="image of materials"
+                        />
+                        {lan === 'en'
+                          ? value.amount + 'x ' + key
+                          : key === '99,000 Bells'
+                          ? value.amount + 'x ' + localize(key)
+                          : key === '50,000 Bells' || key.includes('turnips')
+                          ? localize(key)
+                          : value.amount + 'x ' + value.translations.cNzh}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              ''
+            )}
+            {/* customization info */}
+            {item.variations_info && item.category !== 'Equipments' ? (
+              <>
+                <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+                  <strong>{localize('Customization') + ':'} </strong>
+                  <div className="flex items-center">
+                    {item.kitCost && (
+                      <>
+                        <img
+                          className={`object-contain h-6 mx-1 rounded`}
+                          src={kit[item.kitType]}
+                          alt="image of customization kit"
+                        />
+                        {item.kitCost}x{' '}
+                        {item.kitType === 'Normal' ? localize('customization kit') : localize(item.kitType)}
+                        {Object.keys(item.variations_info).length > 1 &&
+                          item.bodyCustomize === null &&
+                          ' - ' + localize('patterns only')}
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} alt="image of Cyrus" />
+                    {localize('Cyrus') + ':'}{' '}
+                    <img className={`object-contain h-6 rounded`} src={kit['Bell']} alt="image of bell bag" />
+                    {item.cyrusCustomizePrice} {localize('bells')}
+                  </div>
+                </div>
+              </>
+            ) : (
+              ''
+            )}
+            {/* interaction, surface, series */}
+            {lastDiv && (
+              <>
+                <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
+                  {item.surface && (
+                    <div>
+                      <strong>{localize('Has surface')}</strong>
+                    </div>
+                  )}
+                  {item.interact && (
+                    <div>
+                      <strong>{localize('Interaction Type') + ':'}</strong>{' '}
+                      {localize(
+                        item.interact === true
+                          ? 'Other'
+                          : typeof item.interact === 'string'
+                          ? item.interact
+                          : 'False',
+                      )}{' '}
+                    </div>
+                  )}
+                  {item.lightingType && (
+                    <>
+                      <div>
+                        <strong>{localize('Lighting Type') + ':'}</strong>{' '}
+                        {UpFirstLetter(localize(item.lightingType))}
+                      </div>
+                    </>
+                  )}
+                  {item.speakerType && (
+                    <>
+                      <div>
+                        <strong>{localize('Album Player Type') + ':'}</strong>{' '}
+                        {UpFirstLetter(localize(item.speakerType))}
+                      </div>
+                    </>
+                  )}
+                  {item.series && (
+                    <>
+                      <div>
+                        <strong>{localize('Series') + ':'}</strong>{' '}
+                        {
+                          <span
+                            className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                            onClick={() => onFilterNavigate({ series: item.series, lan, page: 1 })}
+                            role="button"
+                            tabIndex={0}
+                          >
+                            #{UpFirstLetter(localize(item.series))}
+                          </span>
+                        }
+                      </div>
+                    </>
+                  )}
+                  {(findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) && (
+                    <>
+                      <div>
+                        <strong>{localize('Keyword') + ':'}</strong>{' '}
+                        {findKeyByValue(tags, item.tag) && (
+                          <span
+                            className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                            onClick={() => onFilterNavigate({ tag: findKeyByValue(tags, item.tag), lan, page: 1 })}
+                            role="button"
+                            tabIndex={0}
+                          >
+                            #{localize(findKeyByValue(tags, item.tag) ?? '')}
+                          </span>
+                        )}
+                        {findKeyByValue(tags, item.tag) && (item.concepts?.length ?? 0) > 0 && ', '}
+                        {(item.concepts?.length ?? 0) > 0 &&
+                          item.concepts.map((concept, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && ', '}
+                              <span
+                                className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                                onClick={() => onFilterNavigate({ concept, lan, page: 1 })}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                #{UpFirstLetter(localize(concept))}
+                              </span>
+                            </React.Fragment>
+                          ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+            {/* equipment info */}
+            {item.category === 'Equipments' ? (
+              <>
+                <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
+                  <div>
+                    <strong>{localize('Clothing Type') + ':'}</strong> {localize(item.sourceSheet)}{' '}
+                  </div>
+                  <div>
+                    <strong>{localize('Villager Equippable') + ':'}</strong>{' '}
+                    {item.villagerEquippable ? localize('True') : localize('False')}{' '}
+                  </div>
+                  {item.themes && (
+                    <div>
+                      <strong>{localize('Clothing Themes') + ':'}</strong>{' '}
+                      {(item.themes?.length ?? 0) > 0 &&
+                        item.themes.map((theme, index) => (
+                          <React.Fragment key={index}>
+                            {index > 0 && ', '}
+                            <span
+                              className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                              onClick={() => onFilterNavigate({ theme, lan, page: 1 })}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              #{UpFirstLetter(localize(theme))}
+                            </span>
+                          </React.Fragment>
+                        ))}
+                    </div>
+                  )}
+                  {item.styles && (
+                    <div>
+                      <strong>{localize('Clothing Styles') + ':'}</strong>{' '}
+                      {(item.styles?.length ?? 0) > 0 &&
+                        item.styles.map((style, index) => (
+                          <React.Fragment key={index}>
+                            {index > 0 && ', '}
+                            <span
+                              className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
+                              onClick={() => onFilterNavigate({ style, lan, page: 1 })}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              #{UpFirstLetter(localize(style))}
+                            </span>
+                          </React.Fragment>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              ''
+            )}
+            {/* Additional content can be placed here */}
+            <div className="pl-1 text-xs text-slate-400 mb-3">
+              {item.url ? (
+                <>
+                  <span>{'* ' + localize("More details on the item's")}</span>{' '}
+                  <a
+                    className="text-amber-400 hover:text-amber-500"
+                    href={item.url.replace('?', '%3F')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {localize('Nookipedia Page')}
+                  </a>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Home = () => {
   const [lan, setLan] = useState('en');
@@ -131,6 +847,97 @@ const Home = () => {
     clothingStyle: '',
     // ... any other filters you have
   });
+  const [inventory, setInventory] = useState<Set<string>>(new Set());
+  const [inventoryFilter, setInventoryFilter] = useState<'' | 'collected' | 'uncollected'>('');
+
+  // Load inventory from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('acnh-inventory');
+    if (saved) {
+      try {
+        setInventory(new Set(JSON.parse(saved)));
+      } catch {}
+    }
+  }, []);
+
+  const saveInventory = (next: Set<string>) => {
+    localStorage.setItem('acnh-inventory', JSON.stringify([...next]));
+  };
+
+  const getVariationKeys = (item: Item): string[] => {
+    if (!item.variations_info) return [];
+    const keys: string[] = [];
+    for (const [vKey, vValue] of Object.entries(item.variations_info)) {
+      for (const pKey of Object.keys(vValue)) {
+        keys.push(`${item.name}|${item.sourceSheet}|${vKey}|${pKey}`);
+      }
+    }
+    return keys;
+  };
+
+  const hasVariations = (item: Item) =>
+    item.variations_info && Object.keys(item.variations_info).length > 0;
+
+  // Toggle a single item (no variations) or a specific variation
+  const toggleInventory = (item: Item, varKey?: string, patKey?: string) => {
+    setInventory(prev => {
+      const next = new Set(prev);
+      if (hasVariations(item) && varKey !== undefined && patKey !== undefined) {
+        const key = `${item.name}|${item.sourceSheet}|${varKey}|${patKey}`;
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+      } else if (!hasVariations(item)) {
+        const key = `${item.name}|${item.sourceSheet}`;
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+      }
+      saveInventory(next);
+      return next;
+    });
+  };
+
+  // Toggle all variations at once
+  const toggleAllVariations = (item: Item) => {
+    setInventory(prev => {
+      const next = new Set(prev);
+      const keys = getVariationKeys(item);
+      const allCollected = keys.every(k => next.has(k));
+      if (allCollected) {
+        keys.forEach(k => next.delete(k));
+      } else {
+        keys.forEach(k => next.add(k));
+      }
+      saveInventory(next);
+      return next;
+    });
+  };
+
+  const isVariationCollected = (item: Item, varKey: string, patKey: string) =>
+    inventory.has(`${item.name}|${item.sourceSheet}|${varKey}|${patKey}`);
+
+  const collectedVariationCount = (item: Item): number =>
+    getVariationKeys(item).filter(k => inventory.has(k)).length;
+
+  const totalVariationCount = (item: Item): number =>
+    getVariationKeys(item).length;
+
+  // Item-level check: all variations collected, or simple item collected
+  const isCollected = (item: Item) => {
+    if (hasVariations(item)) {
+      const keys = getVariationKeys(item);
+      return keys.length > 0 && keys.every(k => inventory.has(k));
+    }
+    return inventory.has(`${item.name}|${item.sourceSheet}`);
+  };
+
+  // Partially collected: at least one variation but not all
+  const isPartiallyCollected = (item: Item) => {
+    if (!hasVariations(item)) return false;
+    const keys = getVariationKeys(item);
+    const count = keys.filter(k => inventory.has(k)).length;
+    return count > 0 && count < keys.length;
+  };
+
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -379,651 +1186,6 @@ const Home = () => {
       </button>
     </div>
   );
-
-  const ItemCard = ({ item }: { item: Item }) => {
-    const [hoveredImage, setHoveredImage] = React.useState(item.image);
-    const [hoveredColor, setHoveredColor] = React.useState(
-      item.variations_info &&
-        (lan === 'en'
-          ? (Object.keys(item.variations_info ?? {})[0] === 'null' ? '' : Object.keys(item.variations_info ?? {})[0]) +
-            (Object.keys(item.variations_info ?? {})[0] === 'null' ||
-            Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
-              ? ''
-              : ': ') +
-            (Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
-              ? ''
-              : Object.keys(Object.values(item.variations_info ?? {})[0])[0])
-          : (Object.keys(item.variations_info ?? {})[0] === 'null'
-              ? ''
-              : Object.values(Object.values(item.variations_info ?? {})[0])[0]?.variantTranslations?.cNzh ?? '') +
-            (Object.keys(item.variations_info ?? {})[0] === 'null' ||
-            Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
-              ? ''
-              : ': ') +
-            (Object.keys(Object.values(item.variations_info ?? {})[0])[0] === 'null'
-              ? ''
-              : Object.values(Object.values(item.variations_info ?? {})[0])[0]?.patternTranslations?.cNzh ?? '')),
-    );
-
-    return (
-      <div
-        className="px-2 pt-4 flex flex-col items-center overflow-x-hidden bg-slate-50 rounded-lg shadow-md"
-        onClick={() => openModal({ item })}
-      >
-        <h3 className="text-center text-lg font-semibold h-auto md:h-10">
-          {lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
-        </h3>
-        <div className="flex items-center justify-center w-50 h-40">
-          <img
-            className="w-auto h-auto max-w-full h-auto"
-            src={hoveredImage}
-            alt={lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
-          />
-        </div>
-        <div className="flex flex-row overflow-x-auto items-center h-auto scrollbar-thin mx-4">
-          {item.variations_info &&
-            Object.entries(item.variations_info).map(([vKey, vValue], index) =>
-              Object.entries(vValue).map(([pKey, pValue], i) => (
-                <img
-                  key={`${index}-${i}`}
-                  className="object-contain w-9 h-9"
-                  src={pValue.image}
-                  alt={`${item.name} variation ${index} pattern ${i}`}
-                  onMouseEnter={() => {
-                    setHoveredImage(pValue.image);
-                    setHoveredColor(
-                      lan === 'en'
-                        ? (vKey === 'null' ? '' : vKey) +
-                            (vKey === 'null' || pKey === 'null' ? '' : ': ') +
-                            (pKey === 'null' ? '' : pKey)
-                        : (pValue.variantTranslations?.cNzh ?? '') +
-                            (pValue.variantTranslations?.cNzh && pValue.patternTranslations?.cNzh ? ': ' : '') +
-                            (pValue.patternTranslations?.cNzh ?? ''),
-                    );
-                  }}
-                />
-              )),
-            )}
-        </div>
-        <h3 className="text-sm font-semibold mb-4 pt-2 h-5">{hoveredColor}</h3>
-      </div>
-    );
-  };
-
-  const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
-    const [hoveredImage, setHoveredImage] = React.useState(item.image);
-    let defaultVariation = '';
-    let defaultPattern = '';
-    let defaultVarTranslation = '';
-    let defaultPaTranslation = '';
-    if (item.variations_info) {
-      defaultVariation = Object.keys(item.variations_info)[0];
-      defaultPattern = Object.keys(Object.values(item.variations_info)[0])[0];
-      defaultVarTranslation = Object.values(Object.values(item.variations_info)[0])[0].variantTranslations?.cNzh;
-      defaultPaTranslation = Object.values(Object.values(item.variations_info)[0])[0].patternTranslations?.cNzh;
-    }
-    const [hoveredVariation, setHoveredVariation] = React.useState(defaultVariation);
-    const [hoveredPattern, setHoveredPattern] = React.useState(defaultPattern);
-    const [hoveredVarTranslation, setHoveredVarTranslation] = React.useState(defaultVarTranslation);
-    const [hoveredPaTranslation, setHoveredPaTranslation] = React.useState(defaultPaTranslation);
-    const [lastDiv, setLastDiv] = useState(false);
-    useEffect(() => {
-      if (
-        item.interact ||
-        (item.surface ?? false) ||
-        item.series ||
-        findKeyByValue(tags, item.tag) ||
-        (item.concepts?.length ?? 0) > 0 ||
-        item.lightingType ||
-        item.speakerType
-      ) {
-        setLastDiv(true);
-      }
-    }, [
-      item.interact,
-      item.surface,
-      item.variations_info,
-      item.series,
-      item.tag,
-      item.concepts,
-      item.lightingType,
-      item.speakerType,
-    ]); // dependencies array
-
-    return (
-      <div
-        className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center"
-        onClick={onClose}
-        style={{ backdropFilter: 'blur(5px)' }}
-      >
-        <div
-          className="bg-white rounded-lg w-auto pb-2 min-h-[270px] max-h-[90vh] max-w-[780px] box-sizing: border-box overflow-y-auto scrollbar-thin"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
-            <div className="text-xl text-center">{lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}</div>
-            <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
-              &times;
-            </button>
-          </div>
-          {/* Image(left) and Description(right) */}
-          <div className="flex items-start justify-center">
-            {/* Image, size, height, colors */}
-            <div className="w-[120px] sm:w-[160px] px-1 sm:px-3 md:px-5 mt-3 mb-6">
-              <div className="flex items-center justify-center w-full h-auto mb-3">
-                <img src={hoveredImage} alt={item.name} />
-              </div>
-              {item.category !== 'Critters' && item.category !== 'Models' && (
-                <>
-                  <div className="text-xs text-left pl-1">
-                    <div>
-                      {item.size ? (
-                        <>
-                          <span className="sm:font-bold">{localize('Size') + ':'}</span> {item.size}
-                        </>
-                      ) : null}
-                    </div>
-                    <div>
-                      {item.height ? (
-                        <>
-                          <span className="sm:font-bold">{localize('Height') + ':'}</span> {item.height}
-                        </>
-                      ) : null}
-                    </div>
-                    <div className="">
-                      {item.category === 'Fencing' ? (
-                        ''
-                      ) : item.variations_info ? (
-                        Object.values(Object.values(item.variations_info)[0])[0]?.colors?.length ? (
-                          <>
-                            <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
-                            {(item.variations_info[hoveredVariation][hoveredPattern]?.colors ?? [])
-                              .map((color) => localize(color))
-                              .join(', ')}
-                          </>
-                        ) : (
-                          ''
-                        )
-                      ) : item.colors?.length ? (
-                        <>
-                          <span className="hidden sm:inline sm:font-bold">{localize('Color') + ': '}</span>
-                          {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
-                        </>
-                      ) : (
-                        ''
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="pr-3 md:pr-10 mt-5">
-              {(item.category === 'Critters' || item.category === 'Models') && (
-                <>
-                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
-                    <div>
-                      {item.size ? (
-                        <>
-                          <strong>{localize('Size') + ':'}</strong> {item.size}
-                        </>
-                      ) : null}
-                    </div>
-                    <div>
-                      {item.height ? (
-                        <>
-                          <strong>{localize('Height') + ':'}</strong> {item.height}
-                        </>
-                      ) : null}
-                    </div>
-                    <div>
-                      {item.colors?.length ? (
-                        <>
-                          <strong className="">{localize('Color') + ': '}</strong>
-                          {(item?.colors ?? []).map((color) => localize(color)).join(', ')}
-                        </>
-                      ) : (
-                        ''
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-              {/* category and source */}
-              <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
-                <div>
-                  <strong>{localize('Category') + ':'}</strong> {localize(item.category)}{' '}
-                </div>
-                <div>
-                  <strong>{localize('Source') + ':'}</strong> {item.source.map((s) => localize(s)).join(', ')}{' '}
-                </div>
-                {(item.buy > 0 || item.exchangeCurrency) && (
-                  <div className="flex items-center">
-                    <strong>{localize('Price') + ':'}</strong>
-                    {item.buy > 0 && (
-                      <>
-                        <img className={`object-contain h-6 ml-1 rounded`} src={kit['Bell']} alt="image of Bells Bag" />
-                        {item.buy.toLocaleString()}
-                        <span className="hidden sm:block sm:ml-1">{localize('Bells')}</span>
-                      </>
-                    )}
-                    {item.exchangeCurrency && (
-                      <>
-                        <img
-                          className={classNames(
-                            'object-contain mx-1 rounded',
-                            item.exchangeCurrency === 'Bells' ? 'h-6' : 'h-5 mr-1',
-                            item.buy > 0 && 'ml-3',
-                          )}
-                          src={kit[item.exchangeCurrency]}
-                          alt="image of Bells Bag"
-                        />
-                        {item.exchangePrice.toLocaleString()}
-                        {item.exchangeCurrency === 'Heart Crystals' && '* '}
-                        {item.exchangeCurrency !== 'Heart Crystals' && ' '}
-                        {item.exchangeCurrency !== 'Poki' && localize(item.exchangeCurrency)}
-                        <span className="hidden sm:block sm:ml-1">
-                          {item.exchangeCurrency === 'Poki' && localize(item.exchangeCurrency)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                )}
-                {item.seasonEvent && item.seasonEvent !== 'Super Mario Bros.' && (
-                  <>
-                    <div>
-                      <strong>{localize('Season Event') + ':'}</strong>{' '}
-                      <React.Fragment>
-                        <span
-                          className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                          onClick={() => {
-                            //season
-                            setSearchBar(''); // clear out search bar value
-                            setShowFilters(false);
-                            const updatedQuery = {
-                              season: seasonEvent_value[item.seasonEvent], // only filter on season
-                              lan: lan,
-                              page: 1,
-                            };
-                            router.push({ query: updatedQuery }, undefined, { shallow: true });
-                            closeModal();
-                          }}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          #{UpFirstLetter(localize(seasonEvent_value[item.seasonEvent]))}
-                        </span>
-                      </React.Fragment>
-                    </div>
-                  </>
-                )}
-              </div>
-              {/* Variation */}
-              {
-                !!item.variations_info ? (
-                  <div
-                    className={`rounded-lg bg-slate-100 px-3 pt-1 pb-2 shadow-sm mb-3 flex flex-col
-                    ${Object.keys(item.variations_info).length === 8 ? '' : ''}`}
-                  >
-                    <div>
-                      <strong>{localize('Variation') + ':'}</strong>{' '}
-                      {hoveredVariation === 'null'
-                        ? localize('None')
-                        : lan === 'en'
-                        ? hoveredVariation
-                        : hoveredVarTranslation}{' '}
-                    </div>
-                    <div className={`flex flex-row items-center overflow-x-auto scrollbar-thin`}>
-                      {Object.entries(item.variations_info).map(([key, value], index) => (
-                        <img
-                          key={index}
-                          className={`object-contain h-14 mx-0.5 rounded ${
-                            hoveredVariation === key ? 'bg-slate-200' : ''
-                          }`}
-                          src={Object.values(value)[0].image}
-                          alt={`${item.name} variation ${index}`}
-                          onMouseEnter={() => {
-                            setHoveredImage(
-                              hoveredPattern ? value[hoveredPattern].image : Object.values(value)[0].image,
-                            );
-                            setHoveredVariation(key);
-                            setHoveredVarTranslation(Object.values(value)[0].variantTranslations?.cNzh);
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-grow"></div>
-                ) /* Empty div to maintain space */
-              }
-              {/* Pattern */}
-              {
-                !!item.variations_info && Object.keys(Object.values(item.variations_info)[0]).length > 1 ? (
-                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3 flex flex-col">
-                    <div>
-                      <strong>{localize('Pattern') + ':'}</strong>{' '}
-                      {hoveredPattern === 'null'
-                        ? localize('None')
-                        : lan === 'en'
-                        ? hoveredPattern
-                        : hoveredPaTranslation}{' '}
-                    </div>
-                    <div className="flex flex-row items-center overflow-x-auto scrollbar-thin">
-                      {Object.entries(item.variations_info[hoveredVariation]).map(([key, value], index) => {
-                        return (
-                          <img
-                            key={index}
-                            className={`object-contain h-14 mx-1 rounded ${
-                              hoveredPattern === key ? 'bg-slate-200' : ''
-                            }`}
-                            src={value.image}
-                            alt={`${item.name} variation ${index}`}
-                            onMouseEnter={() => {
-                              setHoveredImage(value.image);
-                              setHoveredPattern(key);
-                              setHoveredPaTranslation(value.patternTranslations?.cNzh);
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                    {item.sablePattern || item.customPattern ? (
-                      <span className="ml-1 mt-1 flex text-sm md:text-base">
-                        {item.sablePattern && <span>✓{localize('Sable patterns')}</span>}
-                        {item.sablePattern && item.customPattern && <span className="ml-5"></span>}
-                        {item.customPattern && <span>✓{localize('Custom patterns')}</span>}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="flex-grow"></div>
-                ) /* Empty div to maintain space */
-              }
-              {/* diy info */}
-              {Object.keys(item?.diy_info ?? {})?.length ? (
-                <>
-                  <div className="rounded-lg bg-slate-100 px-3 pt-1 pb-1 shadow-sm mb-3">
-                    <div>
-                      <strong>{localize('DIY Materials') + ': '}</strong>
-                      <span className="text-sm md:text-base">
-                        {'(' +
-                          localize('Recipe source') +
-                          ' - ' +
-                          item.diy_info.source.map((s) => localize(s)).join(', ') +
-                          ')'}
-                      </span>
-                      {Object.entries(item.diy_info.materials).map(([key, value]) => (
-                        <div className="flex items-center" key={key}>
-                          <img
-                            className={`object-contain h-6 mx-1 rounded`}
-                            src={value.inventoryImage}
-                            alt="image of materials"
-                          />
-                          {lan === 'en'
-                            ? value.amount + 'x ' + key
-                            : key === '99,000 Bells'
-                            ? value.amount + 'x ' + localize(key)
-                            : key === '50,000 Bells' || key.includes('turnips')
-                            ? localize(key)
-                            : value.amount + 'x ' + value.translations.cNzh}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                ''
-              )}
-              {/* customization info */}
-              {item.variations_info && item.category !== 'Equipments' ? (
-                <>
-                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
-                    <strong>{localize('Customization') + ':'} </strong>
-                    <div className="flex items-center">
-                      {item.kitCost && (
-                        <>
-                          <img
-                            className={`object-contain h-6 mx-1 rounded`}
-                            src={kit[item.kitType]}
-                            alt="image of customization kit"
-                          />
-                          {item.kitCost}x{' '}
-                          {item.kitType === 'Normal' ? localize('customization kit') : localize(item.kitType)}
-                          {Object.keys(item.variations_info).length > 1 &&
-                            item.bodyCustomize === null &&
-                            ' - ' + localize('patterns only')}
-                        </>
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      <img className={`object-contain h-6 mx-1 rounded`} src={kit['Cyrus']} alt="image of Cyrus" />
-                      {localize('Cyrus') + ':'}{' '}
-                      <img className={`object-contain h-6 rounded`} src={kit['Bell']} alt="image of bell bag" />
-                      {item.cyrusCustomizePrice} {localize('bells')}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                ''
-              )}
-              {/* interaction, surface, series */}
-              {lastDiv && (
-                <>
-                  <div className="rounded-lg bg-slate-100 px-3 py-1 shadow-sm mb-2">
-                    {item.surface && (
-                      <div>
-                        <strong>{localize('Has surface')}</strong>
-                      </div>
-                    )}
-                    {item.interact && (
-                      <div>
-                        <strong>{localize('Interaction Type') + ':'}</strong>{' '}
-                        {localize(
-                          item.interact === true
-                            ? 'Other'
-                            : typeof item.interact === 'string'
-                            ? item.interact
-                            : 'False',
-                        )}{' '}
-                      </div>
-                    )}
-                    {item.lightingType && (
-                      <>
-                        <div>
-                          <strong>{localize('Lighting Type') + ':'}</strong>{' '}
-                          {UpFirstLetter(localize(item.lightingType))}
-                        </div>
-                      </>
-                    )}
-                    {item.speakerType && (
-                      <>
-                        <div>
-                          <strong>{localize('Album Player Type') + ':'}</strong>{' '}
-                          {UpFirstLetter(localize(item.speakerType))}
-                        </div>
-                      </>
-                    )}
-                    {item.series && (
-                      <>
-                        <div>
-                          <strong>{localize('Series') + ':'}</strong>{' '}
-                          {
-                            <span
-                              className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                              onClick={() => {
-                                setSearchBar(''); // clear out search bar value
-                                setShowFilters(false);
-                                const updatedQuery = {
-                                  series: item.series,
-                                  lan: lan,
-                                  page: 1,
-                                };
-                                router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                closeModal();
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
-                              #{UpFirstLetter(localize(item.series))}
-                            </span>
-                          }
-                        </div>
-                      </>
-                    )}
-                    {(findKeyByValue(tags, item.tag) || (item.concepts?.length ?? 0) > 0) && (
-                      <>
-                        <div>
-                          <strong>{localize('Keyword') + ':'}</strong>{' '}
-                          {findKeyByValue(tags, item.tag) && (
-                            <span
-                              className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                              onClick={() => {
-                                setSearchBar(''); // clear out search bar value
-                                setShowFilters(false);
-                                const updatedQuery = {
-                                  tag: findKeyByValue(tags, item.tag), // only filter on tag
-                                  lan: lan,
-                                  page: 1,
-                                };
-                                router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                closeModal();
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
-                              #{localize(findKeyByValue(tags, item.tag) ?? '')}
-                            </span>
-                          )}
-                          {findKeyByValue(tags, item.tag) && (item.concepts?.length ?? 0) > 0 && ', '}
-                          {(item.concepts?.length ?? 0) > 0 &&
-                            item.concepts.map((concept, index) => (
-                              <React.Fragment key={index}>
-                                {index > 0 && ', '}
-                                <span
-                                  className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                                  onClick={() => {
-                                    //concept
-                                    setSearchBar(''); // clear out search bar value
-                                    setShowFilters(false);
-                                    const updatedQuery = {
-                                      concept: concept, // only filter on concept
-                                      lan: lan,
-                                      page: 1,
-                                    };
-                                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                    closeModal();
-                                  }}
-                                  role="button"
-                                  tabIndex={0}
-                                >
-                                  #{UpFirstLetter(localize(concept))}
-                                </span>
-                              </React.Fragment>
-                            ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-              {/* equipment info */}
-              {item.category === 'Equipments' ? (
-                <>
-                  <div className="rounded-lg bg-slate-100 px-3  pt-1 pb-1 shadow-sm mb-3">
-                    <div>
-                      <strong>{localize('Clothing Type') + ':'}</strong> {localize(item.sourceSheet)}{' '}
-                    </div>
-                    <div>
-                      <strong>{localize('Villager Equippable') + ':'}</strong>{' '}
-                      {item.villagerEquippable ? localize('True') : localize('False')}{' '}
-                    </div>
-                    {item.themes && (
-                      <div>
-                        <strong>{localize('Clothing Themes') + ':'}</strong>{' '}
-                        {(item.themes?.length ?? 0) > 0 &&
-                          item.themes.map((theme, index) => (
-                            <React.Fragment key={index}>
-                              {index > 0 && ', '}
-                              <span
-                                className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                                onClick={() => {
-                                  //theme
-                                  setSearchBar(''); // clear out search bar value
-                                  setShowFilters(false);
-                                  const updatedQuery = {
-                                    theme: theme, // only filter on theme
-                                    lan: lan,
-                                    page: 1,
-                                  };
-                                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                  closeModal();
-                                }}
-                                role="button"
-                                tabIndex={0}
-                              >
-                                #{UpFirstLetter(localize(theme))}
-                              </span>
-                            </React.Fragment>
-                          ))}
-                      </div>
-                    )}
-                    {item.styles && (
-                      <div>
-                        <strong>{localize('Clothing Styles') + ':'}</strong>{' '}
-                        {(item.styles?.length ?? 0) > 0 &&
-                          item.styles.map((style, index) => (
-                            <React.Fragment key={index}>
-                              {index > 0 && ', '}
-                              <span
-                                className="cursor-pointer px-1 rounded bg-slate-200 hover:bg-slate-300 hover:text-blue-600 visited:text-purple-600"
-                                onClick={() => {
-                                  //style
-                                  setSearchBar(''); // clear out search bar value
-                                  setShowFilters(false);
-                                  const updatedQuery = {
-                                    style: style, // only filter on style
-                                    lan: lan,
-                                    page: 1,
-                                  };
-                                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                                  closeModal();
-                                }}
-                                role="button"
-                                tabIndex={0}
-                              >
-                                #{UpFirstLetter(localize(style))}
-                              </span>
-                            </React.Fragment>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                ''
-              )}
-              {/* Additional content can be placed here */}
-              <div className="pl-1 text-xs text-slate-400 mb-3">
-                {item.url ? (
-                  <>
-                    <span>{'* ' + localize("More details on the item's")}</span>{' '}
-                    <a
-                      className="text-amber-400 hover:text-amber-500"
-                      href={item.url.replace('?', '%3F')}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {localize('Nookipedia Page')}
-                    </a>
-                  </>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const openModal = ({ item }: { item: Item }) => {
     setSelectedItem(item);
@@ -2329,48 +2491,99 @@ const Home = () => {
             {' '}
             {/* item cards */}
             <div className="flex w-full items-center justify-between mb-2">
-              <div className="flex-grow pl-1 text-sm xs:text-base">
-                {isLoading ? (
-                  '...'
-                ) : data?.page_info?.total_count ? (
-                  <>
-                    {60 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
-                    {Math.min(60 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
-                    {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
-                    {data.page_info.total_count}
-                    {lan === 'en' ? ' Items' : '项'}
-                  </>
+              <div className="flex-grow pl-1 text-sm xs:text-base flex items-center gap-3">
+                <span>
+                  {isLoading ? (
+                    '...'
+                  ) : data?.page_info?.total_count ? (
+                    <>
+                      {60 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
+                      {Math.min(60 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
+                      {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
+                      {data.page_info.total_count}
+                      {lan === 'en' ? ' Items' : '项'}
+                    </>
+                  ) : (
+                    localize('No result') + ' ... :('
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={inventoryFilter}
+                  onChange={(e) => setInventoryFilter(e.target.value as '' | 'collected' | 'uncollected')}
+                  className="text-xs xs:text-sm px-1 py-0.5 rounded border border-slate-300 bg-white"
+                >
+                  <option value="">{localize('All')}</option>
+                  <option value="collected">{localize('Collected')}</option>
+                  <option value="uncollected">{localize('Uncollected')}</option>
+                </select>
+                {data?.page_info?.total_count ? (
+                  <PaginationControls
+                    currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
+                    totalPages={data?.page_info.max_page ?? 1}
+                    onPageChange={(page) =>
+                      router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                        shallow: true,
+                      })
+                    }
+                  />
                 ) : (
-                  localize('No result') + ' ... :('
+                  ''
                 )}
               </div>
-              {data?.page_info?.total_count ? (
-                <PaginationControls
-                  currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-                  totalPages={data?.page_info.max_page ?? 1}
-                  onPageChange={(page) =>
-                    router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                      shallow: true,
-                    })
-                  }
-                />
-              ) : (
-                ''
-              )}
             </div>
             <div
-              className={`w-full grid gap-5 justify-center auto-rows-max 
+              className={`w-full grid gap-5 justify-center auto-rows-max
                     ${
                       (data?.result.length ?? 0) < 4
                         ? 'grid-cols-autofit sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                         : 'grid-cols-autofit'
                     }`}
             >
-              {(data?.result ?? []).map((item, i) => (
-                <ItemCard key={item.name} item={item} />
-              ))}
+              {(data?.result ?? [])
+                .filter(item => {
+                  if (inventoryFilter === 'collected') return isCollected(item) || isPartiallyCollected(item);
+                  if (inventoryFilter === 'uncollected') return !isCollected(item) && !isPartiallyCollected(item);
+                  return true;
+                })
+                .map((item, i) => (
+                  <ItemCard
+                    key={item.name}
+                    item={item}
+                    lan={lan}
+                    hasVariations={hasVariations}
+                    isVariationCollected={isVariationCollected}
+                    isCollected={isCollected}
+                    toggleInventory={toggleInventory}
+                    openModal={openModal}
+                  />
+                ))}
             </div>
-            {isModalOpen && selectedItem && <Modal item={selectedItem} onClose={closeModal} />}
+            {isModalOpen && selectedItem && (
+              <Modal
+                item={selectedItem}
+                onClose={closeModal}
+                lan={lan}
+                localize={localize}
+                UpFirstLetter={UpFirstLetter}
+                findKeyByValue={findKeyByValue}
+                isCollected={isCollected}
+                isPartiallyCollected={isPartiallyCollected}
+                isVariationCollected={isVariationCollected}
+                hasVariations={hasVariations}
+                toggleInventory={toggleInventory}
+                toggleAllVariations={toggleAllVariations}
+                collectedVariationCount={collectedVariationCount}
+                totalVariationCount={totalVariationCount}
+                onFilterNavigate={(query) => {
+                  setSearchBar('');
+                  setShowFilters(false);
+                  router.push({ query }, undefined, { shallow: true });
+                  closeModal();
+                }}
+              />
+            )}
             <div className="flex w-full items-center justify-center mt-5">
               {data?.page_info?.total_count ? (
                 <PaginationControls
