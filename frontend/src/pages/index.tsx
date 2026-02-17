@@ -218,8 +218,8 @@ const Home = () => {
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
         // other stuff
       });
-      //const apiUrl = `http://localhost:8000?${newParams}`;
-      const apiUrl = `/api?${newParams}`;
+      const apiUrl = `http://localhost:8000?${newParams}`;
+      //const apiUrl = `/api?${newParams}`;
       const result = await fetch(apiUrl);
       const json = await result.json();
       return json;
@@ -411,13 +411,13 @@ const Home = () => {
         onClick={() => openModal({ item })}
       >
         <h3 className="text-center text-lg font-semibold h-auto md:h-10">
-          {lan === 'en' ? item.name : item.translations.cNzh}
+          {lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
         </h3>
         <div className="flex items-center justify-center w-50 h-40">
           <img
             className="w-auto h-auto max-w-full h-auto"
             src={hoveredImage}
-            alt={lan === 'en' ? item.name : item.translations.cNzh}
+            alt={lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
           />
         </div>
         <div className="flex flex-row overflow-x-auto items-center h-auto scrollbar-thin mx-4">
@@ -501,7 +501,7 @@ const Home = () => {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative bg-amber-300 py-4 rounded-t-lg font-bold">
-            <div className="text-xl text-center">{lan === 'en' ? item.name : item.translations.cNzh}</div>
+            <div className="text-xl text-center">{lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}</div>
             <button onClick={onClose} className="absolute inset-y-0 right-5 top-1/2 transform -translate-y-1/2 text-lg">
               &times;
             </button>

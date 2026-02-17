@@ -646,6 +646,14 @@ export const translation: Record<string, string> = {
   Niko: '尼可',
   'Exclude clothing': '排除所有着装',
   'v3.0.0 items only': '仅v3.0.0新品',
+  // v3.0.0 series
+  'zen modern': '现代和风',
+  'marble': '大理石',
+  'tubular': '钢丝',
+  'kids': '儿童',
+  'LEGO®': 'LEGO®',
+  'Splatoon': '斯普拉遁',
+  'The Legend of Zelda': '塞尔达传说',
   'Nook Miles': '狸数',
   'Nook Points': '狸端机入口站点数',
   //categories
@@ -731,6 +739,8 @@ export const translation: Record<string, string> = {
   'Nook Shopping Seasonal': '狸端机节日购物',
   'HHP Office': 'DLC快乐家办公室',
   'HHP Café': 'DLC快乐家咖啡馆',
+  'Hotel Souvenir Shop': '旅馆纪念品商店',
+  'Slumber Islands': '梦境岛',
   Pavé: '阿欢',
   Zipper: '蹦蹦',
   Cyrus: '健兆',
