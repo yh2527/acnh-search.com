@@ -587,6 +587,7 @@ export const translation: Record<string, string> = {
   Page: '页数',
   Submit: '确定',
   'More Filters': '更多筛选',
+  Collected: '已收集',
   'Has surface': '有台面',
   'Base variants': '多种款式',
   'Pattern variants': '多种图案',

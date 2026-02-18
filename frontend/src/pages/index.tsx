@@ -1155,7 +1155,7 @@ const Home = () => {
     <div className="pagination-controls flex h-8 w-auto">
       <button
         className={classNames(
-          'text-slate-500 px-3 py-1',
+          'text-xs sm:text-base text-slate-500 px-2 sm:px-3 py-1',
           currentPage === 1 ? 'text-yellow-100' : 'hover:bg-amber-300 transition text-slate-500',
         )}
         onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
@@ -1167,7 +1167,7 @@ const Home = () => {
       <select
         value={currentPage}
         onChange={(e) => onPageChange(Number(e.target.value))}
-        className="mx-1 px-1 rounded select-custom bg-white text-sm xs:text-base"
+        className="mx-1 px-1 rounded select-custom bg-white text-xs sm:text-base"
       >
         {[...Array(totalPages).keys()].map((_, index) => (
           <option key={index} value={index + 1}>
@@ -1176,7 +1176,7 @@ const Home = () => {
         ))}
       </select>
       <button
-        className={`text-slate-500 px-3 py-1 ${
+        className={`text-xs sm:text-base text-slate-500 px-2 sm:px-3 py-1 ${
           currentPage === totalPages ? 'text-yellow-100' : 'hover:bg-amber-300 transition text-slate-500'
         }`}
         onClick={() => onPageChange(currentPage + 1)}
@@ -1217,10 +1217,10 @@ const Home = () => {
           className={`flex min-h-screen flex-col items-center py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 bg-yellow-100 font-nunito text-slate-500`}
         >
           <div className="flex flex-row flex-wrap">
-            <div className="text-3xl md:text-4xl absolute top-0 left-0 xs:p-3 mt-1 md:m-3 font-black font-finkheavy image-filled-text">
+            <div className="text-base xs:text-3xl md:text-4xl absolute top-0 left-0 xs:p-3 mt-3 ml-2 xs:mt-1 xs:ml-0 md:m-3 font-black font-finkheavy image-filled-text">
               ACNH Item Search
             </div>
-            <div className="text-xs xs:text-base xs:absolute xs:top-0 xs:right-0 mb-2 xs:mb-0 xs:p-3 xs:m-3 text-left">
+            <div className="text-xs md:text-base xs:absolute xs:top-0 xs:right-0 mb-2 xs:mb-0 xs:p-3 xs:m-3 text-left">
               <div className="flex">
                 <button
                   onClick={() => {
@@ -1414,42 +1414,43 @@ const Home = () => {
                 </button>
               )}
             </div>
-            {/* exclude clothing checkbox for smaller screens */}
-            <div className="flex mb-3 text-sm md:hidden">
-              <span className="mr-1">{'*' + localize('Exclude clothing') + ':'} </span>
-              <div
-                onClick={() => {
-                  var excludeClothing = searchParams.get('excludeClothing');
-                  excludeClothing = excludeClothing === 'True' ? '' : 'True';
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()), // current query params
-                    excludeClothing: excludeClothing,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className={`mr-3 md:mr-7 p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-              >
-                {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
+            {/* exclude clothing & v3.0.0 checkboxes for smaller screens */}
+            <div className="flex flex-wrap gap-3 mb-3 text-sm md:hidden">
+              <div className="flex items-center">
+                <span className="mr-1">{'*' + localize('Exclude clothing') + ':'} </span>
+                <div
+                  onClick={() => {
+                    var excludeClothing = searchParams.get('excludeClothing');
+                    excludeClothing = excludeClothing === 'True' ? '' : 'True';
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()), // current query params
+                      excludeClothing: excludeClothing,
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={`p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                >
+                  {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
+                </div>
               </div>
-            </div>
-            {/* v3.0.0 only checkbox for smaller screens */}
-            <div className="flex mb-3 text-sm md:hidden">
-              <span className="mr-1">{'*' + localize('v3.0.0 items only') + ':'} </span>
-              <div
-                onClick={() => {
-                  var v3Only = searchParams.get('v3Only');
-                  v3Only = v3Only === 'True' ? '' : 'True';
-                  const updatedQuery = {
-                    ...Object.fromEntries(searchParams.entries()),
-                    v3Only: v3Only,
-                    page: 1,
-                  };
-                  router.push({ query: updatedQuery }, undefined, { shallow: true });
-                }}
-                className={`mr-3 md:mr-7 p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-              >
-                {searchParams.get('v3Only') === 'True' ? '✗' : ''}
+              <div className="flex items-center">
+                <span className="mr-1">{'*' + localize('v3.0.0 items only') + ':'} </span>
+                <div
+                  onClick={() => {
+                    var v3Only = searchParams.get('v3Only');
+                    v3Only = v3Only === 'True' ? '' : 'True';
+                    const updatedQuery = {
+                      ...Object.fromEntries(searchParams.entries()),
+                      v3Only: v3Only,
+                      page: 1,
+                    };
+                    router.push({ query: updatedQuery }, undefined, { shallow: true });
+                  }}
+                  className={`p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                >
+                  {searchParams.get('v3Only') === 'True' ? '✗' : ''}
+                </div>
               </div>
             </div>
             {/* toggle filters */}
@@ -1493,6 +1494,24 @@ const Home = () => {
                   {/* tag start */}
                   <div className="mt-3 mb-4">
                     <div className="text-sm md:text-base grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-checkboxfit justify-items-end lg:flex lg:flex-wrap items-center cursor-pointer mb-5">
+                      {/* inventory filter checkbox */}
+                      <div className="flex mb-1">
+                        <span className="mr-1">{localize('Collected') + ':'} </span>
+                        <div
+                          onClick={() => {
+                            setInventoryFilter(prev =>
+                              prev === '' ? 'collected' : prev === 'collected' ? 'uncollected' : ''
+                            );
+                          }}
+                          className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
+                        >
+                          {inventoryFilter === 'collected'
+                            ? '✓'
+                            : inventoryFilter === 'uncollected'
+                            ? '✗'
+                            : ''}
+                        </div>
+                      </div>
                       {/* surface checkbox */}
                       <div className="flex mb-1">
                         <span className="mr-1">{localize('Has surface') + ':'} </span>
@@ -2491,7 +2510,7 @@ const Home = () => {
             {' '}
             {/* item cards */}
             <div className="flex w-full items-center justify-between mb-2">
-              <div className="flex-grow pl-1 text-sm xs:text-base flex items-center gap-3">
+              <div className="flex-grow pl-1 text-xs xs:text-sm md:text-base flex items-center gap-3">
                 <span>
                   {isLoading ? (
                     '...'
@@ -2509,15 +2528,6 @@ const Home = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <select
-                  value={inventoryFilter}
-                  onChange={(e) => setInventoryFilter(e.target.value as '' | 'collected' | 'uncollected')}
-                  className="text-xs xs:text-sm px-1 py-0.5 rounded border border-slate-300 bg-white"
-                >
-                  <option value="">{localize('All')}</option>
-                  <option value="collected">{localize('Collected')}</option>
-                  <option value="uncollected">{localize('Uncollected')}</option>
-                </select>
                 {data?.page_info?.total_count ? (
                   <PaginationControls
                     currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
