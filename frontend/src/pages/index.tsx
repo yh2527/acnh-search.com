@@ -847,18 +847,16 @@ const Home = () => {
     clothingStyle: '',
     // ... any other filters you have
   });
-  const [inventory, setInventory] = useState<Set<string>>(new Set());
-  const [inventoryFilter, setInventoryFilter] = useState<'' | 'collected' | 'uncollected'>('');
-
-  // Load inventory from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('acnh-inventory');
-    if (saved) {
+  const [inventory, setInventory] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
       try {
-        setInventory(new Set(JSON.parse(saved)));
+        const saved = localStorage.getItem('acnh-inventory');
+        if (saved) return new Set(JSON.parse(saved));
       } catch {}
     }
-  }, []);
+    return new Set();
+  });
+  const [inventoryFilter, setInventoryFilter] = useState<'' | 'collected' | 'uncollected'>('');
 
   const saveInventory = (next: Set<string>) => {
     localStorage.setItem('acnh-inventory', JSON.stringify([...next]));
@@ -991,15 +989,17 @@ const Home = () => {
   };
 
   const { isLoading, error, data } = useQuery<ApiResponse>({
-    queryKey: ['searchCache', Array.from(searchParams.entries())],
+    queryKey: ['searchCache', Array.from(searchParams.entries()), inventoryFilter],
     queryFn: async (): Promise<ApiResponse> => {
+      const fetchAll = inventoryFilter !== '';
       const newParams = new URLSearchParams({
         lan: searchParams.get('lan') ?? 'en',
         category: searchParams.get('category') ?? '',
         excludeClothing: searchParams.get('excludeClothing') ?? '',
         v3Only: searchParams.get('v3Only') ?? '',
         search: searchParams.get('textSearch') ?? '',
-        page: searchParams.get('page') ?? '1',
+        page: fetchAll ? '1' : (searchParams.get('page') ?? '1'),
+        ...(fetchAll ? { limit: '500' } : {}),
         size: searchParams.get('size') ?? '',
         tag: searchParams.get('tag') ?? '',
         interact: searchParams.get('interact') ?? '',
@@ -1258,6 +1258,7 @@ const Home = () => {
                 onClick={() => {
                   setSearchBar(''); // clear out search bar value
                   setShowFilters(false);
+                  setInventoryFilter('');
                   router.push({ query: { lan } }, undefined, { shallow: true });
                 }}
                 className="overflow-hidden px-1 md:w-24 h-8 md:h-10 text-center text-sm md:text-base hover:bg-amber-300 border border-2 text-slate-500  border-slate-500 rounded"
@@ -1502,6 +1503,7 @@ const Home = () => {
                             setInventoryFilter(prev =>
                               prev === '' ? 'collected' : prev === 'collected' ? 'uncollected' : ''
                             );
+                            router.push({ query: { ...Object.fromEntries(searchParams.entries()), page: 1 } }, undefined, { shallow: true });
                           }}
                           className={`mr-3 md:mr-7 p-2 w-6 h-6 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
                         >
@@ -2509,106 +2511,130 @@ const Home = () => {
           <div className="flex flex-col w-full items-start">
             {' '}
             {/* item cards */}
-            <div className="flex w-full items-center justify-between mb-2">
-              <div className="flex-grow pl-1 text-xs xs:text-sm md:text-base flex items-center gap-3">
-                <span>
-                  {isLoading ? (
-                    '...'
-                  ) : data?.page_info?.total_count ? (
-                    <>
-                      {60 * (Number(searchParams.get('page') ?? 1) - 1) + 1}-
-                      {Math.min(60 * Number(searchParams.get('page') ?? 1), data.page_info.total_count)}
-                      {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
-                      {data.page_info.total_count}
-                      {lan === 'en' ? ' Items' : '项'}
-                    </>
-                  ) : (
-                    localize('No result') + ' ... :('
+            {(() => {
+              const allItems = data?.result ?? [];
+              const filtered = allItems.filter(item => {
+                if (inventoryFilter === 'collected') return isCollected(item) || isPartiallyCollected(item);
+                if (inventoryFilter === 'uncollected') return !isCollected(item) && !isPartiallyCollected(item);
+                return true;
+              });
+              const isFiltered = inventoryFilter !== '';
+              const pageSize = 60;
+              const currentPage = isFiltered
+                ? Number(searchParams.get('page') ?? 1)
+                : parseInt(searchParams.get('page') ?? '1', 10);
+              const displayItems = isFiltered
+                ? filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                : filtered;
+              const totalCount = isFiltered ? filtered.length : (data?.page_info?.total_count ?? 0);
+              const totalPages = isFiltered
+                ? Math.max(1, Math.ceil(filtered.length / pageSize))
+                : (data?.page_info?.max_page ?? 1);
+              const startIndex = isFiltered
+                ? Math.min((currentPage - 1) * pageSize + 1, filtered.length)
+                : 60 * (Number(searchParams.get('page') ?? 1) - 1) + 1;
+              const endIndex = isFiltered
+                ? Math.min(currentPage * pageSize, filtered.length)
+                : Math.min(60 * Number(searchParams.get('page') ?? 1), data?.page_info?.total_count ?? 0);
+
+              return (
+                <>
+                  <div className="flex w-full items-center justify-between mb-2">
+                    <div className="flex-grow pl-1 text-xs xs:text-sm md:text-base flex items-center gap-3">
+                      <span>
+                        {isLoading ? (
+                          '...'
+                        ) : totalCount ? (
+                          <>
+                            {startIndex}-{endIndex}
+                            {lan === 'en' ? ' of' : '项,'} {lan === 'en' ? '' : '共'}
+                            {totalCount}
+                            {lan === 'en' ? ' Items' : '项'}
+                          </>
+                        ) : (
+                          localize('No result') + ' ... :('
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {totalCount ? (
+                        <PaginationControls
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={(page) =>
+                            router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                              shallow: true,
+                            })
+                          }
+                        />
+                      ) : (
+                        ''
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className={`w-full grid gap-5 justify-center auto-rows-max
+                          ${
+                            displayItems.length < 4
+                              ? 'grid-cols-autofit sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                              : 'grid-cols-autofit'
+                          }`}
+                  >
+                    {displayItems.map((item, i) => (
+                      <ItemCard
+                        key={item.name}
+                        item={item}
+                        lan={lan}
+                        hasVariations={hasVariations}
+                        isVariationCollected={isVariationCollected}
+                        isCollected={isCollected}
+                        toggleInventory={toggleInventory}
+                        openModal={openModal}
+                      />
+                    ))}
+                  </div>
+                  {isModalOpen && selectedItem && (
+                    <Modal
+                      item={selectedItem}
+                      onClose={closeModal}
+                      lan={lan}
+                      localize={localize}
+                      UpFirstLetter={UpFirstLetter}
+                      findKeyByValue={findKeyByValue}
+                      isCollected={isCollected}
+                      isPartiallyCollected={isPartiallyCollected}
+                      isVariationCollected={isVariationCollected}
+                      hasVariations={hasVariations}
+                      toggleInventory={toggleInventory}
+                      toggleAllVariations={toggleAllVariations}
+                      collectedVariationCount={collectedVariationCount}
+                      totalVariationCount={totalVariationCount}
+                      onFilterNavigate={(query) => {
+                        setSearchBar('');
+                        setShowFilters(false);
+                        router.push({ query }, undefined, { shallow: true });
+                        closeModal();
+                      }}
+                    />
                   )}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {data?.page_info?.total_count ? (
-                  <PaginationControls
-                    currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-                    totalPages={data?.page_info.max_page ?? 1}
-                    onPageChange={(page) =>
-                      router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                        shallow: true,
-                      })
-                    }
-                  />
-                ) : (
-                  ''
-                )}
-              </div>
-            </div>
-            <div
-              className={`w-full grid gap-5 justify-center auto-rows-max
-                    ${
-                      (data?.result.length ?? 0) < 4
-                        ? 'grid-cols-autofit sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                        : 'grid-cols-autofit'
-                    }`}
-            >
-              {(data?.result ?? [])
-                .filter(item => {
-                  if (inventoryFilter === 'collected') return isCollected(item) || isPartiallyCollected(item);
-                  if (inventoryFilter === 'uncollected') return !isCollected(item) && !isPartiallyCollected(item);
-                  return true;
-                })
-                .map((item, i) => (
-                  <ItemCard
-                    key={item.name}
-                    item={item}
-                    lan={lan}
-                    hasVariations={hasVariations}
-                    isVariationCollected={isVariationCollected}
-                    isCollected={isCollected}
-                    toggleInventory={toggleInventory}
-                    openModal={openModal}
-                  />
-                ))}
-            </div>
-            {isModalOpen && selectedItem && (
-              <Modal
-                item={selectedItem}
-                onClose={closeModal}
-                lan={lan}
-                localize={localize}
-                UpFirstLetter={UpFirstLetter}
-                findKeyByValue={findKeyByValue}
-                isCollected={isCollected}
-                isPartiallyCollected={isPartiallyCollected}
-                isVariationCollected={isVariationCollected}
-                hasVariations={hasVariations}
-                toggleInventory={toggleInventory}
-                toggleAllVariations={toggleAllVariations}
-                collectedVariationCount={collectedVariationCount}
-                totalVariationCount={totalVariationCount}
-                onFilterNavigate={(query) => {
-                  setSearchBar('');
-                  setShowFilters(false);
-                  router.push({ query }, undefined, { shallow: true });
-                  closeModal();
-                }}
-              />
-            )}
-            <div className="flex w-full items-center justify-center mt-5">
-              {data?.page_info?.total_count ? (
-                <PaginationControls
-                  currentPage={parseInt(searchParams.get('page') ?? '1', 10)}
-                  totalPages={data?.page_info.max_page ?? 1}
-                  onPageChange={(page) =>
-                    router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
-                      shallow: true,
-                    })
-                  }
-                />
-              ) : (
-                ''
-              )}
-            </div>
+                  <div className="flex w-full items-center justify-center mt-5">
+                    {totalCount ? (
+                      <PaginationControls
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={(page) =>
+                          router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
+                            shallow: true,
+                          })
+                        }
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </main>
       </div>

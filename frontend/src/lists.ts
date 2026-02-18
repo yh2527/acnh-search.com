@@ -584,6 +584,7 @@ export const translation: Record<string, string> = {
   'No result': '无结果',
   'Search for items...': '支持中英搜索...',
   'Reset All': '重置',
+  'Reset Filters': '重置筛选',
   Page: '页数',
   Submit: '确定',
   'More Filters': '更多筛选',
