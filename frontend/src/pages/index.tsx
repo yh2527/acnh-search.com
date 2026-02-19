@@ -186,7 +186,7 @@ const ItemCard = ({ item, lan, hasVariations, isVariationCollected, isCollected,
       >
         {currentVarCollected ? '✓' : ''}
       </div>
-      <h3 className="text-center text-lg font-semibold h-auto md:h-10">
+      <h3 className="text-center text-lg font-semibold h-auto md:h-10 px-5 capitalize">
         {lan === 'en' ? item.name : item.translations?.cNzh ?? item.name}
       </h3>
       <div className="flex items-center justify-center w-50 h-40">
@@ -992,14 +992,12 @@ const Home = () => {
     queryKey: ['searchCache', Array.from(searchParams.entries()), inventoryFilter],
     queryFn: async (): Promise<ApiResponse> => {
       const fetchAll = inventoryFilter !== '';
-      const newParams = new URLSearchParams({
+      const baseParams: Record<string, string> = {
         lan: searchParams.get('lan') ?? 'en',
         category: searchParams.get('category') ?? '',
         excludeClothing: searchParams.get('excludeClothing') ?? '',
         v3Only: searchParams.get('v3Only') ?? '',
         search: searchParams.get('textSearch') ?? '',
-        page: fetchAll ? '1' : (searchParams.get('page') ?? '1'),
-        ...(fetchAll ? { limit: '500' } : {}),
         size: searchParams.get('size') ?? '',
         tag: searchParams.get('tag') ?? '',
         interact: searchParams.get('interact') ?? '',
@@ -1023,11 +1021,35 @@ const Home = () => {
         style: searchParams?.get('style') ?? '',
         ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') ?? '' } : {}),
         ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
-        // other stuff
-      });
-      const apiUrl = `http://localhost:8000?${newParams}`;
-      //const apiUrl = `/api?${newParams}`;
-      const result = await fetch(apiUrl);
+      };
+
+      //const apiBase = `/api`;
+      const apiBase = `http://localhost:8000`;
+
+      if (fetchAll) {
+        // Fetch all pages sequentially with limit=200 to avoid overloading server
+        const batchSize = 200;
+        const firstParams = new URLSearchParams({ ...baseParams, page: '1', limit: String(batchSize) });
+        const firstResult = await fetch(`${apiBase}?${firstParams}`);
+        const firstJson: ApiResponse = await firstResult.json();
+        const allItems = [...firstJson.result];
+        const totalCount = firstJson.page_info.total_count;
+
+        if (totalCount > batchSize) {
+          const totalPages = Math.ceil(totalCount / batchSize);
+          for (let p = 2; p <= totalPages; p++) {
+            const params = new URLSearchParams({ ...baseParams, page: String(p), limit: String(batchSize) });
+            const res = await fetch(`${apiBase}?${params}`);
+            const json: ApiResponse = await res.json();
+            allItems.push(...json.result);
+          }
+        }
+
+        return { result: allItems, page_info: { total_count: allItems.length, max_page: 1 } };
+      }
+
+      const newParams = new URLSearchParams({ ...baseParams, page: searchParams.get('page') ?? '1' });
+      const result = await fetch(`${apiBase}?${newParams}`);
       const json = await result.json();
       return json;
     },
@@ -1330,29 +1352,11 @@ const Home = () => {
                     category === 'All Categories' ? 'font-extrabold' : '',
                   )}
                 >
-                  {localize(category)}
+                  {localize(category === 'Equipments' ? 'Clothing' : category)}
                 </button>
               ))}
-              {/* exclude clothing & v3.0.0 checkboxes */}
+              {/* v3.0.0 checkbox */}
               <div className="flex items-center my-2 ml-2 text-sm gap-5">
-                <div className="flex items-center">
-                  <span className="mr-1">{'*' + localize('Exclude clothing') + ':'} </span>
-                  <div
-                    onClick={() => {
-                      var excludeClothing = searchParams.get('excludeClothing');
-                      excludeClothing = excludeClothing === 'True' ? '' : 'True';
-                      const updatedQuery = {
-                        ...Object.fromEntries(searchParams.entries()),
-                        excludeClothing: excludeClothing,
-                        page: 1,
-                      };
-                      router.push({ query: updatedQuery }, undefined, { shallow: true });
-                    }}
-                    className={`p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                  >
-                    {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
-                  </div>
-                </div>
                 <div className="flex items-center">
                   <span className="mr-1">{'*' + localize('v3.0.0 items only') + ':'} </span>
                   <div
@@ -1393,7 +1397,7 @@ const Home = () => {
                 {Object.keys(categories).map((s) => {
                   return (
                     <option key={s} value={s}>
-                      {localize('Category') + ':'} {UpFirstLetter(localize(s))}
+                      {localize('Category') + ':'} {UpFirstLetter(localize(s === 'Equipments' ? 'Clothing' : s))}
                     </option>
                   );
                 })}
@@ -1415,26 +1419,8 @@ const Home = () => {
                 </button>
               )}
             </div>
-            {/* exclude clothing & v3.0.0 checkboxes for smaller screens */}
+            {/* v3.0.0 checkbox for smaller screens */}
             <div className="flex flex-wrap gap-3 mb-3 text-sm md:hidden">
-              <div className="flex items-center">
-                <span className="mr-1">{'*' + localize('Exclude clothing') + ':'} </span>
-                <div
-                  onClick={() => {
-                    var excludeClothing = searchParams.get('excludeClothing');
-                    excludeClothing = excludeClothing === 'True' ? '' : 'True';
-                    const updatedQuery = {
-                      ...Object.fromEntries(searchParams.entries()), // current query params
-                      excludeClothing: excludeClothing,
-                      page: 1,
-                    };
-                    router.push({ query: updatedQuery }, undefined, { shallow: true });
-                  }}
-                  className={`p-2 w-5 h-5 rounded text-amber-500 border border-amber-300 flex items-center justify-center bg-white`}
-                >
-                  {searchParams.get('excludeClothing') === 'True' ? '✗' : ''}
-                </div>
-              </div>
               <div className="flex items-center">
                 <span className="mr-1">{'*' + localize('v3.0.0 items only') + ':'} </span>
                 <div
@@ -2561,11 +2547,12 @@ const Home = () => {
                         <PaginationControls
                           currentPage={currentPage}
                           totalPages={totalPages}
-                          onPageChange={(page) =>
+                          onPageChange={(page) => {
                             router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
                               shallow: true,
-                            })
-                          }
+                            });
+                            window.scrollTo(0, 0);
+                          }}
                         />
                       ) : (
                         ''
@@ -2622,11 +2609,12 @@ const Home = () => {
                       <PaginationControls
                         currentPage={currentPage}
                         totalPages={totalPages}
-                        onPageChange={(page) =>
+                        onPageChange={(page) => {
                           router.push({ query: { ...Object.fromEntries(searchParams.entries()), page } }, undefined, {
                             shallow: true,
-                          })
-                        }
+                          });
+                          window.scrollTo(0, 0);
+                        }}
                       />
                     ) : (
                       ''

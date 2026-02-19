@@ -987,6 +987,7 @@ export const translation: Record<string, string> = {
   'Slender Rugs': '细长地毯',
   'Wood Rugs': '木质地毯',
   //Clothing
+  Clothing: '着装',
   'Equipment Filters': '着装选项',
   'Clothing Theme': '着装主题',
   'Clothing Style': '着装风格',
