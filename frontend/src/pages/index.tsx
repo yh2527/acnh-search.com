@@ -988,72 +988,70 @@ const Home = () => {
     return lan === 'en' ? eng : translation[eng];
   };
 
-  const { isLoading, error, data } = useQuery<ApiResponse>({
-    queryKey: ['searchCache', Array.from(searchParams.entries()), inventoryFilter],
+  const baseParams: Record<string, string> = {
+    lan: searchParams.get('lan') ?? 'en',
+    category: searchParams.get('category') ?? '',
+    excludeClothing: searchParams.get('excludeClothing') ?? '',
+    v3Only: searchParams.get('v3Only') ?? '',
+    search: searchParams.get('textSearch') ?? '',
+    size: searchParams.get('size') ?? '',
+    tag: searchParams.get('tag') ?? '',
+    interact: searchParams.get('interact') ?? '',
+    colors: searchParams.get('colors') ?? '',
+    surface: searchParams.get('surface') ?? '',
+    body: searchParams.get('body') ?? '',
+    equippable: searchParams?.get('equippable') ?? '',
+    pattern: searchParams.get('pattern') ?? '',
+    custom: searchParams.get('custom') ?? '',
+    sable: searchParams.get('sable') ?? '',
+    height: searchParams.get('height') ?? '',
+    source: searchParams.get('source') ?? '',
+    season: searchParams.get('season') ?? '',
+    series: searchParams.get('series') ?? '',
+    lightingType: searchParams.get('lightingType') ?? '',
+    speakerType: searchParams.get('speakerType') ?? '',
+    concept: searchParams.get('concept') ?? '',
+    rug: searchParams.get('rug') ?? '',
+    type: searchParams?.get('type') ?? '',
+    theme: searchParams?.get('theme') ?? '',
+    style: searchParams?.get('style') ?? '',
+    ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') ?? '' } : {}),
+    ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
+  };
+
+  //const apiBase = `/api`;
+  const apiBase = `http://localhost:8000`;
+
+  // Normal paginated query (used when no inventory filter, or "uncollected" filter)
+  const normalQuery = useQuery<ApiResponse>({
+    queryKey: ['searchCache', Array.from(searchParams.entries())],
     queryFn: async (): Promise<ApiResponse> => {
-      const fetchAll = inventoryFilter !== '';
-      const baseParams: Record<string, string> = {
-        lan: searchParams.get('lan') ?? 'en',
-        category: searchParams.get('category') ?? '',
-        excludeClothing: searchParams.get('excludeClothing') ?? '',
-        v3Only: searchParams.get('v3Only') ?? '',
-        search: searchParams.get('textSearch') ?? '',
-        size: searchParams.get('size') ?? '',
-        tag: searchParams.get('tag') ?? '',
-        interact: searchParams.get('interact') ?? '',
-        colors: searchParams.get('colors') ?? '',
-        surface: searchParams.get('surface') ?? '',
-        body: searchParams.get('body') ?? '',
-        equippable: searchParams?.get('equippable') ?? '',
-        pattern: searchParams.get('pattern') ?? '',
-        custom: searchParams.get('custom') ?? '',
-        sable: searchParams.get('sable') ?? '',
-        height: searchParams.get('height') ?? '',
-        source: searchParams.get('source') ?? '',
-        season: searchParams.get('season') ?? '',
-        series: searchParams.get('series') ?? '',
-        lightingType: searchParams.get('lightingType') ?? '',
-        speakerType: searchParams.get('speakerType') ?? '',
-        concept: searchParams.get('concept') ?? '',
-        rug: searchParams.get('rug') ?? '',
-        type: searchParams?.get('type') ?? '',
-        theme: searchParams?.get('theme') ?? '',
-        style: searchParams?.get('style') ?? '',
-        ...(searchParams.get('minHeight') ? { minHeight: searchParams.get('minHeight') ?? '' } : {}),
-        ...(searchParams.get('maxHeight') ? { maxHeight: searchParams.get('maxHeight') ?? '' } : {}),
-      };
-
-      //const apiBase = `/api`;
-      const apiBase = `http://localhost:8000`;
-
-      if (fetchAll) {
-        // Fetch all pages sequentially with limit=200 to avoid overloading server
-        const batchSize = 200;
-        const firstParams = new URLSearchParams({ ...baseParams, page: '1', limit: String(batchSize) });
-        const firstResult = await fetch(`${apiBase}?${firstParams}`);
-        const firstJson: ApiResponse = await firstResult.json();
-        const allItems = [...firstJson.result];
-        const totalCount = firstJson.page_info.total_count;
-
-        if (totalCount > batchSize) {
-          const totalPages = Math.ceil(totalCount / batchSize);
-          for (let p = 2; p <= totalPages; p++) {
-            const params = new URLSearchParams({ ...baseParams, page: String(p), limit: String(batchSize) });
-            const res = await fetch(`${apiBase}?${params}`);
-            const json: ApiResponse = await res.json();
-            allItems.push(...json.result);
-          }
-        }
-
-        return { result: allItems, page_info: { total_count: allItems.length, max_page: 1 } };
-      }
-
       const newParams = new URLSearchParams({ ...baseParams, page: searchParams.get('page') ?? '1' });
       const result = await fetch(`${apiBase}?${newParams}`);
-      const json = await result.json();
-      return json;
+      return result.json();
     },
+    enabled: inventoryFilter !== 'collected',
   });
+
+  // Inventory query: POST collected item keys to backend, returns only those items instantly
+  const inventoryKeys = Array.from(inventory);
+  const inventoryQuery = useQuery<ApiResponse>({
+    queryKey: ['inventoryCache', inventoryKeys.sort().join(',')],
+    queryFn: async (): Promise<ApiResponse> => {
+      const result = await fetch(`${apiBase}/inventory`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: inventoryKeys }),
+      });
+      return result.json();
+    },
+    enabled: inventoryFilter === 'collected' && inventoryKeys.length > 0,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const isLoading = inventoryFilter === 'collected' ? inventoryQuery.isLoading : normalQuery.isLoading;
+  const error = inventoryFilter === 'collected' ? inventoryQuery.error : normalQuery.error;
+  const data = inventoryFilter === 'collected' ? inventoryQuery.data : normalQuery.data;
   const InteractFilters = ({ interact }: { interact: string }) => {
     return (
       <button

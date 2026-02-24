@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.mongo_query import mongo_query
 from backend.query_transformation import query_transformation
 from fastapi.middleware.gzip import GZipMiddleware
-#import json
-#from bson.json_util import dumps
+from pydantic import BaseModel
+import json
+from bson.json_util import dumps
+from pymongo import MongoClient
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware)
@@ -15,6 +17,52 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+client = MongoClient("mongodb://localhost:27017/")
+db = client["acnh-furnitures"]
+collection = db["Furnitures"]
+
+class InventoryRequest(BaseModel):
+    keys: list[str]
+
+@app.post("/inventory")
+def inventory_lookup(req: InventoryRequest):
+    if not req.keys or len(req.keys) > 5000:
+        return {"result": [], "page_info": {"total_count": 0, "max_page": 1}}
+
+    or_conditions = []
+    for key in req.keys:
+        parts = key.split("|", 1)
+        if len(parts) == 2:
+            or_conditions.append({"name": {"$regex": f"^{parts[0]}$", "$options": "i"}, "sourceSheet": parts[1]})
+
+    if not or_conditions:
+        return {"result": [], "page_info": {"total_count": 0, "max_page": 1}}
+
+    projection = {
+        "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "buy": 1,
+        "variations_info": 1, "diy_info": 1, "seasonEvent": 1, "exchangePrice": 1, "exchangeCurrency": 1,
+        "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
+        "url": 1, "series": 1, "surface": 1, "kitCost": 1, "kitType": 1, "patternCustomize": 1,
+        "translations.cNzh": 1, "bodyCustomize": 1, "customPattern": 1, "sablePattern": 1,
+        "concepts": 1, "lightingType": 1, "villagerEquippable": 1, "cyrusCustomizePrice": 1,
+        "speakerType": 1, "storageImage": 1, "themes": 1, "styles": 1, "sourceSheet": 1, "_id": 0
+    }
+
+    bson = collection.find(filter={"$or": or_conditions}, projection=projection, sort=[("name", 1)])
+    result = json.loads(dumps(bson))
+
+    for item in result:
+        item["name"] = item["name"].capitalize()
+        item["colors"] = list(set(filter(lambda x: x is not None, item.get("colors", []))))
+        if "themes" in item:
+            item["themes"] = list(set(filter(lambda x: x is not None, item.get("themes", []))))
+        if "styles" in item:
+            item["styles"] = list(set(filter(lambda x: x is not None, item.get("styles", []))))
+        if "height" in item:
+            item["height"] = round(item["height"], 1)
+
+    return {"result": result, "page_info": {"total_count": len(result), "max_page": 1}}
 
 
 @app.get("/")
