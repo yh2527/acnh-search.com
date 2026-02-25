@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
@@ -1022,7 +1022,7 @@ const Home = () => {
   //const apiBase = `/api`;
   const apiBase = `http://localhost:8000`;
 
-  // Normal paginated query (used when no inventory filter, or "uncollected" filter)
+  // Normal paginated query (used when no inventory filter)
   const normalQuery = useQuery<ApiResponse>({
     queryKey: ['searchCache', Array.from(searchParams.entries())],
     queryFn: async (): Promise<ApiResponse> => {
@@ -1030,28 +1030,57 @@ const Home = () => {
       const result = await fetch(`${apiBase}?${newParams}`);
       return result.json();
     },
-    enabled: inventoryFilter !== 'collected',
+    enabled: inventoryFilter === '',
   });
 
-  // Inventory query: POST collected item keys to backend, returns only those items instantly
-  const inventoryKeys = Array.from(inventory);
+  // Extract unique name|sourceSheet pairs from all inventory keys (including variation keys like name|sheet|var|pat)
+  const inventoryItemKeys = useMemo(() => {
+    const itemSet = new Set<string>();
+    inventory.forEach(key => {
+      const parts = key.split('|');
+      itemSet.add(`${parts[0]}|${parts[1]}`);
+    });
+    return Array.from(itemSet);
+  }, [inventory]);
+
+  // Collected query: POST collected item keys to backend, returns only those items
   const inventoryQuery = useQuery<ApiResponse>({
-    queryKey: ['inventoryCache', inventoryKeys.sort().join(',')],
+    queryKey: ['inventoryCache', inventoryItemKeys.sort().join(',')],
     queryFn: async (): Promise<ApiResponse> => {
       const result = await fetch(`${apiBase}/inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: inventoryKeys }),
+        body: JSON.stringify({ keys: inventoryItemKeys }),
       });
       return result.json();
     },
-    enabled: inventoryFilter === 'collected' && inventoryKeys.length > 0,
+    enabled: inventoryFilter === 'collected' && inventoryItemKeys.length > 0,
     staleTime: 10 * 60 * 1000,
   });
 
-  const isLoading = inventoryFilter === 'collected' ? inventoryQuery.isLoading : normalQuery.isLoading;
-  const error = inventoryFilter === 'collected' ? inventoryQuery.error : normalQuery.error;
-  const data = inventoryFilter === 'collected' ? inventoryQuery.data : normalQuery.data;
+  // Uncollected query: POST collected keys to backend, returns everything EXCEPT those items (paginated)
+  const uncollectedQuery = useQuery<ApiResponse>({
+    queryKey: ['uncollectedCache', inventoryItemKeys.sort().join(','), searchParams.get('page') ?? '1'],
+    queryFn: async (): Promise<ApiResponse> => {
+      const result = await fetch(`${apiBase}/inventory/uncollected`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: inventoryItemKeys, page: Number(searchParams.get('page') ?? 1) }),
+      });
+      return result.json();
+    },
+    enabled: inventoryFilter === 'uncollected',
+  });
+
+  const isLoading = inventoryFilter === 'collected' ? inventoryQuery.isLoading
+    : inventoryFilter === 'uncollected' ? uncollectedQuery.isLoading
+    : normalQuery.isLoading;
+  const error = inventoryFilter === 'collected' ? inventoryQuery.error
+    : inventoryFilter === 'uncollected' ? uncollectedQuery.error
+    : normalQuery.error;
+  const data = inventoryFilter === 'collected' ? inventoryQuery.data
+    : inventoryFilter === 'uncollected' ? uncollectedQuery.data
+    : normalQuery.data;
   const InteractFilters = ({ interact }: { interact: string }) => {
     return (
       <button
@@ -2502,24 +2531,22 @@ const Home = () => {
                 if (inventoryFilter === 'uncollected') return !isCollected(item) && !isPartiallyCollected(item);
                 return true;
               });
-              const isFiltered = inventoryFilter !== '';
+              const isClientPaginated = inventoryFilter === 'collected';
               const pageSize = 60;
-              const currentPage = isFiltered
-                ? Number(searchParams.get('page') ?? 1)
-                : parseInt(searchParams.get('page') ?? '1', 10);
-              const displayItems = isFiltered
+              const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
+              const displayItems = isClientPaginated
                 ? filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
                 : filtered;
-              const totalCount = isFiltered ? filtered.length : (data?.page_info?.total_count ?? 0);
-              const totalPages = isFiltered
+              const totalCount = isClientPaginated ? filtered.length : (data?.page_info?.total_count ?? 0);
+              const totalPages = isClientPaginated
                 ? Math.max(1, Math.ceil(filtered.length / pageSize))
                 : (data?.page_info?.max_page ?? 1);
-              const startIndex = isFiltered
+              const startIndex = isClientPaginated
                 ? Math.min((currentPage - 1) * pageSize + 1, filtered.length)
-                : 60 * (Number(searchParams.get('page') ?? 1) - 1) + 1;
-              const endIndex = isFiltered
+                : 60 * (currentPage - 1) + 1;
+              const endIndex = isClientPaginated
                 ? Math.min(currentPage * pageSize, filtered.length)
-                : Math.min(60 * Number(searchParams.get('page') ?? 1), data?.page_info?.total_count ?? 0);
+                : Math.min(60 * currentPage, data?.page_info?.total_count ?? 0);
 
               return (
                 <>
