@@ -172,6 +172,9 @@ export const series_list: Record<string, string> = {
   'My Melody': 'My Melody',
   Pompompurin: 'Pompompurin',
   Mario: '马力欧',
+  'LEGO®': 'LEGO®',
+  Splatoon: 'Splatoon',
+  'The Legend of Zelda': '塞尔达传说',
 
   divider1: 'divider',
   bamboo: '竹子',
@@ -218,6 +221,12 @@ export const series_list: Record<string, string> = {
   ranch: '乡村',
   sloppy: '邋遢',
   stars: '星星',
+
+  divider5: 'divider',
+  kids: '儿童',
+  marble: '大理石',
+  tubular: '管状',
+  'zen modern': '禅意现代',
 };
 export const sources: Record<string, string> = {
   divider0: 'divider',

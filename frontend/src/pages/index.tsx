@@ -1045,12 +1045,12 @@ const Home = () => {
 
   // Collected query: POST collected item keys to backend, returns only those items
   const inventoryQuery = useQuery<ApiResponse>({
-    queryKey: ['inventoryCache', inventoryItemKeys.sort().join(',')],
+    queryKey: ['inventoryCache', inventoryItemKeys.sort().join(','), baseParams],
     queryFn: async (): Promise<ApiResponse> => {
       const result = await fetch(`${apiBase}/inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: inventoryItemKeys }),
+        body: JSON.stringify({ keys: inventoryItemKeys, ...baseParams }),
       });
       return result.json();
     },
@@ -1060,12 +1060,12 @@ const Home = () => {
 
   // Uncollected query: POST collected keys to backend, returns everything EXCEPT those items (paginated)
   const uncollectedQuery = useQuery<ApiResponse>({
-    queryKey: ['uncollectedCache', inventoryItemKeys.sort().join(','), searchParams.get('page') ?? '1'],
+    queryKey: ['uncollectedCache', inventoryItemKeys.sort().join(','), searchParams.get('page') ?? '1', baseParams],
     queryFn: async (): Promise<ApiResponse> => {
       const result = await fetch(`${apiBase}/inventory/uncollected`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: inventoryItemKeys, page: Number(searchParams.get('page') ?? 1) }),
+        body: JSON.stringify({ keys: inventoryItemKeys, page: Number(searchParams.get('page') ?? 1), ...baseParams }),
       });
       return result.json();
     },
@@ -2525,12 +2525,7 @@ const Home = () => {
             {' '}
             {/* item cards */}
             {(() => {
-              const allItems = data?.result ?? [];
-              const filtered = allItems.filter(item => {
-                if (inventoryFilter === 'collected') return isCollected(item) || isPartiallyCollected(item);
-                if (inventoryFilter === 'uncollected') return !isCollected(item) && !isPartiallyCollected(item);
-                return true;
-              });
+              const filtered = data?.result ?? [];
               const isClientPaginated = inventoryFilter === 'collected';
               const pageSize = 60;
               const currentPage = parseInt(searchParams.get('page') ?? '1', 10);

@@ -1,13 +1,14 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from backend.mongo_query import mongo_query
+from backend.mongo_query import mongo_query, build_criteria, projection, collection
 from backend.query_transformation import query_transformation
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel
+from typing import Optional
 import json
 import re
+import pymongo
 from bson.json_util import dumps
-from pymongo import MongoClient
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware)
@@ -18,20 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-client = MongoClient("mongodb://localhost:27017/")
-db = client["acnh-furnitures"]
-collection = db["Furnitures"]
-
-projection = {
-    "name": 1, "category": 1, "image": 1, "furnitureImage": 1, "buy": 1,
-    "variations_info": 1, "diy_info": 1, "seasonEvent": 1, "exchangePrice": 1, "exchangeCurrency": 1,
-    "size": 1, "tag": 1, "source": 1, "colors": 1, "interact": 1, "height": 1,
-    "url": 1, "series": 1, "surface": 1, "kitCost": 1, "kitType": 1, "patternCustomize": 1,
-    "translations.cNzh": 1, "bodyCustomize": 1, "customPattern": 1, "sablePattern": 1,
-    "concepts": 1, "lightingType": 1, "villagerEquippable": 1, "cyrusCustomizePrice": 1,
-    "speakerType": 1, "storageImage": 1, "themes": 1, "styles": 1, "sourceSheet": 1, "_id": 0
-}
 
 def transform_items(result):
     for item in result:
@@ -45,9 +32,6 @@ def transform_items(result):
             item["height"] = round(item["height"], 1)
     return result
 
-class InventoryRequest(BaseModel):
-    keys: list[str]
-
 def parse_keys(keys):
     conditions = []
     for key in keys:
@@ -55,6 +39,51 @@ def parse_keys(keys):
         if len(parts) == 2:
             conditions.append({"name": {"$regex": f"^{re.escape(parts[0])}$", "$options": "i"}, "sourceSheet": parts[1]})
     return conditions
+
+class InventoryRequest(BaseModel):
+    keys: list[str]
+    # Optional filter params
+    category: str = ''
+    excludeClothing: str = ''
+    v3Only: str = ''
+    search: str = ''
+    size: str = ''
+    tag: str = ''
+    interact: str = ''
+    colors: str = ''
+    surface: str = ''
+    body: str = ''
+    equippable: str = ''
+    pattern: str = ''
+    custom: str = ''
+    sable: str = ''
+    height: str = ''
+    source: str = ''
+    season: str = ''
+    series: str = ''
+    lightingType: str = ''
+    speakerType: str = ''
+    concept: str = ''
+    rug: str = ''
+    type: str = ''
+    theme: str = ''
+    style: str = ''
+    minHeight: int = -1
+    maxHeight: int = -1
+
+def get_filter_criteria(req):
+    """Build filter criteria from request params using shared build_criteria."""
+    criteria, collation = build_criteria(
+        category=req.category, search=req.search, size=req.size,
+        interact=req.interact, colors=req.colors, surface=req.surface,
+        excludeClothing=req.excludeClothing, source=req.source, season=req.season,
+        series=req.series, lightingType=req.lightingType, speakerType=req.speakerType,
+        minHeight=req.minHeight, maxHeight=req.maxHeight, body=req.body,
+        pattern=req.pattern, custom=req.custom, sable=req.sable,
+        concept=req.concept, rug=req.rug, theme=req.theme, style=req.style,
+        type=req.type, equippable=req.equippable, v3Only=req.v3Only, tag=req.tag
+    )
+    return criteria
 
 @app.post("/inventory")
 def inventory_lookup(req: InventoryRequest):
@@ -65,38 +94,35 @@ def inventory_lookup(req: InventoryRequest):
     if not or_conditions:
         return {"result": [], "page_info": {"total_count": 0, "max_page": 1}}
 
-    bson = collection.find(filter={"$or": or_conditions}, projection=projection, sort=[("name", 1)])
+    # Combine inventory keys with any active filters
+    filter_criteria = get_filter_criteria(req)
+    combined = {"$and": [{"$or": or_conditions}, filter_criteria]}
+
+    bson = collection.find(filter=combined, projection=projection, sort=[("name", pymongo.ASCENDING)])
     result = json.loads(dumps(bson))
     result = transform_items(result)
 
     return {"result": result, "page_info": {"total_count": len(result), "max_page": 1}}
 
-class UncollectedRequest(BaseModel):
-    keys: list[str]
+class UncollectedRequest(InventoryRequest):
     page: int = 1
     limit: int = 60
 
 @app.post("/inventory/uncollected")
 def uncollected_lookup(req: UncollectedRequest):
     offset = (req.page - 1) * req.limit
+    filter_criteria = get_filter_criteria(req)
 
     if not req.keys:
-        bson = collection.find(filter={}, projection=projection, sort=[("name", 1)], skip=offset, limit=req.limit)
-        total_count = collection.count_documents({})
-        result = json.loads(dumps(bson))
-        result = transform_items(result)
-        return {"result": result, "page_info": {"total_count": total_count, "max_page": -(total_count // -req.limit)}}
+        criteria = filter_criteria
+    else:
+        nor_conditions = parse_keys(req.keys)
+        if nor_conditions:
+            criteria = {"$and": [filter_criteria, {"$nor": nor_conditions}]}
+        else:
+            criteria = filter_criteria
 
-    nor_conditions = parse_keys(req.keys)
-    if not nor_conditions:
-        bson = collection.find(filter={}, projection=projection, sort=[("name", 1)], skip=offset, limit=req.limit)
-        total_count = collection.count_documents({})
-        result = json.loads(dumps(bson))
-        result = transform_items(result)
-        return {"result": result, "page_info": {"total_count": total_count, "max_page": -(total_count // -req.limit)}}
-
-    criteria = {"$nor": nor_conditions}
-    bson = collection.find(filter=criteria, projection=projection, sort=[("name", 1)], skip=offset, limit=req.limit)
+    bson = collection.find(filter=criteria, projection=projection, sort=[("name", pymongo.ASCENDING)], skip=offset, limit=req.limit)
     total_count = collection.count_documents(criteria)
     result = json.loads(dumps(bson))
     result = transform_items(result)
